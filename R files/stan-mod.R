@@ -4,49 +4,60 @@ library("ggplot2")
 library("rstan")
 library("dplyr")
 
+#read in data
 data <- read.csv("data/netherlands_95.csv")
 
 # data needed for parameter estimation
-clean_dat <- matrix(nrow=length(data$age_mid), ncol=3)
-clean_dat[,1:3] <- c(data$age_mid, data$k, data$n)
-colnames(clean_dat) <- c("age_mid", "k", "n")
+clean_dat <- data.frame("age_mid"=data$age_mid, "k"=data$k, "n"=data$n)
 data_agrps <- length(clean_dat[,"age_mid"])
 
-# # create larger matrix 
-age_groups <- seq(0,80,0.5)  #from 0 -> 80 in 0.5 year intervals
-mod_dat <- matrix(nrow=length(age_groups), ncol=3)
-colnames(mod_dat) = c("age_mid", "k", "n")
-mod_dat[,"age_mid"] <- age_groups
-# 
-# # merge data into larger matrix for simpler fitting
-x <- cbind(t=clean_dat[,"age_mid"], as.data.frame(unname(clean_dat[,2:3])))
-y <- cbind(t=mod_dat[,"age_mid"], as.data.frame(unname(mod_dat[,2:3])))
-xy <- merge(x, y, by='t', all=TRUE)
-xy[is.na(xy)] <- 0
-full_data <- data.frame("age_mid"=xy[,1], "k"=xy[,2], "n"=xy[,3])
+######################################################
+## modify data age groups to match model age groups ##
+######################################################
+#create new dataset
+matched_dat <- clean_dat
+# x[,2] increases by one each time data age midpoint is closest match to modelled age midpoint
+x <- cbind(pars$age, findInterval(pars$age, matched_dat$age_mid))
+#head(x, n=12)
+#returns FALSE if there's change between element i and element i+1
+y <- diff(x[,2]) <= 0   #so save i+1 element of x[,1] to matched_ages[i]
+#head(y, n=12)
 
-## v2: creating larger dataset for full range of ages ##
-# mod_dat <- matrix(nrow=length(pars$age), ncol=3)
-# colnames(mod_dat) = c("age_mid", "k", "n")
-# mod_dat[,"age_mid"] <- pars$age
-# 
-# x <- cbind(t=clean_dat[,"age_mid"], as.data.frame(unname(clean_dat[,2:3])))
-# y <- cbind(t=mod_dat[,"age_mid"], as.data.frame(unname(mod_dat[,2:3])))
-# xy <- merge(x, y, by='t', all=TRUE)
-# xy[is.na(xy)] <- 0
-# full_data <- data.frame("age_mid"=xy[,1], "k"=xy[,2], "n"=xy[,3])
+# each time x[,2] increases by 1, save value of x[,1][i+1] to matched_dat$age_mid[i]
+matched_ages <- vector("numeric", pars$agrps)
+for(i in 1:length(y)){
+  if(y[i]==T){
+    matched_ages[i] <- NA
+    
+  }else if(y[i]==F){
+    matched_ages[i] <- x[,1][i+1]
+  }
+}
+#removes last element (which is 0 because of indexing)
+matched_ages <- head(matched_ages, -1)
+#remove NAs
+matched_ages <-matched_ages[!is.na(matched_ages)]
+#save age mid points to dataset
+matched_dat$age_mid <- matched_ages
 
-##### problem === doing age groups by trimester creates age midpoints that can't match 
-##### data from the Netherlands
+###################################################
+## merge data into larger df for simpler fitting ##
+###################################################
+mod_dat <- data.frame("age_mid"=pars$age,"k"=0, "n"=0)
+merged_dat <- merge(matched_dat, mod_dat, by='age_mid', all=TRUE)
+merged_dat[is.na(merged_dat)] <- 0
+full_data <- data.frame("age_mid"=merged_dat[,1], "k"=merged_dat[,2], "n"=merged_dat[,3])
 
-
-
-# data needed for model simulation
+############################################
+# read in data needed for model simulation #
+############################################
 agrps <- length(full_data$age_mid)
 cases <- full_data$k
 n <- full_data$n
-  
-# other parameters for model
+
+######################################
+# read in other parameters for model #
+######################################
 t <- seq(0,10,1)
 t0 = 0 
 ts <- t[-1]
@@ -57,8 +68,9 @@ source("R files/demogdat.R")
 N <- sum(pars$Na)
 age_prop <- pars$Na/N   ## needs to be same length as nrow(full_data)
 
-# data list for Stan
-### EACH OF THESE PARAMETERS NEED TO BE CORRECT LENGTH ##
+###################### 
+# data list for Stan #
+######################
 data_si = list(
   y=y,
   agrps = pars$agrps, 
@@ -114,7 +126,9 @@ pairs(fit_mod, pars = c("lambda0"), las = 1) # below the diagonal
 # plot(1:(16*3), init)  ## all values close to 0 — why initial values are rejected?
 
 
-## Check inference ##
+#####################
+## check inference ##
+#####################
 # Specify parameters of interest
 pars=c('lambda0')
 print(fit_mod, pars = pars)

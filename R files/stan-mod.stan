@@ -22,7 +22,6 @@ functions {
     vector[agrps] matAb2;
     vector[agrps] matAb3;
     real pI[agrps];
-    real mctr[3] = x_r[1];
     
     //foi
     real foi[agrps] = rep_array(lambda0, agrps);  //array of length agrps, with all values set to lambda0
@@ -33,7 +32,8 @@ functions {
     real Im[agrps] = y[(2*agrps)+1:(3*agrps)];
     
     
-    //define births & deaths
+    //define births, deaths & congenital infections
+    real mctr[3] = x_r[1];
     real d[agrps] = x_r[2];
     vector[agrps] propfert = x_r[3];
     real r = x_r[4];
@@ -186,6 +186,7 @@ transformed parameters {
   vector[data_agrps] comp_pI;
   
   theta[1] = lambda0;
+  ///could just make initial values = y (if works in model running)
   for(i in 1:agrps){
     init[i] = age_prop[i];  //proportion in S0
     init[agrps+i] = 0;      //proportion in I0
