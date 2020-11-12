@@ -8,6 +8,8 @@ year <- "2015-2020"
 year1 <- "2020"
 
 ### define age sequence for the model
+# agrps=length(full_data$age_mid)  #from 'stan-mod.R'
+# amax=100
 agrps=100; amax=100
 
 library(wpp2019)
