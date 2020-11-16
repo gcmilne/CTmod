@@ -7,11 +7,6 @@ country <- "Netherlands"
 year <- "2015-2020"
 year1 <- "2020"
 
-### define age sequence for the model
-# agrps=length(full_data$age_mid)  #from 'stan-mod.R'
-# amax=100
-agrps=100; amax=100
-
 library(wpp2019)
 
 ### load required datasets
@@ -70,5 +65,7 @@ births_age <- fert_tot*prop_fert_age*pop_f/(5*pop_f) ## 5 is becuase TFR is defi
 
 ## 4. sex ratio
 pf <- pop_f/(pop_m[-length(pop_m)]+pop_f)
+
+rm(pop_f, pop_m, fert_tot)
 
 

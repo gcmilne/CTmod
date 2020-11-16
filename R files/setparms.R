@@ -5,7 +5,7 @@
 #source("R files/stan-mod.R")
 source("R files/demogdat.R")
 
-pars  <- list(scale=50, shape= 5.647195e-04, agrps=400, amax=100, lambda0 = 2.235830e+01,
+pars  <- list(scale=50, shape= 5.647195e-04, agrps=400, amax=100, lambda0 = 0.13,
               lambda1 = 7.570937e-04, gradient = 2.957032e-02, se=0.98475, sp=0.98725)
 pars$la <- (pars$amax/pars$agrps)  # no. years in each age group (here = 1 yr)
 pars$da <-  1/pars$la  # ageing rate
@@ -25,8 +25,9 @@ f <- spline(age_pop, tot_pop, xout=pars$age)
 ######
 pars$Na <- f$y/sum(f$y)*sum(tot_pop) # interpolates age specific population size
 pars$N <- pars$Na # total population size
+## check how to prevent neg death values
 pars$d <- spline(age_mort, mort, xout=pars$age)$y # interpolated age specific per capita mortality rates
-pars$d[length(pars$d)] <- pars$d[length(pars$d)]
+# pars$d[length(pars$d)] <- pars$d[length(pars$d)]
 pars$propfert <- approx(age_fert,prop_fert_age,  xout=pars$age)$y
 pars$propfert[is.na(pars$propfert)] <- 0
 pars$propfert <- pars$propfert/sum(pars$propfert)
