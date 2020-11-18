@@ -1,11 +1,18 @@
-library("bayesplot")
-library("rstanarm")
+#library("bayesplot")
+#library("rstanarm")
 library("ggplot2")
 library("rstan")
 library("dplyr")
 
+#install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+library(cmdstanr)
+library(posterior)
+library(bayesplot)
+
 #read in data
 data <- read.csv("data/netherlands_95.csv")
+source("R files/setparms.R")
+source("R files/demogdat.R")
 
 # data needed for parameter estimation
 clean_dat <- data.frame("age_mid"=data$age_mid, "k"=data$k, "n"=data$n)
@@ -58,28 +65,34 @@ n <- full_data$n
 ######################################
 # read in other parameters for model #
 ######################################
-t <- seq(0,10,1)
 t0 = 0 
-ts <- t[-1]
+ts <- seq(1,10, 1)
 t <-max(ts)
-
-source("R files/setparms.R")
-source("R files/demogdat.R")
 N <- sum(pars$Na)
 age_prop <- pars$Na/N   ## needs to be same length as nrow(full_data)
+
+#index of rows of expanded df in which data exist
+data_rows <- c(which(full_data$k!=0), which(full_data$k!=0)+agrps, which(full_data$k!=0)+2*agrps)
+
+d <- pars$d
 
 ###################### 
 # data list for Stan #
 ######################
 data_si = list(
-  y=y,
   agrps = pars$agrps, 
   data_agrps = data_agrps,
+  data_rows=data_rows,
   age_prop=age_prop,
   tot_pop=N, 
+  # S_r = 5, #no real arrays
+  # starts_r = c(1, 2, 3, 6, 6+pars$agrps, 6+(2*pars$agrps)),  #start indices of real arrays
+  # r_array=c(pars$r, pars$da, pars$mctr, pars$d, pars$propfert), 
+  age=pars$age,
   da=pars$da,
   d=pars$d,
   r=pars$r,
+  mctr=pars$mctr,
   propfert=pars$propfert,
   K=3,  #no. state variables
   t0 = t0,
@@ -87,44 +100,35 @@ data_si = list(
   t=t,
   n=n, #n
   cases=cases, #k
-  inference=1, 
-  doprint=0)
+  rel_tol = 1.0E-10, 
+  abs_tol = 1.0E-10,
+  max_num_steps = 1.0E3,
+  inference=0, 
+  doprint=1)
 
-# number of MCMC steps
-niter <- 100
+###################
+# CmdStan running #
+###################
+file <- "R files/stan-mod-simple.stan"
+mod <- cmdstan_model(file)
 
-## Compile the model saved in 'R files/...' ##
-model <- stan_model("R files/stan-mod.stan")
+fit <- mod$sample(
+  data = data_si,
+  seed = 123,
+  chains = 2,
+  parallel_chains = 1, 
+  iter_warmup = 10,
+  iter_sampling = 40,
+  refresh = 1
+)
+# system("say -v Karen Surfs up, bro!")
 
-## Run MCMC ##
-fit_mod <- sampling(object = model, 
-                    seed = 123,
-                    data = data_si,
-                    iter = niter,
-                    chains = 2 
-                    #control = list(adapt_delta = 0.99)
-                    )
-system("say -v Karen Surfs up, bro!")
-
-# Warning messages:
-#   1: There were 5 divergent transitions after warmup. See
-# http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-# to find out why this is a problem and how to eliminate them. 
-# 2: Examine the pairs() plot to diagnose sampling problems
-pairs(fit_mod, pars = c("lambda0"), las = 1) # below the diagonal
-
-
-#################################################
-##  check why MCMC rejects initial Stan value ##
-#################################################
-# init<-vector("numeric",length=agrps*3)
-# for(i in 1:agrps){
-#   init[i] = (age_prop[i] * (1-seroprev[i]))
-#   init[agrps+i] = (age_prop[i] * seroprev[i])
-#   init[2*agrps+i] = (age_prop[i] * seroprev[i])
-# }
-# plot(1:(16*3), init)  ## all values close to 0 — why initial values are rejected?
-
+fit$summary()
+draws_array <- fit$draws()
+str(draws_array)
+draws_df <- as_draws_df(draws_array) # as_draws_matrix() for matrix
+print(draws_df)
+mcmc_hist(fit$draws("theta"))
 
 #####################
 ## check inference ##
@@ -152,3 +156,7 @@ color_scheme_set("mix-blue-pink")
 p <- mcmc_trace(posterior2,  pars = "lambda0", n_warmup = 300,
                 facet_args = list(nrow = 2, labeller = label_parsed))
 p + facet_text(size = 15)
+
+
+# For info on posterior predictive checks (including plotting modelled estimates vs. data), see:
+# https://arxiv.org/pdf/2006.02985.pdf

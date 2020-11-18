@@ -1,9 +1,12 @@
 functions{
   vector mod_si(
     real t, vector y,  //y is a vector in new ODE interface 
-    real lambda0,  real lambda1, real gradient, real shape, //pass parameters directly into model
+    real lambda0,  //pass parameters directly into model
+    // real lambda1,
+    //real gradient, real shape, 
     int agrps, int K, //pass int data directly into model
-    real[] age, real r, real da, real[] mctr, real[] d, real[] propfert //pass real data directly into model
+    // vector age, 
+    real r, real da, real[] mctr, real[] d, real[] propfert //pass real data directly into model
     ) {
       
       //define variables to calculate within model 
@@ -40,12 +43,13 @@ functions{
       real foi[agrps];
       foi = rep_array(lambda0, agrps);
       // for(i in 1:agrps){
-      //   foi[i] = (lambda0 + lambda1*(age[i]^2) * (age[i] * exp(-gradient*age[i])))*shape;
+        //foi[i] = (lambda0 + lambda1*(age[i]^2) * (age[i] * exp(-gradient*age[i])))*shape;
+      //   foi[i] = lambda0 + lambda1*(pow(age[i], 2));
       // }
       
       //total modelled population size
       for(i in 1:agrps){
-        Na[i] = y[i] + y[agrps+i] + y[2*agrps+i];
+        Na[i] = S[i] + I[i] + Im[i];
       }
       
       //age-specific total deaths
@@ -72,7 +76,7 @@ functions{
       
       //seroprevalence
       for(i in 1:agrps){
-        pI[i] = (y[agrps+i] + y[2*agrps+i])/Na[i];
+        pI[i] = (I[i] + Im[i])/Na[i];
       }
       
       //calculating seroconversions in pregnancy and cases of congenital disease
@@ -144,6 +148,7 @@ data {
   vector[agrps] age_prop;  //proportion of population in each age group
   int tot_pop;  //total population size
   
+  vector[agrps] age;
   real r;
   real da;
   real mctr[3];
@@ -163,6 +168,10 @@ data {
   int max_num_steps;
   int inference;  //simulate w/o data (inference==0) or with data (inference==1)
   int doprint;
+  
+  //formatting ode results
+  int data_agrps;
+  int data_rows[data_agrps*K];
 }
 
 // transformed data {
@@ -173,20 +182,20 @@ data {
 //parameters accepted by the model [that we want values for]
 parameters {
   real<lower=0, upper=0.2>lambda0;
-  real<lower=0, upper=0.2>lambda1;
-  real<lower=0, upper=0.2>gradient;
-  real<lower=0, upper=0.01>shape;
+  //real<lower=0, upper=0.2>lambda1;
+  // real<lower=0, upper=0.2>gradient;
+  // real<lower=0, upper=0.01>shape;
 }
 
 transformed parameters {
   // change of format for integrate_ode_rk45
-  vector[agrps*K] init;  // initial values
+  vector<lower=0, upper=1>[agrps*K] init;  //initial values
   
-  vector[agrps] y[t];   // raw ODE outputs
-  vector[agrps] comp_S;
-  vector[agrps] comp_I;
-  vector[agrps] comp_Im;
-  vector[agrps] comp_pI;
+  vector[agrps*K] y[t];   //raw ODE outputs
+  vector[agrps] comp_S[t];
+  vector[agrps] comp_I[t];
+  vector[agrps] comp_Im[t];
+  vector[agrps] comp_pI[t];
   
   for(i in 1:agrps){
     init[i] = age_prop[i];  //proportion in S0
@@ -195,10 +204,6 @@ transformed parameters {
   }
   
   //run solver
-  
-  //(real, vector, real, real, real, real, int, int, real[], real, real, real[], real[], real[]) => 
-  //vector, vector, real, real[], real, real, int, real, real, real, real, int, int, real, real, real[], real[], real[].
-  
   y = ode_rk45_tol(
     mod_si,  //model function
     init,    //vector initial values
@@ -207,35 +212,57 @@ transformed parameters {
     rel_tol,
     abs_tol,
     max_num_steps,
-    lambda0, //pass parameters directly into model
+    lambda0,  //pass parameters directly into model
+    // lambda1, gradient, shape, 
+    // age, 
     agrps, K, //pass int data directly into model
     r, da, mctr, d, propfert //pass real data directly into model
-    );  
+    );
     
-    //extract and format ODE results 
-    comp_S = (to_vector(y[t,1:agrps])) * tot_pop;  //total no. (age-stratified) in S
-    comp_I = (to_vector(y[t,(agrps+1):(2*agrps)])) * tot_pop;  //total no. (age-stratified) in I
-    comp_Im = (to_vector(y[t,(2*agrps+1):(3*agrps)])) * tot_pop;   //total no. (age-stratified) in Im
+    //reject simulation if any element of y is NaN
+    real na_y[t, K*agrps];
+    for(i in 1:t){
+      for(j in 1:(3*agrps)){
+        na_y[i,j] = is_nan(y[i,j]);
+        // reject("this is wrong: y = ", y[i,j]);
+      }
+    }
+    
+    //extract and format ODE results
+    for(i in 1:t){
+      comp_S[i,]  = (to_vector(y[i,1:agrps])) * tot_pop;  //total no. (age-stratified) in S
+      comp_I[i,]  = (to_vector(y[i,(agrps+1):(2*agrps)])) * tot_pop;  //total no. (age-stratified) in I
+      comp_Im[i,] = (to_vector(y[i,(2*agrps+1):(3*agrps)])) * tot_pop;   //total no. (age-stratified) in Im
+    }
+
+    //extract particular age groups specified in the data
+    // comp_S  = (to_vector(y[t,data_rows[1:16]])) * tot_pop;  //total no. (age-stratified) in S
+    // comp_I  = (to_vector(y[t,data_rows[17:32]])) * tot_pop;  //total no. (age-stratified) in I
+    // comp_Im = (to_vector(y[t,data_rows[33:48]])) * tot_pop;   //total no. (age-stratified) in Im
     
     //compute seroprevalence
-    for(j in 1:agrps){
-      comp_pI[j] = (comp_I[j] + comp_Im[j]) / (comp_I[j] + comp_Im[j] + comp_S[j]);
+    for(i in 1:t){
+      for(j in 1:agrps){
+        comp_pI[i,j] = (comp_I[i,j] + comp_Im[i,j]) / (comp_S[i,j] + comp_I[i,j] + comp_Im[i,j]);
+      }
     }
+    
 }
 
 model {
   lambda0 ~ lognormal(log(.1), .01);
-  lambda1 ~ lognormal(log(.1), .01);
-  gradient ~ lognormal(log(.1), .01);
-  shape ~ lognormal(log(.1), .01);
+  // lambda1 ~ lognormal(log(.1), .01);
+  // gradient ~ lognormal(log(.1), .01);
+  // shape ~ lognormal(log(.1), .01);
   
   //debug
   if(doprint==1) {
+    // print("na_y: ", na_y[1,]);
     print("lambda0: ", lambda0);
-    print("comp_S: ", comp_S);
-    print("comp_I: ", comp_I);
-    print("comp_Im: ", comp_Im);
-    print("comp_pI: ", comp_pI);
+    print("comp_S: ", comp_S[1,]);
+    print("comp_I: ", comp_I[1,]);
+    print("comp_Im: ", comp_Im[1,]);
+    print("comp_pI: ", comp_pI[1,]);
   }
   
   // likelihood 
@@ -244,4 +271,16 @@ model {
     target += binomial_lpmf(cases[i] | n[i], comp_pI[i]);
     }
   }
+}
+
+generated quantities {
+  vector[agrps] comp_Na[t];
+  
+  //modelled population size over age and time
+  for(i in 1:t){
+    for(j in 1:agrps){
+      comp_Na[i,j] = comp_S[i,j] + comp_I[i,j] + comp_Im[i,j];
+    }
+  }
+  
 }
