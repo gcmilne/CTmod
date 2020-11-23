@@ -157,41 +157,20 @@ functions{
         }
       }
       
-      print("dprev: ", dprev[1:agrps-3]);
-      print("seroconv1: ", seroconv1[1:agrps-3]);
-      print("seroconv2: ", seroconv2[1:agrps-3]);
-      print("seroconv3: ", seroconv3[1:agrps-3]);
-      print("ct1: ", ct1[1:agrps-3]);
-      print("ct2: ", ct2[1:agrps-3]);
-      print("ct3: ", ct3[1:agrps-3]);
-      print("matAb1: ", matAb1[1:agrps-3]);
-      print("matAb2: ", matAb2[1:agrps-3]);
-      print("matAb3: ", matAb3[1:agrps-3]);
-
-      
       //total number of antibody positive and congenitally diseased births
-      // matAbt = sum(matAb1[1:agrps-3]);
-      // 
-      // print("dprev: ", dprev[1:agrps-3]);
-      
-      // matAbt = sum(matAb1[1:agrps-3]) + sum(matAb2[1:agrps-3]) + sum(matAb3[1:agrps-3]);
-      // matAbt = matAb1[1];
-      // ctt = sum(ct1) + sum(ct2) + sum(ct3);
+      matAbt = sum(matAb1[5:agrps-3]) + sum(matAb2[4:agrps-3]) + sum(matAb3[3:agrps-3]);
+      ctt = sum(ct1[5:agrps-3]) + sum(ct2[4:agrps-3]) + sum(ct3[3:agrps-3]);
 
       //model ODEs
       for(i in 1:agrps){
         if(i==1){
           //S
-          // dydt[i] = (births - matAbt - ctt) + r*Im[i] - foi[i]*S[i] - d[i]*S[i] - da*S[i];
-          dydt[i] = (births) + r*Im[i] - foi[i]*S[i] - d[i]*S[i] - da*S[i];
-
+          dydt[i] = (births - matAbt - ctt) + r*Im[i] - foi[i]*S[i] - d[i]*S[i] - da*S[i];
           //I
-          // dydt[agrps+i] = ctt + foi[i]*(Na[i]-I[i]) - d[i]*I[i] - da*I[i];
-          dydt[agrps+i] = foi[i]*(Na[i]-I[i]) - d[i]*I[i] - da*I[i];
+          dydt[agrps+i] = ctt + foi[i]*(Na[i]-I[i]) - d[i]*I[i] - da*I[i];
           //Im
-          // dydt[2*agrps+i] = matAbt - (foi[i] + r + d[i] + da) * Im[i];
-          dydt[2*agrps+i] = - (foi[i] + r + d[i] + da) * Im[i];
-          
+          dydt[2*agrps+i] = matAbt - (foi[i] + r + d[i] + da) * Im[i];
+
         } else if(i>1){
           //S
           dydt[i] = da*S[i-1] + r*Im[i] - foi[i]*S[i] - d[i]*S[i] - da*S[i];

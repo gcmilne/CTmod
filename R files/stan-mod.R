@@ -110,7 +110,7 @@ data_si = list(
   abs_tol = 1.0E-10,
   max_num_steps = 1.0E3,
   inference=0, 
-  doprint=0)
+  doprint=1)
 
 ###################
 # CmdStan running #
@@ -129,15 +129,6 @@ fit <- mod$sample(
   refresh = 500
 )
 # system("say -v Karen Surfs up, bro!")
-
-#Checking RHS ODEs for NaN (found none)#
-#i==1
-pars$r*y[401] - pars$lambda0*y[1] - pars$d[1]*y[1] - pars$da*y[i] #S
-pars$lambda0*(pars$Na[1]-I0[1]) - pars$d[1]*I0[1] - pars$da*I0[1] #I
-(pars$lambda0 + pars$r + pars$d[1] + pars$da) * Im0[1]            #Im
-#i==2
-pars$da*S0[1] + pars$r*Im0[2] - pars$lambda0*S0[2] - pars$d[2]*S0[2] - pars$da*S0[2] #S
-pars$da*I0[1] + pars$lambda0*(pars$Na[2]-I0[2]) - pars$d[2]*I0[2] - pars$da*I0[2]    #I
 
 #summarise fit#
 fit$summary()
