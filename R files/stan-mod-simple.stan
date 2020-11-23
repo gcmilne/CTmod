@@ -1,11 +1,37 @@
 functions{
+  
+  //helper function to find NaNs in a vector
+   int count_nans_vec(vector v) {
+    int out = 0;
+    for(i in 1:cols(v)) {
+      if(is_nan(v[i])) {
+        out += 1;
+      }
+    }
+    return out;
+  }
+  
+  //function to replace NaNs with 0
+  // real zero_nans_real(real r){
+  //   int out = 0;
+  //   int agrps;
+  //   for(i in 1:agrps-3){
+  //     if(is_nan(r)==1){
+  //       r[i] = 0;
+  //     }
+  //   }
+  //   return out;
+  // }
+  
+  
+  //model function
   vector mod_si(
     real t, vector y,  //y is a vector in new ODE interface 
     real lambda0,  //pass parameters directly into model
     // real lambda1,
-    //real gradient, real shape, 
+    // real gradient, real shape,
     int agrps, int K, //pass int data directly into model
-    // vector age, 
+    // real[] age, 
     real r, real da, real[] mctr, real[] d, real[] propfert //pass real data directly into model
     ) {
       
@@ -30,7 +56,7 @@ functions{
       vector[agrps] pI;
       real matAbt;
       real ctt;
-      
+
       //define derivative length
       vector[(agrps*K)] dydt;
       
@@ -43,8 +69,18 @@ functions{
       real foi[agrps];
       foi = rep_array(lambda0, agrps);
       // for(i in 1:agrps){
-        //foi[i] = (lambda0 + lambda1*(age[i]^2) * (age[i] * exp(-gradient*age[i])))*shape;
-      //   foi[i] = lambda0 + lambda1*(pow(age[i], 2));
+      //   foi[i] = (lambda0 + lambda1*(pow(age[i], 2)) * (age[i] * exp(-gradient*age[i])))*shape;
+      // }
+      
+      // //NaN in states?
+      // if(count_nans_vec(to_vector(I)) > 0) {
+      //   reject("Found NaNs in state I:", I);
+      // } 
+      
+      // else if(count_nans_vec(to_vector(I)) > 0){
+      //   reject("Found NaNs in state I:", I);
+      // } else if(count_nans_vec(to_vector(Im)) > 0){
+      //   reject("Found NaNs in state Im:", Im);
       // }
       
       //total modelled population size
@@ -73,13 +109,19 @@ functions{
         c2[i] = births_age[i+2];
         c3[i] = births_age[i+3];
       }
-      
+
       //seroprevalence
       for(i in 1:agrps){
         pI[i] = (I[i] + Im[i])/Na[i];
       }
       
-      //calculating seroconversions in pregnancy and cases of congenital disease
+      // for(i in 1:agrps){
+      //   if(is_nan(pI[i])){
+      //     print("pI is NaN: ", pI[i]);
+      //   }
+      // }
+      
+      // calculating seroconversions in pregnancy and cases of congenital disease
       for(i in 1:(agrps-3)){
         if(i==1){
           dprev[i] = 0;
@@ -93,33 +135,62 @@ functions{
           matAb2[i] = 0;
           matAb3[i] = 0;
           
-        } else {
+        } else{
           dprev[i] = pI[i]-pI[i-1];                //change in prevalence (must be positive)
           seroconv1[i] = dprev[i]*c1[i];           //pregnant women seroconverting in trimester 1
           seroconv2[i] = dprev[i]*c2[i];           //pregnant women seroconverting in trimester 2
           seroconv3[i] = dprev[i]*c3[i];           //pregnant women seroconverting in trimester 3
+          
+          /*   !!  These generate the NaNs    !! */
+          //generates 3 NaNs at indices 2:4
           ct1[i+3] = seroconv1[i]*mctr[1];         //likelihood of transmission trimester 1
+          //generates 2 NaNs at indices 2:3
           ct2[i+2] = seroconv2[i]*mctr[2];         //likelihood of transmission trimester 2
+          //generates 1 NaN at index 2
           ct3[i+1] = seroconv3[i]*mctr[3];         //likelihood of transmission trimester 3
+          //generates 3 NaNs at indices 2:4
           matAb1[i+3] = seroconv1[i]*(1-mctr[1]);  //maternal Ab trimester 1
+          //generates 2 NaNs at indices 2:3
           matAb2[i+2] = seroconv2[i]*(1-mctr[2]);  //maternal Ab trimester 2
+          //generates 1 NaN at index 2
           matAb3[i+1] = seroconv3[i]*(1-mctr[3]);  //maternal Ab trimester 3
         }
       }
       
-      //total number of antibody positive and congenitally diseased births
-      matAbt = sum(matAb1) + sum(matAb2) + sum(matAb3);
-      ctt = sum(ct1) + sum(ct2) + sum(ct3);
+      print("dprev: ", dprev[1:agrps-3]);
+      print("seroconv1: ", seroconv1[1:agrps-3]);
+      print("seroconv2: ", seroconv2[1:agrps-3]);
+      print("seroconv3: ", seroconv3[1:agrps-3]);
+      print("ct1: ", ct1[1:agrps-3]);
+      print("ct2: ", ct2[1:agrps-3]);
+      print("ct3: ", ct3[1:agrps-3]);
+      print("matAb1: ", matAb1[1:agrps-3]);
+      print("matAb2: ", matAb2[1:agrps-3]);
+      print("matAb3: ", matAb3[1:agrps-3]);
+
       
+      //total number of antibody positive and congenitally diseased births
+      // matAbt = sum(matAb1[1:agrps-3]);
+      // 
+      // print("dprev: ", dprev[1:agrps-3]);
+      
+      // matAbt = sum(matAb1[1:agrps-3]) + sum(matAb2[1:agrps-3]) + sum(matAb3[1:agrps-3]);
+      // matAbt = matAb1[1];
+      // ctt = sum(ct1) + sum(ct2) + sum(ct3);
+
       //model ODEs
       for(i in 1:agrps){
         if(i==1){
           //S
-          dydt[i] = (births - matAbt - ctt) + r*Im[i] - foi[i]*S[i] - d[i]*S[i] - da*S[i];
+          // dydt[i] = (births - matAbt - ctt) + r*Im[i] - foi[i]*S[i] - d[i]*S[i] - da*S[i];
+          dydt[i] = (births) + r*Im[i] - foi[i]*S[i] - d[i]*S[i] - da*S[i];
+
           //I
-          dydt[agrps+i] = ctt + foi[i]*(Na[i]-I[i]) - d[i]*I[i] - da*I[i];
+          // dydt[agrps+i] = ctt + foi[i]*(Na[i]-I[i]) - d[i]*I[i] - da*I[i];
+          dydt[agrps+i] = foi[i]*(Na[i]-I[i]) - d[i]*I[i] - da*I[i];
           //Im
-          dydt[2*agrps+i] = matAbt - (foi[i] + r + d[i] + da) * Im[i];
+          // dydt[2*agrps+i] = matAbt - (foi[i] + r + d[i] + da) * Im[i];
+          dydt[2*agrps+i] = - (foi[i] + r + d[i] + da) * Im[i];
           
         } else if(i>1){
           //S
@@ -148,7 +219,7 @@ data {
   vector[agrps] age_prop;  //proportion of population in each age group
   int tot_pop;  //total population size
   
-  vector[agrps] age;
+  // real age[agrps];
   real r;
   real da;
   real mctr[3];
@@ -174,17 +245,11 @@ data {
   int data_rows[data_agrps*K];
 }
 
-// transformed data {
-//   real x_r[2+agrps*2] = {r_array};   //r, da, d, propfert
-//   int x_i[2] = {agrps, K};   // agrps, K (no. state variables), S_r (no. real arrays), starts_r
-// }
-
-//parameters accepted by the model [that we want values for]
 parameters {
   real<lower=0, upper=0.2>lambda0;
-  //real<lower=0, upper=0.2>lambda1;
-  // real<lower=0, upper=0.2>gradient;
-  // real<lower=0, upper=0.01>shape;
+  real<lower=0, upper=0.2>lambda1;
+  real<lower=0, upper=0.2>gradient;
+  real<lower=0, upper=0.01>shape;
 }
 
 transformed parameters {
@@ -197,10 +262,10 @@ transformed parameters {
   vector[agrps] comp_Im[t];
   vector[agrps] comp_pI[t];
   
-  for(i in 1:agrps){
-    init[i] = age_prop[i];  //proportion in S0
-    init[agrps+i] = 0;      //proportion in I0
-    init[2*agrps+i] = 0;    //proportion in Im0
+  for(i in 1:(agrps)){
+    init[i]         = age_prop[i];
+    init[agrps+i]   = 0;
+    init[2*agrps+i] = 0;
   }
   
   //run solver
@@ -213,20 +278,20 @@ transformed parameters {
     abs_tol,
     max_num_steps,
     lambda0,  //pass parameters directly into model
-    // lambda1, gradient, shape, 
-    // age, 
+    // lambda1, gradient, shape,
     agrps, K, //pass int data directly into model
+    // age,
     r, da, mctr, d, propfert //pass real data directly into model
     );
     
-    //reject simulation if any element of y is NaN
-    real na_y[t, K*agrps];
-    for(i in 1:t){
-      for(j in 1:(3*agrps)){
-        na_y[i,j] = is_nan(y[i,j]);
-        // reject("this is wrong: y = ", y[i,j]);
-      }
-    }
+    // //reject simulation if any element of y is NaN
+    // real na_y[t, K*agrps];
+    // for(i in 1:t){
+    //   for(j in 1:(3*agrps)){
+    //     na_y[i,j] = is_nan(y[i,j]);
+    //     reject("this is wrong: y = ", y[i,j]);
+    //   }
+    // }
     
     //extract and format ODE results
     for(i in 1:t){
@@ -236,9 +301,9 @@ transformed parameters {
     }
 
     //extract particular age groups specified in the data
-    // comp_S  = (to_vector(y[t,data_rows[1:16]])) * tot_pop;  //total no. (age-stratified) in S
-    // comp_I  = (to_vector(y[t,data_rows[17:32]])) * tot_pop;  //total no. (age-stratified) in I
-    // comp_Im = (to_vector(y[t,data_rows[33:48]])) * tot_pop;   //total no. (age-stratified) in Im
+    // comp_S[i,]  = (to_vector(y[t,data_rows[1:data_agrps]])) * tot_pop;  //total no. (age-stratified) in S
+    // comp_I[i,]  = (to_vector(y[t,data_rows[data_agrps+1:2*data_agrps]])) * tot_pop;  //total no. (age-stratified) in I
+    // comp_Im[i,] = (to_vector(y[t,data_rows[2*data_agrps+1:3*data_agrps]])) * tot_pop;   //total no. (age-stratified) in Im
     
     //compute seroprevalence
     for(i in 1:t){
@@ -268,7 +333,7 @@ model {
   // likelihood 
   if (inference==1) {
     for(i in 1:agrps) { 
-    target += binomial_lpmf(cases[i] | n[i], comp_pI[i]);
+    target += binomial_lpmf(cases[i] | n[i], comp_pI[t,i]);
     }
   }
 }

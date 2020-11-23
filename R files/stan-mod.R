@@ -27,16 +27,16 @@ matched_dat <- clean_dat
 x <- cbind(pars$age, findInterval(pars$age, matched_dat$age_mid))
 #head(x, n=12)
 #returns FALSE if there's change between element i and element i+1
-y <- diff(x[,2]) <= 0   #so save i+1 element of x[,1] to matched_ages[i]
+y1 <- diff(x[,2]) <= 0   #so save i+1 element of x[,1] to matched_ages[i]
 #head(y, n=12)
 
 # each time x[,2] increases by 1, save value of x[,1][i+1] to matched_dat$age_mid[i]
 matched_ages <- vector("numeric", pars$agrps)
-for(i in 1:length(y)){
-  if(y[i]==T){
+for(i in 1:length(y1)){
+  if(y1[i]==T){
     matched_ages[i] <- NA
     
-  }else if(y[i]==F){
+  }else if(y1[i]==F){
     matched_ages[i] <- x[,1][i+1]
   }
 }
@@ -55,6 +55,16 @@ merged_dat <- merge(matched_dat, mod_dat, by='age_mid', all=TRUE)
 merged_dat[is.na(merged_dat)] <- 0
 full_data <- data.frame("age_mid"=merged_dat[,1], "k"=merged_dat[,2], "n"=merged_dat[,3])
 
+##check age combined as expected (differences should be the same)
+# age_diff <- vector("numeric", length=length(full_data$age_mid)-1)
+# for(i in 1:length(full_data$age_mid)-1){
+#   if(i==1){
+#     age_diff[i] <- 0
+#   }else{
+#     age_diff[i] <- full_data$age_mid[i+1] - full_data$age_mid[i]
+#   }
+# }
+
 ############################################
 # read in data needed for model simulation #
 ############################################
@@ -69,12 +79,11 @@ t0 = 0
 ts <- seq(1,10, 1)
 t <-max(ts)
 N <- sum(pars$Na)
-age_prop <- pars$Na/N   ## needs to be same length as nrow(full_data)
+#make vector length K*agrps
+age_prop <- pars$Na/N
 
 #index of rows of expanded df in which data exist
 data_rows <- c(which(full_data$k!=0), which(full_data$k!=0)+agrps, which(full_data$k!=0)+2*agrps)
-
-d <- pars$d
 
 ###################### 
 # data list for Stan #
@@ -85,10 +94,7 @@ data_si = list(
   data_rows=data_rows,
   age_prop=age_prop,
   tot_pop=N, 
-  # S_r = 5, #no real arrays
-  # starts_r = c(1, 2, 3, 6, 6+pars$agrps, 6+(2*pars$agrps)),  #start indices of real arrays
-  # r_array=c(pars$r, pars$da, pars$mctr, pars$d, pars$propfert), 
-  age=pars$age,
+  # age=pars$age,
   da=pars$da,
   d=pars$d,
   r=pars$r,
@@ -104,25 +110,36 @@ data_si = list(
   abs_tol = 1.0E-10,
   max_num_steps = 1.0E3,
   inference=0, 
-  doprint=1)
+  doprint=0)
 
 ###################
 # CmdStan running #
 ###################
 file <- "R files/stan-mod-simple.stan"
+# file <- "R files/test-stan.stan"
 mod <- cmdstan_model(file)
 
 fit <- mod$sample(
   data = data_si,
   seed = 123,
-  chains = 2,
+  chains = 1,
   parallel_chains = 1, 
   iter_warmup = 10,
   iter_sampling = 40,
-  refresh = 1
+  refresh = 500
 )
 # system("say -v Karen Surfs up, bro!")
 
+#Checking RHS ODEs for NaN (found none)#
+#i==1
+pars$r*y[401] - pars$lambda0*y[1] - pars$d[1]*y[1] - pars$da*y[i] #S
+pars$lambda0*(pars$Na[1]-I0[1]) - pars$d[1]*I0[1] - pars$da*I0[1] #I
+(pars$lambda0 + pars$r + pars$d[1] + pars$da) * Im0[1]            #Im
+#i==2
+pars$da*S0[1] + pars$r*Im0[2] - pars$lambda0*S0[2] - pars$d[2]*S0[2] - pars$da*S0[2] #S
+pars$da*I0[1] + pars$lambda0*(pars$Na[2]-I0[2]) - pars$d[2]*I0[2] - pars$da*I0[2]    #I
+
+#summarise fit#
 fit$summary()
 draws_array <- fit$draws()
 str(draws_array)

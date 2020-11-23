@@ -1,13 +1,39 @@
 functions{
   
   //helper function to find NaNs
-   int count_nans_vec(vector v) {
+  int count_nans_vec(vector v) {
     int out = 0;
     for(i in 1:cols(v)) {
       if(is_nan(v[i])) {
         out += 1;
       }
     }
+    return out;
+  }
+  
+  //function to calculate no. seroconversions in pregnancy
+  real[] seroconversions(vector pI, real[] c1, real[] c2, real[] c3){
+    int agrps;
+    real dprev[agrps];
+    real seroconv1[agrps];
+    real seroconv2[agrps];
+    real seroconv3[agrps];
+    real out[3, agrps];
+    
+    for(i in 1:agrps-3){
+      if(i==1){
+        dprev[i] = 0;
+        seroconv1[i] = 0;
+        seroconv2[i] = 0;
+        seroconv3[i] = 0;
+      } else{
+        dprev[i] = pI[i] - pI[i-1];
+        seroconv1[i] = dprev[i]*c1[i];
+        seroconv2[i] = dprev[i]*c2[i];
+        seroconv3[i] = dprev[i]*c3[i];
+      }
+    }
+    out = {seroconv1, seroconv2, seroconv3};
     return out;
   }
   
@@ -30,25 +56,25 @@ functions{
       vector[agrps] Na;
       real births_age[agrps];
       real births;
-      // real dprev[agrps];
-      // real seroconv1[agrps];
-      // real seroconv2[agrps];
-      // real seroconv3[agrps];
+      real seroconv1[agrps];
+      real seroconv2[agrps];
+      real seroconv3[agrps];
       real c1[agrps];
       real c2[agrps];
       real c3[agrps];
-      // real ct1[agrps];
-      // real ct2[agrps];
-      // real ct3[agrps];
-      // real matAb1[agrps];
-      // real matAb2[agrps];
-      // real matAb3[agrps];
+      real ct1[agrps];
+      real ct2[agrps];
+      real ct3[agrps];
+      real matAb1[agrps];
+      real matAb2[agrps];
+      real matAb3[agrps];
       vector[agrps] pI;
-      // real matAbt;
-      // real ctt;
+      real matAbt;
+      real ctt;
+      real seroconv[3,agrps];
       
       //define derivative length
-      vector[(agrps*K)] dydt;
+      vector[agrps*K] dydt;
       
       // define states
       vector[agrps] S = y[1:agrps];
@@ -58,10 +84,6 @@ functions{
       //define foi
       real foi[agrps];
       foi = rep_array(lambda0, agrps);
-      // for(i in 1:agrps){
-        //foi[i] = (lambda0 + lambda1*(age[i]^2) * (age[i] * exp(-gradient*age[i])))*shape;
-      //   foi[i] = lambda0 + lambda1*(pow(age[i], 2));
-      // }
       
       //total modelled population size
       for(i in 1:agrps){
@@ -82,8 +104,6 @@ functions{
       births = sum(births_age);
       
       // conception distribution
-      //move age back 3, 6 or 9 mo to calculate conception distribution for 3 trimesters
-      //e.g. c3 = conceived ~9 months ago (more accurately, 7.5 months ago)
       for(i in 1:(agrps-3)){
         c1[i] = births_age[i+1];
         c2[i] = births_age[i+2];
@@ -95,47 +115,43 @@ functions{
         pI[i] = (I[i] + Im[i])/Na[i];
       }
       
-      // //calculating seroconversions in pregnancy and cases of congenital disease
-      // for(i in 1:(agrps-3)){
-      //   if(i==1){
-      //     dprev[i] = 0;
-      //     seroconv1[i] = 0;
-      //     seroconv2[i] = 0;
-      //     seroconv3[i] = 0;
-      //     ct1[i] = 0;
-      //     ct2[i] = 0;
-      //     ct3[i] = 0;
-      //     matAb1[i] = 0;
-      //     matAb2[i] = 0;
-      //     matAb3[i] = 0;
-      //     
-      //   } else {
-      //     dprev[i] = pI[i]-pI[i-1];                //change in prevalence (must be positive)
-      //     seroconv1[i] = dprev[i]*c1[i];           //pregnant women seroconverting in trimester 1
-      //     seroconv2[i] = dprev[i]*c2[i];           //pregnant women seroconverting in trimester 2
-      //     seroconv3[i] = dprev[i]*c3[i];           //pregnant women seroconverting in trimester 3
-      //     ct1[i+3] = seroconv1[i]*mctr[1];         //likelihood of transmission trimester 1
-      //     ct2[i+2] = seroconv2[i]*mctr[2];         //likelihood of transmission trimester 2
-      //     ct3[i+1] = seroconv3[i]*mctr[3];         //likelihood of transmission trimester 3
-      //     matAb1[i+3] = seroconv1[i]*(1-mctr[1]);  //maternal Ab trimester 1
-      //     matAb2[i+2] = seroconv2[i]*(1-mctr[2]);  //maternal Ab trimester 2
-      //     matAb3[i+1] = seroconv3[i]*(1-mctr[3]);  //maternal Ab trimester 3
-      //   }
-      // }
+      //calculate seroconversions using defined function
+      seroconv = seroconversions(pI, c1, c2, c3)
+      //extract each array
+      seroconv1 = to_vector(seroconv[1,]);
+      seroconv2 = to_vector(seroconv[2,]);
+      seroconv3 = to_vector(seroconv[3,]);
+      //calculate ct cases and matAb cases
+      for(i in 1:agrps-3){
+        if(1==0){
+          matAb1 = 0;
+          matAb2 = 0;
+          matAb3 = 0;
+          ct1 = 0;
+          ct2 = 0;
+          ct3 = 0;
+        } else{
+          matAb1 = seroconv1[i]*(1-mctr[1]);
+          matAb2 = seroconv2[i]*(1-mctr[2]);
+          matAb3 = seroconv3[i]*(1-mctr[3]);
+          ct1 = seroconv1[i]*mctr[1];
+          ct2 = seroconv2[i]*mctr[2];
+          ct3 = seroconv3[i]*mctr[3];
+        }
+      }
       
-      //total number of antibody positive and congenitally diseased births
-      // matAbt = sum(matAb1) + sum(matAb2) + sum(matAb3);
-      // ctt = sum(ct1) + sum(ct2) + sum(ct3);
+      ctt    = sum(ct1) + sum(ct2) + sum(ct3);
+      matAbt = sum(matAb1) + sum(matAb2) + sum(matAb3);
       
       //model ODEs
       for(i in 1:agrps){
         if(i==1){
           //S
-          dydt[i] = (births) + r*Im[i] - foi[i]*S[i] - d[i]*S[i] - da*S[i];
+          dydt[i] = (births - matAbt - ctt) + r*Im[i] - foi[i]*S[i] - d[i]*S[i] - da*S[i];
           //I
-          dydt[agrps+i] = foi[i]*(Na[i]-I[i]) - d[i]*I[i] - da*I[i];
+          dydt[agrps+i] = ctt + foi[i]*(Na[i]-I[i]) - d[i]*I[i] - da*I[i];
           //Im
-          dydt[2*agrps+i] = - (foi[i] + r + d[i] + da) * Im[i];
+          dydt[2*agrps+i] = matAbt - (foi[i] + r + d[i] + da) * Im[i];
           
         } else if(i>1){
           //S
