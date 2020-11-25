@@ -184,10 +184,14 @@ data {
   real propfert[agrps];
   real d[agrps];
   
+  //formatting ode results
+  int data_agrps;
+  int data_rows[data_agrps*K];
+  
   //data to fit
-  int<lower=0>cases[agrps];  //no. positive cases
-  int<lower=0>n[agrps];  //denominator for each age group
-
+  int<lower=0>cases[data_agrps];  //no. positive cases
+  int<lower=0>n[data_agrps];  //denominator for each age group
+  
   //simulation
   real t0;  //starting time
   int t;  //no. years to run model
@@ -197,10 +201,6 @@ data {
   int max_num_steps;
   int inference;  //simulate w/o data (inference==0) or with data (inference==1)
   int doprint;
-  
-  //formatting ode results
-  // int data_agrps;
-  // int data_rows[data_agrps*K];
 }
 
 parameters {
@@ -214,13 +214,13 @@ transformed parameters {
   // change of format for integrate_ode_rk45
   vector<lower=0, upper=1>[agrps*K] init;  //initial values
   
-  vector[agrps*K] y[t];   //raw ODE outputs
-  vector[agrps] comp_S[t];
-  vector[agrps] comp_I[t];
-  vector[agrps] comp_Im[t];
-  vector[agrps] comp_Na;
+  vector[agrps*K] y[t];
+  vector[data_agrps] comp_S;
+  vector[data_agrps] comp_I;
+  vector[data_agrps] comp_Im;
+  vector[data_agrps] comp_Na;
   // vector<lower=0, upper=1>[agrps] comp_pI;
-  vector[agrps] comp_pI;
+  vector[data_agrps] comp_pI;
   
   for(i in 1:(agrps)){
     init[i]         = age_prop[i];
@@ -254,31 +254,30 @@ transformed parameters {
     // }
     
     //extract and format ODE results
-    for(i in 1:t){
-      comp_S[i,]  = (to_vector(y[i,1:agrps])) * tot_pop;  //total no. (age-stratified) in S
-      comp_I[i,]  = (to_vector(y[i,(agrps+1):(2*agrps)])) * tot_pop;  //total no. (age-stratified) in I
-      comp_Im[i,] = (to_vector(y[i,(2*agrps+1):(3*agrps)])) * tot_pop;   //total no. (age-stratified) in Im
-    }
+    // for(i in 1:t){
+    //   for(j in 1:agrps){
+    //     comp_S[i,j]  = (to_vector(y[i,j])) * tot_pop;  //total no. (age-stratified) in S
+    //     comp_I[i,j]  = (to_vector(y[i,agrps+j])) * tot_pop;  //total no. (age-stratified) in I
+    //     comp_Im[i,j] = (to_vector(y[i,2*agrps+j])) * tot_pop;   //total no. (age-stratified) in Im
+    //   }
+    // }
+    // 
     
     //extract particular age groups specified in the data
-    // comp_S[i,]  = (to_vector(y[t,data_rows[1:data_agrps]])) * tot_pop;  //total no. (age-stratified) in S
-    // comp_I[i,]  = (to_vector(y[t,data_rows[data_agrps+1:2*data_agrps]])) * tot_pop;  //total no. (age-stratified) in I
-    // comp_Im[i,] = (to_vector(y[t,data_rows[2*data_agrps+1:3*data_agrps]])) * tot_pop;   //total no. (age-stratified) in Im
+    comp_S  = (to_vector(y[t,data_rows[1:data_agrps]])) * tot_pop;                    //total no. (age-stratified) in S
+    comp_I  = (to_vector(y[t,data_rows[(data_agrps+1):(2*data_agrps)]])) * tot_pop;   //total no. (age-stratified) in I
+    comp_Im = (to_vector(y[t,data_rows[(2*data_agrps+1):(3*data_agrps)]])) * tot_pop; //total no. (age-stratified) in Im
     
     //compute seroprevalence
-    for(j in 1:agrps){
-      comp_pI[j] = (comp_I[t,j] + comp_Im[t,j]) / (comp_S[t,j] + comp_I[t,j] + comp_Im[t,j]);
-    }
+    comp_pI = (comp_I + comp_Im) ./ (comp_S + comp_I + comp_Im);
     
-    //compute Na
-    for(j in 1:agrps){
-      comp_Na[j] = comp_Im[t,j] + comp_I[t,j] + comp_S[t,j];
-    }
+    // //compute Na
+    comp_Na = comp_Im + comp_I + comp_S;
     
 }
 
 model {
-  lambda0 ~ lognormal(log(.05), .3);
+  lambda0 ~ lognormal(log(.045), .3);
   // lambda1 ~ lognormal(log(.1), .01);
   // gradient ~ lognormal(log(.1), .01);
   // shape ~ lognormal(log(.1), .01);
@@ -287,17 +286,17 @@ model {
   if(doprint==1) {
     // print("na_y: ", na_y[1,]);
     print("lambda0: ", lambda0);
-    // print("comp_S: ", comp_S[t,]);
-    // print("comp_I: ", comp_I[t,]);
+    print("comp_S: ", comp_S);          //make sure these look reasonable
+    print("comp_I: ", comp_I);
+    print("comp_Im: ", comp_Im);
     print("comp_Na: ", comp_Na);
-    // print("comp_Im: ", comp_Im[t,]);
-    // print("comp_pI: ", comp_pI);
+    print("comp_pI: ", comp_pI);
   }
   
   // likelihood 
   if (inference==1) {
-    for(i in 1:agrps) { 
-    target += binomial_lpmf(cases[i] | n[i], comp_pI[i]);
+    for(j in 1:data_agrps) { 
+    target += binomial_lpmf(cases[j] | n[j], comp_pI[j]);
     }
   }
 }
