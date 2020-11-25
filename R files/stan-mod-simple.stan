@@ -201,6 +201,13 @@ data {
   int max_num_steps;
   int inference;  //simulate w/o data (inference==0) or with data (inference==1)
   int doprint;
+<<<<<<< HEAD
+=======
+  
+  //formatting ode results
+  // int data_agrps;
+  // int data_rows[data_agrps*K];
+>>>>>>> 8f66a06d9f41818f9e74a208cb90782eb2274b5a
 }
 
 parameters {
@@ -214,6 +221,7 @@ transformed parameters {
   // change of format for integrate_ode_rk45
   vector<lower=0, upper=1>[agrps*K] init;  //initial values
   
+<<<<<<< HEAD
   vector[agrps*K] y[t];
   vector[data_agrps] comp_S;
   vector[data_agrps] comp_I;
@@ -221,6 +229,15 @@ transformed parameters {
   vector[data_agrps] comp_Na;
   // vector<lower=0, upper=1>[agrps] comp_pI;
   vector[data_agrps] comp_pI;
+=======
+  vector[agrps*K] y[t];   //raw ODE outputs
+  vector[agrps] comp_S[t];
+  vector[agrps] comp_I[t];
+  vector[agrps] comp_Im[t];
+  vector[agrps] comp_Na;
+  // vector<lower=0, upper=1>[agrps] comp_pI;
+  vector[agrps] comp_pI;
+>>>>>>> 8f66a06d9f41818f9e74a208cb90782eb2274b5a
   
   for(i in 1:(agrps)){
     init[i]         = age_prop[i];
@@ -254,6 +271,7 @@ transformed parameters {
     // }
     
     //extract and format ODE results
+<<<<<<< HEAD
     // for(i in 1:t){
     //   for(j in 1:agrps){
     //     comp_S[i,j]  = (to_vector(y[i,j])) * tot_pop;  //total no. (age-stratified) in S
@@ -262,6 +280,13 @@ transformed parameters {
     //   }
     // }
     // 
+=======
+    for(i in 1:t){
+      comp_S[i,]  = (to_vector(y[i,1:agrps])) * tot_pop;  //total no. (age-stratified) in S
+      comp_I[i,]  = (to_vector(y[i,(agrps+1):(2*agrps)])) * tot_pop;  //total no. (age-stratified) in I
+      comp_Im[i,] = (to_vector(y[i,(2*agrps+1):(3*agrps)])) * tot_pop;   //total no. (age-stratified) in Im
+    }
+>>>>>>> 8f66a06d9f41818f9e74a208cb90782eb2274b5a
     
     //extract particular age groups specified in the data
     comp_S  = (to_vector(y[t,data_rows[1:data_agrps]])) * tot_pop;                    //total no. (age-stratified) in S
@@ -269,15 +294,30 @@ transformed parameters {
     comp_Im = (to_vector(y[t,data_rows[(2*data_agrps+1):(3*data_agrps)]])) * tot_pop; //total no. (age-stratified) in Im
     
     //compute seroprevalence
+<<<<<<< HEAD
     comp_pI = (comp_I + comp_Im) ./ (comp_S + comp_I + comp_Im);
     
     // //compute Na
     comp_Na = comp_Im + comp_I + comp_S;
+=======
+    for(j in 1:agrps){
+      comp_pI[j] = (comp_I[t,j] + comp_Im[t,j]) / (comp_S[t,j] + comp_I[t,j] + comp_Im[t,j]);
+    }
+    
+    //compute Na
+    for(j in 1:agrps){
+      comp_Na[j] = comp_Im[t,j] + comp_I[t,j] + comp_S[t,j];
+    }
+>>>>>>> 8f66a06d9f41818f9e74a208cb90782eb2274b5a
     
 }
 
 model {
+<<<<<<< HEAD
   lambda0 ~ lognormal(log(.045), .3);
+=======
+  lambda0 ~ lognormal(log(.05), .3);
+>>>>>>> 8f66a06d9f41818f9e74a208cb90782eb2274b5a
   // lambda1 ~ lognormal(log(.1), .01);
   // gradient ~ lognormal(log(.1), .01);
   // shape ~ lognormal(log(.1), .01);
@@ -286,17 +326,30 @@ model {
   if(doprint==1) {
     // print("na_y: ", na_y[1,]);
     print("lambda0: ", lambda0);
+<<<<<<< HEAD
     print("comp_S: ", comp_S);          //make sure these look reasonable
     print("comp_I: ", comp_I);
     print("comp_Im: ", comp_Im);
     print("comp_Na: ", comp_Na);
     print("comp_pI: ", comp_pI);
+=======
+    // print("comp_S: ", comp_S[t,]);
+    // print("comp_I: ", comp_I[t,]);
+    print("comp_Na: ", comp_Na);
+    // print("comp_Im: ", comp_Im[t,]);
+    // print("comp_pI: ", comp_pI);
+>>>>>>> 8f66a06d9f41818f9e74a208cb90782eb2274b5a
   }
   
   // likelihood 
   if (inference==1) {
+<<<<<<< HEAD
     for(j in 1:data_agrps) { 
     target += binomial_lpmf(cases[j] | n[j], comp_pI[j]);
+=======
+    for(i in 1:agrps) { 
+    target += binomial_lpmf(cases[i] | n[i], comp_pI[i]);
+>>>>>>> 8f66a06d9f41818f9e74a208cb90782eb2274b5a
     }
   }
 }
