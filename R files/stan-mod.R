@@ -109,8 +109,8 @@ data_si = list(
   rel_tol = 1.0E-10, 
   abs_tol = 1.0E-10,
   max_num_steps = 1.0E3,
-  inference=1, 
-  doprint=0)
+  inference=0, 
+  doprint=1)
 
 ###################
 # CmdStan running #
