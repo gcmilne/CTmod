@@ -65,12 +65,68 @@ full_data <- data.frame("age_mid"=merged_dat[,1], "k"=merged_dat[,2], "n"=merged
 #   }
 # }
 
+#########################################################################################
+## Start: trying to fit model with smaller no. agrps
+#########################################################################################
+
+# data needed for parameter estimation
+clean_dat <- data.frame("age_mid"=data$age_mid, "k"=data$k, "n"=data$n)
+data_agrps <- length(clean_dat[,"age_mid"])
+
+######################################################
+## modify data age groups to match model age groups ##
+######################################################
+#create new dataset
+matched_dat <- clean_dat
+# x[,2] increases by one each time data age midpoint is closest match to modelled age midpoint
+
+#recalculate age groupings
+pars$agrps <- 80; pars$amax <- 80
+pars$la <- pars$amax/pars$agrps
+pars$da <-  1/pars$la  # ageing rate
+pars$age <- seq(0+pars$la/2, pars$amax-pars$la/2, length.out=pars$agrps) # age at midpoints of age groups
+
+x <- cbind(pars$age, findInterval(pars$age, matched_dat$age_mid))
+#head(x, n=12)
+#returns FALSE if there's change between element i and element i+1
+y1 <- diff(x[,2]) <= 0   #so save i+1 element of x[,1] to matched_ages[i]
+#head(y, n=12)
+
+# each time x[,2] increases by 1, save value of x[,1][i+1] to matched_dat$age_mid[i]
+matched_ages <- vector("numeric", pars$agrps)
+for(i in 1:length(y1)){
+  if(y1[i]==T){
+    matched_ages[i] <- NA
+    
+  }else if(y1[i]==F){
+    matched_ages[i] <- x[,1][i+1]
+  }
+}
+#removes last element (which is 0 because of indexing)
+matched_ages <- head(matched_ages, -1)
+#remove NAs
+matched_ages <-matched_ages[!is.na(matched_ages)]
+#save age mid points to dataset
+matched_dat$age_mid <- matched_ages
+
+###################################################
+## merge data into larger df for simpler fitting ##
+###################################################
+mod_dat <- data.frame("age_mid"=pars$age,"k"=0, "n"=0)
+merged_dat <- merge(matched_dat, mod_dat, by='age_mid', all=TRUE)
+merged_dat[is.na(merged_dat)] <- 0
+full_data <- data.frame("age_mid"=merged_dat[,1], "k"=merged_dat[,2], "n"=merged_dat[,3])
+
+#########################################################################################
+## End: trying to fit model with smaller no. agrps
+#########################################################################################
+
 ############################################
 # read in data needed for model simulation #
 ############################################
 agrps <- length(full_data$age_mid)
-cases <- full_data$k
-n <- full_data$n
+cases <- data$k
+n <- data$n
 
 ######################################
 # read in other parameters for model #
@@ -90,27 +146,30 @@ data_rows <- c(which(full_data$k!=0), which(full_data$k!=0)+agrps, which(full_da
 ######################
 data_si = list(
   agrps = pars$agrps, 
-  # data_agrps = data_agrps,
-  # data_rows=data_rows,
+  data_agrps = data_agrps,
+  data_rows=data_rows,
   age_prop=age_prop,
   tot_pop=N, 
   # age=pars$age,
   da=pars$da,
   d=pars$d,
   r=pars$r,
-  mctr=pars$mctr,
+  # mctr=pars$mctr,
+  mean_mctr = mean(pars$mctr),
   propfert=pars$propfert,
   K=3,  #no. state variables
   t0 = t0,
   ts = ts, 
   t=t,
-  n=data$n, #n
-  cases=data$k, #k
+  # n=data$n, #n
+  # cases=data$k, #k
+  n=full_data$n, #n
+  cases=full_data$k, #k
   rel_tol = 1.0E-10, 
   abs_tol = 1.0E-10,
   max_num_steps = 1.0E3,
-  inference=0, 
-  doprint=1)
+  inference=1, 
+  doprint=0)
 
 ###################
 # CmdStan running #
