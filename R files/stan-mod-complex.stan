@@ -67,8 +67,8 @@ functions{
       vector[agrps] Im = y[((2*agrps)+1):(3*agrps)];
       
       //define foi
-      real foi[agrps];
-      foi = rep_array(lambda0, agrps);
+      real foi = lambda0;
+      // foi = rep_array(lambda0, agrps);
       // for(i in 1:agrps){
       //   foi[i] = (lambda0 + lambda1*(pow(age[i], 2)) * (age[i] * exp(-gradient*age[i])))*shape;
       // }
