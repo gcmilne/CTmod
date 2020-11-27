@@ -1,4 +1,4 @@
-#library("bayesplot")
+library("bayesplot")
 #library("rstanarm")
 library("ggplot2")
 # library("rstan")
@@ -135,7 +135,6 @@ t0 = 0
 ts <- seq(1,249, 1)
 t <-max(ts)
 N <- sum(pars$Na)
-#make vector length K*agrps
 age_prop <- pars$Na/N
 
 #index of rows of expanded df in which data exist
@@ -238,15 +237,57 @@ ggplot(data=df, aes(x=matched_ages, y=x)) +
 #reasonable lambda0 prior
 #lognormal(log(.05), .1)
 par(mfrow=c(1,1))
-hist(exp(rnorm(1000, log(.045), .3)), xlim=c(0,0.1))
+hist(exp(rnorm(1000, log(.06), .3)), xlim=c(0,0.1))
 
+
+#save to csv#
+##############
+# 26/11/2020 #
+##############
+## 1 chain, 10 sampling iterations,
+#1 parameter (lambda0), 1 yr/age category, 80 age categories ##
+# fit$save_output_files(dir = ".", basename = NULL, timestamp = TRUE, random = TRUE)
+fit_mod <- read.csv("data/stanfit-261120.csv")   
+###############
 #summarise fit#
-fit$summary()
-draws_array <- fit$draws()
+###############
+fit$summary("comp_pI")
+fit$summary("lambda0")
+
+################################################
+#create object containing fitted seroprevalence#
+################################################
+##prevalence
+draws_array <- fit$draws("comp_pI")
 str(draws_array)
 draws_df <- as_draws_df(draws_array) # as_draws_matrix() for matrix
-print(draws_df)
-mcmc_hist(fit$draws("theta"))
+#plot model estimate vs. seroprevalence data
+plot(1:80, draws_df[1,1:80])
+points(full_data$age_mid, full_data$k/full_data$n, col="red")
+
+##Na
+draws_array <- fit$draws("comp_Na")
+str(draws_array)
+draws_df <- as_draws_df(draws_array) # as_draws_matrix() for matrix
+#plot model estimate vs. seroprevalence data
+plot(1:80, draws_df[1,1:80])
+points(full_data$age_mid, full_data$k/full_data$n, col="red")
+
+mcmc_hist(fit$draws("lambda0"), binwidth = 100)
+
+#diagnose fitting issues
+fit$cmdstan_diagnose()
+fit$cmdstan_summary()
+
+#create stanfit object
+stanfit <- rstan::read_stan_csv(fit$output_files())
+
+bayesplot_grid(
+  mcmc_hist(fit$draws("lambda0"), binwidth = 0.025),
+  mcmc_hist(fit$draws("lambda0"), binwidth = 0.025),
+  titles = c("Posterior distribution from MCMC", ""),
+  xlim = c(0, .1)
+)
 
 #Using shinystan to visualise results
 library(shinystan)
@@ -259,10 +300,10 @@ launch_shinystan(stanfit)
 #####################
 # Specify parameters of interest
 pars=c('lambda0')
-print(fit_mod, pars = pars)
+print(fit, pars = pars)
 
 #summary stats
-par_summary <- summary(fit_mod, pars = c("lambda0"), probs = c(0.1, 0.9))$summary
+par_summary <- summary(fit, pars = c("lambda0"), probs = c(0.1, 0.9))$summary
 print(par_summary)
 
 # Plot marginal posterior density & confirm Markov chains in agreement with each other
@@ -275,7 +316,7 @@ mcmc_areas(fit_mod,
            pars = c("lambda0"),
            prob = 0.95) + plot_title
 #trace plot
-posterior2 <- extract(fit_mod, inc_warmup = TRUE, permuted = FALSE)
+posterior2 <- extract(fit, inc_warmup = TRUE, permuted = FALSE)
 color_scheme_set("mix-blue-pink")
 p <- mcmc_trace(posterior2,  pars = "lambda0", n_warmup = 300,
                 facet_args = list(nrow = 2, labeller = label_parsed))
