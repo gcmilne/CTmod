@@ -5,7 +5,7 @@
 #source("R files/stan-mod.R")
 source("R files/demogdat.R")
 
-pars  <- list(scale=50, shape= 5.647195e-04, agrps=400, amax=100, lambda0 = 0.13,
+pars  <- list(scale=50, shape= 5.647195e-04, agrps=80, amax=80, lambda0 = 0.13,
               lambda1 = 7.570937e-04, gradient = 2.957032e-02, se=0.98475, sp=0.98725)
 pars$la <- (pars$amax/pars$agrps)  # no. years in each age group (here = 1 yr)
 pars$da <-  1/pars$la  # ageing rate
