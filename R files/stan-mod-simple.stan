@@ -16,7 +16,7 @@ functions{
     real t, vector y,  //y is a vector in new ODE interface 
     real lambda0,  //pass parameters directly into model
     int agrps, int K, //pass int data directly into model
-    real r, real da, real mean_mctr, real[] d, real[] propfert //pass real data directly into model
+    real r, real da, real[] mctr, real[] d, real[] propfert //pass real data directly into model
     ) {
       
       //define variables to calculate within model 
@@ -27,9 +27,17 @@ functions{
       real births;
       real dprev[agrps];
       real seroconv1[agrps];
+      real seroconv2[agrps];
+      real seroconv3[agrps];
       real c1[agrps];
+      real c2[agrps];
+      real c3[agrps];
       real ct1[agrps];
+      real ct2[agrps];
+      real ct3[agrps];
       real matAb1[agrps];
+      real matAb2[agrps];
+      real matAb3[agrps];
       vector[agrps] pI;
       real matAbt;
       real ctt;
@@ -69,6 +77,8 @@ functions{
       // conception distribution (assuming 1 yr pregnancy)
       for(i in 1:(agrps-1)){
         c1[i] = births_age[i+1];
+        c2[i] = births_age[i+2];
+        c3[i] = births_age[i+3];
       }
 
       //seroprevalence
@@ -77,25 +87,44 @@ functions{
       }
 
       // calculating seroconversions in pregnancy and cases of congenital disease
-      for(i in 1:(agrps-1)){
+      for(i in 1:(agrps-3)){
         if(i==1){
-          dprev[i]     = 0;
+          dprev[i] = 0;
           seroconv1[i] = 0;
-          ct1[i]       = 0;
-          matAb1[i]    = 0;
-
+          seroconv2[i] = 0;
+          seroconv3[i] = 0;
+          ct1[i] = 0;
+          ct2[i] = 0;
+          ct3[i] = 0;
+          matAb1[i] = 0;
+          matAb2[i] = 0;
+          matAb3[i] = 0;
+          
         } else{
-          dprev[i]     = pI[i]-pI[i-1];            //change in prevalence (must be positive)
-          seroconv1[i] = dprev[i]*c1[i];           //pregnant women seroconverting
-          ct1[i+1] = seroconv1[i]*mean_mctr;         //likelihood of transmission trimester 1
-          matAb1[i+1] = seroconv1[i]*(1-mean_mctr);  //maternal Ab trimester 1
+          dprev[i] = pI[i]-pI[i-1];                //change in prevalence (must be positive)
+          seroconv1[i] = dprev[i]*c1[i];           //pregnant women seroconverting in trimester 1
+          seroconv2[i] = dprev[i]*c2[i];           //pregnant women seroconverting in trimester 2
+          seroconv3[i] = dprev[i]*c3[i];           //pregnant women seroconverting in trimester 3
+          
+          /*   !!  These generate the NaNs    !! */
+          //generates 3 NaNs at indices 2:4
+          ct1[i+3] = seroconv1[i]*mctr[1];         //likelihood of transmission trimester 1
+          //generates 2 NaNs at indices 2:3
+          ct2[i+2] = seroconv2[i]*mctr[2];         //likelihood of transmission trimester 2
+          //generates 1 NaN at index 2
+          ct3[i+1] = seroconv3[i]*mctr[3];         //likelihood of transmission trimester 3
+          //generates 3 NaNs at indices 2:4
+          matAb1[i+3] = seroconv1[i]*(1-mctr[1]);  //maternal Ab trimester 1
+          //generates 2 NaNs at indices 2:3
+          matAb2[i+2] = seroconv2[i]*(1-mctr[2]);  //maternal Ab trimester 2
+          //generates 1 NaN at index 2
+          matAb3[i+1] = seroconv3[i]*(1-mctr[3]);  //maternal Ab trimester 3
         }
       }
 
       //total number of antibody positive and congenitally diseased births
-      //remove NaNs from summed variables
-      matAbt = sum(matAb1[3:agrps-1]);
-      ctt    = sum(ct1[3:agrps-1]);
+      matAbt = sum(matAb1[5:agrps-3]) + sum(matAb2[4:agrps-3]) + sum(matAb3[3:agrps-3]);
+      ctt = sum(ct1[5:agrps-3]) + sum(ct2[4:agrps-3]) + sum(ct3[3:agrps-3]);
 
       //model ODEs
       for(i in 1:agrps){
@@ -128,7 +157,7 @@ data {
   
   real r;
   real da;
-  real mean_mctr;
+  real mctr[3];
   real propfert[agrps];
   real d[agrps];
   
@@ -137,8 +166,6 @@ data {
   // int data_rows[data_agrps*K];
   
   //data to fit
-  // int<lower=0>cases[data_agrps];  //no. positive cases
-  // int<lower=0>n[data_agrps];  //denominator for each age group
   int<lower=0>cases[agrps];  //no. positive cases
   int<lower=0>n[agrps];  //denominator for each age group
 
@@ -167,11 +194,6 @@ transformed parameters {
   vector[agrps] comp_Im;
   vector[agrps] comp_Na;
   vector[agrps] comp_pI;
-  // vector[data_agrps] comp_S;
-  // vector[data_agrps] comp_I;
-  // vector[data_agrps] comp_Im;
-  // vector[data_agrps] comp_Na;
-  // vector[data_agrps] comp_pI;
   
   for(i in 1:agrps){
     init[i]          = age_prop[i];  //proportion in S0
@@ -190,18 +212,13 @@ transformed parameters {
     max_num_steps,
     lambda0,  //pass parameters directly into model
     agrps, K, //pass int data directly into model
-    r, da, mean_mctr, d, propfert //pass real data directly into model
+    r, da, mctr, d, propfert //pass real data directly into model
     );
     
     //extract and format ODE results
     comp_S  = (to_vector(y[t,1:agrps])) * tot_pop;  
     comp_I  = (to_vector(y[t,(agrps+1):(2*agrps)])) * tot_pop; 
     comp_Im = (to_vector(y[t,(2*agrps+1):(3*agrps)])) * tot_pop; 
-    
-    //extract and format ODE results given age groups specified in the data
-    // comp_S  = (to_vector(y[t,data_rows[1:data_agrps]])) * tot_pop;  
-    // comp_I  = (to_vector(y[t,data_rows[(data_agrps+1):(2*data_agrps)]])) * tot_pop; 
-    // comp_Im = (to_vector(y[t,data_rows[(2*data_agrps+1):(3*data_agrps)]])) * tot_pop; 
     
     //compute seroprevalence
     comp_pI = (comp_I + comp_Im) ./ (comp_S + comp_I + comp_Im);
@@ -230,3 +247,23 @@ model {
     }
   }
 }
+
+// generated quantities {
+//   real dprev[agrps];
+//   print("dprev: ", dprev);
+  
+  // real comp_dprev[agrps];
+  // real comp_seroconv1[agrps];
+  // real comp_seroconv2[agrps];
+  // real comp_seroconv3[agrps];
+  // real comp_ct1[agrps];
+  // real comp_ct2[agrps];
+  // real comp_ct3[agrps];
+  // real comp_matAb1[agrps];
+  // real comp_matAb2[agrps];
+  // real comp_matAb3[agrps];
+  // real comp_ctt;
+  // real comp_matAbt;
+//   
+//   
+// }

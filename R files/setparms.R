@@ -1,11 +1,12 @@
 #############################
 ## SET PARAMETERS & INITs ######
 #############################
+# source("R files/demogdat.R")
+# hange of directory for cluster
+source("demogdat.R")
 
-#source("R files/stan-mod.R")
-source("R files/demogdat.R")
 
-pars  <- list(scale=50, shape= 5.647195e-04, agrps=80, amax=80, lambda0 = 0.13,
+pars  <- list(scale=50, shape= 5.647195e-04, agrps=400, amax=100, lambda0 = 0.13,
               lambda1 = 7.570937e-04, gradient = 2.957032e-02, se=0.98475, sp=0.98725)
 pars$la <- (pars$amax/pars$agrps)  # no. years in each age group (here = 1 yr)
 pars$da <-  1/pars$la  # ageing rate
@@ -41,3 +42,4 @@ S0[1:length(S0)] <- pars$Na
 y <- c(S0, I0, Im0)
 time <- seq(0,10, 1)
 #time<-seq(0,250,1)
+
