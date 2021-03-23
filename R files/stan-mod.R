@@ -3,19 +3,19 @@ library("ggplot2")
 # library("rstan")
 library("dplyr")
 # install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
-install_cmdstan(overwrite=T)
+# install_cmdstan(overwrite=T)
 library("cmdstanr")
 
 #add option of using old Stan compiler in installation (avoid binary .exe error in compilation)
-cmdstan_make_local(dir = cmdstan_path(), cpp_options = "STANC2=true")
+# cmdstan_make_local(dir = cmdstan_path(), cpp_options = "STANC2=true")
 
 #rebuild the package
-rebuild_cmdstan(
-  dir = cmdstan_path(),
-  cores = getOption("mc.cores", 2),
-  quiet = FALSE,
-  timeout = 600
-)
+# rebuild_cmdstan(
+#   dir = cmdstan_path(),
+#   cores = getOption("mc.cores", 2),
+#   quiet = FALSE,
+#   timeout = 600
+# )
 
 #directory when using cluster
 setwd("/storage/users/gmilne/test")
