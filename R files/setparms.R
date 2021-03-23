@@ -1,8 +1,9 @@
 #############################
 ## SET PARAMETERS & INITs ######
 #############################
+#directory when not using cluster
 # source("R files/demogdat.R")
-# hange of directory for cluster
+# change of directory for cluster
 source("demogdat.R")
 
 

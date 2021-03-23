@@ -3,10 +3,25 @@ library("ggplot2")
 # library("rstan")
 library("dplyr")
 # install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
-# install_cmdstan(overwrite=T)
+install_cmdstan(overwrite=T)
 library("cmdstanr")
+
+#add option of using old Stan compiler in installation (avoid binary .exe error in compilation)
+cmdstan_make_local(dir = cmdstan_path(), cpp_options = "STANC2=true")
+
+#rebuild the package
+rebuild_cmdstan(
+  dir = cmdstan_path(),
+  cores = getOption("mc.cores", 2),
+  quiet = FALSE,
+  timeout = 600
+)
+
 #directory when using cluster
 setwd("/storage/users/gmilne/test")
+
+#directory when not using the cluster
+# setwd("~/Desktop/R Projects/stan")
 
 #read in data
 # data <- read.csv("data/netherlands_95.csv")
@@ -32,7 +47,7 @@ matched_dat <- clean_dat
 x <- cbind(pars$age, findInterval(pars$age, matched_dat$age_mid))
 #head(x, n=12)
 #returns FALSE if there's change between element i and element i+1
-y1 <- diff(x[,2]) <= 0   #so save i+1 element of x[,1] to matched_ages[i]
+y1 <- diff(x[,2]) <= 0
 #head(y, n=12)
 
 # each time x[,2] increases by 1, save value of x[,1][i+1] to matched_dat$age_mid[i]
@@ -110,8 +125,8 @@ data_si = list(
   t0 = t0,
   ts = ts, 
   t=t,
-  n=full_data$n, #n
-  cases=full_data$k, #k
+  n=n, #n
+  cases=cases, #k
   rel_tol = 1.0E-10, 
   abs_tol = 1.0E-10,
   max_num_steps = 1.0E3,
@@ -121,21 +136,21 @@ data_si = list(
 ###################
 # CmdStan running #
 ###################
-# file <- "R files/stan-mod-simple.stan"
-# file <- "R files/stan-mod-complex.stan"
+# file <- "R files/stan_mod_simple.stan"
+# file <- "R files/stan_mod_complex.stan"
 
 #set cmdstan path (have moved cmdstan files to the FileZilla folder)
 set_cmdstan_path("/storage/users/gmilne/test/.cmdstanr/cmdstan-2.25.0")
 
 #change of directory for cluster
-file <- "stan-mod-simple.stan"
+file <- "stan_mod_simple.stan"
 
 mod <- cmdstan_model(file)
 
 fit <- mod$sample(
   data = data_si,
   seed = 123,
-  chains = 3,
+  chains = 1,
   parallel_chains = 3, 
   iter_warmup = 5,
   iter_sampling = 10,

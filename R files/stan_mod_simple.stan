@@ -106,7 +106,6 @@ functions{
           seroconv2[i] = dprev[i]*c2[i];           //pregnant women seroconverting in trimester 2
           seroconv3[i] = dprev[i]*c3[i];           //pregnant women seroconverting in trimester 3
           
-          /*   !!  These generate the NaNs    !! */
           //generates 3 NaNs at indices 2:4
           ct1[i+3] = seroconv1[i]*mctr[1];         //likelihood of transmission trimester 1
           //generates 2 NaNs at indices 2:3
@@ -122,7 +121,7 @@ functions{
         }
       }
 
-      //total number of antibody positive and congenitally diseased births
+      //total number of antibody positive and congenitally diseased births (sum such that NAs are not included)
       matAbt = sum(matAb1[5:agrps-3]) + sum(matAb2[4:agrps-3]) + sum(matAb3[3:agrps-3]);
       ctt = sum(ct1[5:agrps-3]) + sum(ct2[4:agrps-3]) + sum(ct3[3:agrps-3]);
 
