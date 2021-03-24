@@ -2,9 +2,9 @@
 ## SET PARAMETERS & INITs ######
 #############################
 #directory when not using cluster
-# source("R files/demogdat.R")
+source("R files/demogdat.R")
 # change of directory for cluster
-source("demogdat.R")
+# source("demogdat.R")
 
 
 pars  <- list(scale=50, shape= 5.647195e-04, agrps=400, amax=100, lambda0 = 0.13,

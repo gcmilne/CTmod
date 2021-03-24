@@ -25,7 +25,7 @@ setwd("/storage/users/gmilne/test")
 
 #read in data
 # data <- read.csv("data/netherlands_95.csv")
-#read in scripts
+# read in scripts
 # source("R files/setparms.R")
 # source("R files/demogdat.R")
 
@@ -140,13 +140,21 @@ data_si = list(
 # file <- "R files/stan_mod_complex.stan"
 
 #set cmdstan path (have moved cmdstan files to the FileZilla folder)
-set_cmdstan_path("/storage/users/gmilne/test/.cmdstanr/cmdstan-2.25.0")
+# set_cmdstan_path("/storage/users/gmilne/test/.cmdstanr/cmdstan-2.25.0")
 
 #change of directory for cluster
-file <- "stan_mod_simple.stan"
+# file <- "stan_mod_simple.stan"
 
-mod <- cmdstan_model(file)
+# compile the model and save as an object
+# mod <- cmdstan_model(file)
 
+# save the compiled model as an .RData file
+# save(mod, file = 'mod.RData')
+
+# load the compiled model
+load('mod.RData')
+
+# fit the model to the data
 fit <- mod$sample(
   data = data_si,
   seed = 123,
