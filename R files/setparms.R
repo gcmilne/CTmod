@@ -7,8 +7,8 @@ source("R files/demogdat.R")
 # source("demogdat.R")
 
 
-pars  <- list(scale=50, shape= 5.647195e-04, agrps=400, amax=100, lambda0 = 0.13,
-              lambda1 = 7.570937e-04, gradient = 2.957032e-02, se=0.98475, sp=0.98725)
+pars  <- list(scale=50, shape= 1, agrps=400, amax=100, lambda0 = 0.05,
+              lambda1 = 0, gradient = 0, se=0.98475, sp=0.98725)
 pars$la <- (pars$amax/pars$agrps)  # no. years in each age group (here = 1 yr)
 pars$da <-  1/pars$la  # ageing rate
 pars$age <- seq(0+pars$la/2, pars$amax-pars$la/2, length.out=pars$agrps) # age at midpoints of age groups
@@ -41,6 +41,6 @@ S0 <- I0 <- Im0 <- vector("numeric", length=pars$agrps)
 # entire population initially susceptible
 S0[1:length(S0)] <- pars$Na
 y <- c(S0, I0, Im0)
-time <- seq(0,10, 1)
+time <- seq(1,10, 1)
 #time<-seq(0,250,1)
 

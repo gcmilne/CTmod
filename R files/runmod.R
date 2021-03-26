@@ -21,7 +21,6 @@ library(wpp2019)
 source("R files/demogdat.R")
 source("R files/setparms.R")
 source("R files/model.R")
-source("R files/mod_rcpp.R")
 
 ## for loop to calculate changing no. of CT cases with endemicity
 # Set parms using best fit parameters for Netherlands '95/'96 data
@@ -58,15 +57,18 @@ time.taken
 system("say -v Karen Surfs up, bro!")
 
 ## Time dynamics
+# pdf(file="burnin-period.pdf")
 par(mfrow=c(2,2))
-plot(sol[,"Nt"]~sol[,"time"], type="l", ylab="pop size", xlab="time")
+# par(mar=rep(4, 4))
+
+# plot(sol[,"Nt"]~sol[,"time"], type="l", ylab="pop size", xlab="time")
 plot(sol[,"St"]~sol[,"time"], type="l", ylab="suceptible", xlab="time")
 plot(sol[,"It"]~sol[,"time"], type="l", ylab="infected", xlab="time")
 #plot(sol[,"Imt"]~sol[,"time"], type="l", ylab="maternal Ab +", xlab="time")
 plot(sol[,"ctt"]~sol[,"time"], type="l", ylab="ct", xlab="time")
 plot(sol[,"pIt"]~sol[,"time"], type="l", ylab="prevalence", xlab="time")
 
-head(sol)
+# dev.off()
 
 ## Age profiles at given time
 getit <- function(time) {
@@ -98,7 +100,7 @@ getit <- function(time) {
 }
 
 par(mfrow=c(2,3))
-df <- getit(20)
+df <- getit(250)
 plot(df[,"Na"]~df[,"a"], type="l", ylab="pop size", xlab="age")
 points(pars$Na~pars$age)
 df <- getit(40)
@@ -119,7 +121,7 @@ points(pars$Na~pars$age)
 
 data <- data.frame(df[,"a"], df[,"Na"])
 
-df <- getit(249)
+df <- getit(100)
 par(mfrow=c(1,1))
 #plot(df[,"pI"]~df[,"a"], type="l", ylab="prevalence", xlab="age", main="shape= .015")
 #plot(df[,"pI"]~df[,"a"], type="l", ylab="prevalence", xlab="age", main="shape= .001")
