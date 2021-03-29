@@ -11,31 +11,24 @@ number_of_data_points = length(data$n)
 
 # set prior on lambda0 #
 set.seed(1001)
-lambda0_sample <- runif(6, min=0, max=0.10)
+lambda0_sample <- runif(10000, min=0, max=0.1)
 # hist(lambda0_sample)
 
 # set prior on lambda1 #
-lambda1_sample <- runif(10000, min=1e-6, max=1e-5)
+lambda1_sample <- rbeta(n=10000, shape1 = 2, shape2=80)
 # hist(lambda1_sample)
 
 # set prior on gradient #
-lambda1_sample <- runif(10000, min=1e-6, max=1e-5)
+lambda1_sample <- runif(10000, min=0, max=0.2)
 # hist(lambda1_sample)
 
+pars$lambda0  <- 0     #uniformly distributed between 0 and 0.10?
+pars$lambda1  <- 0.001  #beta distributed with shape1=1 and shape2=80
+pars$gradient <- 0.08  #uniformly distributed between 0 and ~0.2?
 
-pars$lambda0 <- 0
-pars$lambda1 <- 0.002
-pars$gradient <- 0.008
-# pars$shape <- 1e-5
-
-# new model foi form
-# foi <- (pars$lambda0 + pars$lambda1*(pars$age^2) * (pars$age * exp(-pars$gradient*pars$age)))*pars$shape
-
-# tgerp model foi form
+# foi form
 foi <- pars$lambda0 + pars$lambda1 * (pars$age * exp(-pars$gradient*pars$age))
 plot(pars$age, foi)
-
-
 
 ### simulate a dataset from the parameters
 nsim <- length(lambda0_sample) # no. of simulations
