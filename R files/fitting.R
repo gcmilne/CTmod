@@ -5,60 +5,16 @@ source("R files/demogdat.R")
 source("R files/setparms.R")
 source("R files/model.R")
 
+# Load packages
+library(deSolve)
+
 # Read in data #
 data <- read.csv("data/netherlands_95.csv")
 number_of_data_points = length(data$n)
 
-# set prior on lambda0 #
-set.seed(1001)
-lambda0_sample <- runif(10000, min=0, max=0.1)
-# hist(lambda0_sample)
-
-# set prior on lambda1 #
-lambda1_sample <- rbeta(n=10000, shape1 = 2, shape2=80)
-# hist(lambda1_sample)
-
-# set prior on gradient #
-lambda1_sample <- runif(10000, min=0, max=0.2)
-# hist(lambda1_sample)
-
-pars$lambda0  <- 0     #uniformly distributed between 0 and 0.10?
-pars$lambda1  <- 0.001  #beta distributed with shape1=1 and shape2=80
-pars$gradient <- 0.08  #uniformly distributed between 0 and ~0.2?
-
-# foi form
-foi <- pars$lambda0 + pars$lambda1 * (pars$age * exp(-pars$gradient*pars$age))
-plot(pars$age, foi)
-
-### simulate a dataset from the parameters
-nsim <- length(lambda0_sample) # no. of simulations
-sol_age <- data.frame(matrix(NA, nrow=length(pars$age)-1, ncol = 16)) #dimensions of output from age profile function
-names(sol_age) <- names(df) #set names
-store_sim <- rep(list(sol_age, nsim)) # create list to store output from all simulations
-
-### loop through samples from prior and store model output
-for(i in 1:nsim){
-  pars$lambda0 <- lambda0_sample[i] #replace lambda0 with sample from the prior
-  sol <- ode(times = time, y = y,  parms = pars, func = age_si) #run ODE model
-  store_sim[[i]] <- getit(max(time)) #store age profile after burnin period
-}
-
-### plot results for each of the simulations
-# par(mfrow=c(2,3))
-# for(i in 1:nsim){
-#   plot(store_sim[[i]]$a, store_sim[[i]]$pI, type="l", xlab = "age (years)", ylab = "prevalence",
-#        main = signif(lambda0_sample[i], 3))
-# }
-
 ### select age groups from model output that match data age groups
 clean_dat <- data.frame("age_mid"=data$age_mid, "k"=data$k, "n"=data$n, "prev"=data$prev)
 
-# first create a list to store the model output from the correct age categories #
-mod_matched <- data.frame(matrix(NA, nrow=length(data$age_mid), ncol = 3))
-names(mod_matched) <- c("age_mid", "prev", "lambda0")
-list_mod_matched <- rep(list(mod_matched), nsim)
-
-# then find the closest age categories #
 #create new dataset
 matched_dat <- clean_dat
 # x[,2] increases by one each time data age midpoint is closest match to modelled age midpoint
@@ -82,54 +38,103 @@ matched_ages <- head(matched_ages, -1)
 # find the indices which match the age group most closely
 matched_indices <- which(!is.na(matched_ages))
 
-# store the relevant model output in a new list
-for(i in 1:nsim){
-  list_mod_matched[[i]]$age_mid <- store_sim[[i]][,"a"][matched_indices]
-  list_mod_matched[[i]]$prev    <- store_sim[[i]][,"obs_pI"][matched_indices]
-  list_mod_matched[[i]]$lambda0 <- lambda0_sample[i]
+## Age profiles at given time
+getit <- function(time) {
+  row <- which(abs(sol[,"time"]-time)==min(abs(sol[,"time"]-time)))
+  df <- sol[row,-1]
+  S  <- df[1:pars$agrps]  
+  I  <- df[(pars$agrps+1):(2*pars$agrps)]  
+  Im <- df[(2*pars$agrps+1):(3*pars$agrps)]
+  pI <- df[(3*pars$agrps+1):(4*pars$agrps)]
+  obs_pI <- df[(4*pars$agrps+1):(5*pars$agrps)]
+  dprev <- df[(5*pars$agrps+1):(6*pars$agrps)]
+  seroconv1 <- df[(6*pars$agrps+1):(7*pars$agrps)] 
+  seroconv2 <- df[(7*pars$agrps+1):(8*pars$agrps)] 
+  seroconv3 <- df[(8*pars$agrps+1):(9*pars$agrps)] 
+  matAb1 <- df[(9*pars$agrps+1):(10*pars$agrps)]
+  matAb2 <- df[(10*pars$agrps+1):(11*pars$agrps)]
+  matAb3 <- df[(11*pars$agrps+1):(12*pars$agrps)]
+  ct1 <- df[(12*pars$agrps+1):(13*pars$agrps)]
+  ct2 <- df[(13*pars$agrps+1):(14*pars$agrps)]
+  ct3 <- df[(14*pars$agrps+1):(15*pars$agrps)]
+  Na <- df[(15*pars$agrps+1):(16*pars$agrps)]
+  age <- pars$age  
+  out <- data.frame(a=age, I=I,Im=Im, pI=pI, obs_pI=obs_pI, dprev=dprev, 
+                    seroconv1=seroconv1, seroconv2=seroconv2, seroconv3=seroconv3, 
+                    matAb1=matAb1, matAb2=matAb2, matAb3=matAb3, 
+                    ct1=ct1, ct2=ct2, ct3=ct3, Na=Na)
+  ## remove last age category for aesthetics
+  out <- out[-nrow(out),]
 }
 
-# plot modelled vs. observed
-# par(mfrow=c(3,2))
-# for(i in 1:nsim){
-#   plot(list_mod_matched[[i]]$age_mid, list_mod_matched[[i]]$prev, ylim=c(0,1), 
-#        type="l", xlab="age (years)", ylab="seroprevalence", main = signif(list_mod_matched[[i]]$lambda0[1], 3))
-#   points(data$age_mid, data$prev)
-# }
-
 ### Next: likelihood function
+time <- seq(1,850, 1) # set time to end of burnin
 
-loglik <- function(kIgG, nIgG, prevIgG){ 
+loglik <- function(k, n, prev){ 
   dbinom(k, n, prev, log=T) 
 }
 
-## Likelihood wrapper function
-loglik.wrap <- function(pars, data){ 
-  
-  pars$lambda0  <- par[1]
-  pars$lambda1  <- par[2]
-  pars$gradient <- par[3]
+## Latin hypercube sampling
+require(lhs)
+set.seed(1001)
+nsim <- 3
 
-  sol          <- ode(y = state, times = time, parms = pars,  func = age_si)  #save model solution
+par_arr <- randomLHS(nsim, 3) 
+par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
+par_arr[,2] <- log(rbeta(par_arr[,2], shape1 = 2, shape2=80)) #log lambda1
+par_arr[,3] <- log(runif(par_arr[,3], min=0, max=0.2))        #log gradient
+
+#par(mfrow=c(2,2))
+#dummy <- apply(exp(par_arr), 2, hist, main = "") #plot prior distributions
+
+lik_arr <- vector(mode="numeric", length=nsim) #create likelihood array
+matched_prev <- rep(list(matrix(nrow=length(data$age_mid), ncol=2)),nsim) #create list to store model output matched to correct age bins
+names(matched_prev) <- c("prev", "ct")
+
+# Run model and store likelihoods
+start.time <- Sys.time()
+for(i in 1:nrow(par_arr)){
+  pars$log.lambda0  <- par_arr[i,1]
+  pars$log.lambda1  <- par_arr[i,2]
+  pars$log.gradient <- par_arr[i,3]
+  sol          <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
   store_sim    <- getit(max(time))  #store age profile after burnin period
-  matched_prev <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
-  
-  logliks <- loglik(k = data$k, n = data$n, prev = matched_prev)
-  
-  return(sum(-logliks))
+  matched_prev[[i]]["prev"] <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+  matched_prev[[i]]["ct"] <- (store_sim[,"ct1"][matched_indices]+store_sim[,"ct2"][matched_indices]+store_sim[,"ct3"][matched_indices]) #select ct cases from relevant age categories
+  logliks <- loglik(k = data$k, n = data$n, prev = matched_prev[[i]]) #run likelihood function
+  lik_arr[i] <- sum(-logliks)
 }
 
-## Check it works
-par <- c(log(0.0002),log(0.03), log(0.05), log(0.0002))
-#par <- c(0.02, 0.05, 0.1)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+time.taken
 
-test<-loglik.wrap(par=par, data=v_data)
-test
+# plot
+bfit <- matched_prev[[which.min(lik_arr)]]["prev"] #prevalence with min likelihood
+plot(data$age_mid, bfit, type='l')
+points(data$age_mid, data$prev)
 
 
-# Accept or reject based on the first method to compare a simulated sample to the observed data
-accept_or_reject_with_squared_distance <- function (true, simulated, acceptance_threshold) {
-  distance = compare_quantiles_with_squared_distance(compute_quantiles(true), compute_quantiles(simulated))
-  if((distance < acceptance_threshold) ) return(T) else return(F)
-}
+
+
+
+
+
+
+
+
+## Plot priors ##
+nsim <- 1000
+# set prior on lambda0 #
+set.seed(1001)
+plot(density(par_arr[,1]), main = "lambda0 prior")
+polygon(density(par_arr[,1]), col = "lightblue")
+
+# set prior on lambda1 #
+plot(density(par_arr[,2]), main = "lambda1 prior")
+polygon(density(par_arr[,2]), col = "lightblue")
+
+# set prior on gradient #
+plot(density(par_arr[,3]), main = "gradient prior")
+polygon(density(par_arr[,3]), col = "lightblue")
 

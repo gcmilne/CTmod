@@ -41,6 +41,6 @@ S0 <- I0 <- Im0 <- vector("numeric", length=pars$agrps)
 # entire population initially susceptible
 S0[1:length(S0)] <- pars$Na
 y <- c(S0, I0, Im0)
-time <- seq(1,100, 1)
+time <- seq(1,10, 1)
 #time<-seq(0,250,1)
 

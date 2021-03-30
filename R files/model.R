@@ -2,9 +2,9 @@
 age_si = function(time, y, pars) {
   
   # Back-transform parameters
-  lambda0  = exp(pars$log.lambda0)
-  lambda1  = exp(pars$log.lambda1)
-  gradient = exp(pars$log.gradient)
+  lambda0  <- exp(pars$log.lambda0)
+  lambda1  <- exp(pars$log.lambda1)
+  gradient <- exp(pars$log.gradient)
   
   ## set up state variables from input
   # Infected - either born with congenital disease (seroconversion during pregnancy) or via FoI
