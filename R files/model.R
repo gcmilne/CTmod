@@ -126,6 +126,9 @@ age_si = function(time, y, pars) {
   ## recalculate prevalence by age
   pI = (I+Im)/Na
   
+  ## recalculate observed prevalence
+  obs_pI <- pI * (pars$se + pars$sp-1) + (1-pars$sp)
+  
   ## check total pop size
   Nt <- St+It+Imt
   
