@@ -138,4 +138,3 @@ age_si = function(time, y, pars) {
               ct1=ct1, ct2=ct2, ct3=ct3, Na=Na, 
               Nt=Nt, St=St, It=It, Imt=Imt, pIt=pIt, matAbt=matAbt, ctt=ctt))
 }
-

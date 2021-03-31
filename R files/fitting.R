@@ -7,6 +7,7 @@ source("R files/model.R")
 
 # Load packages
 library(deSolve)
+require(lhs) #for latin hypercube sampling
 
 # Read in data #
 data <- read.csv("data/netherlands_95.csv")
@@ -38,7 +39,7 @@ matched_ages <- head(matched_ages, -1)
 # find the indices which match the age group most closely
 matched_indices <- which(!is.na(matched_ages))
 
-## Age profiles at given time
+## Function to get age profiles at given time
 getit <- function(time) {
   row <- which(abs(sol[,"time"]-time)==min(abs(sol[,"time"]-time)))
   df <- sol[row,-1]
@@ -67,19 +68,16 @@ getit <- function(time) {
   out <- out[-nrow(out),]
 }
 
-### Next: likelihood function
-time <- seq(1,850, 1) # set time to end of burnin
-
+### Likelihood function
 loglik <- function(k, n, prev){ 
   dbinom(k, n, prev, log=T) 
 }
 
 ## Latin hypercube sampling
-require(lhs)
 set.seed(1001)
 nsim <- 3
 
-par_arr <- randomLHS(nsim, 3) 
+par_arr <- randomLHS(nsim, 3) #create parameter array
 par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
 par_arr[,2] <- log(rbeta(par_arr[,2], shape1 = 2, shape2=80)) #log lambda1
 par_arr[,3] <- log(runif(par_arr[,3], min=0, max=0.2))        #log gradient
@@ -115,7 +113,7 @@ plot(data$age_mid, bfit, type='l')
 points(data$age_mid, data$prev)
 
 
-
+# time is in days, so need to sum ct cases over 365 days to get total for the year
 
 
 
