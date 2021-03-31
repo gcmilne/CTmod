@@ -86,8 +86,7 @@ par_arr[,3] <- log(runif(par_arr[,3], min=0, max=0.2))        #log gradient
 #dummy <- apply(exp(par_arr), 2, hist, main = "") #plot prior distributions
 
 lik_arr <- vector(mode="numeric", length=nsim) #create likelihood array
-matched_prev <- rep(list(matrix(nrow=length(data$age_mid), ncol=2)),nsim) #create list to store model output matched to correct age bins
-names(matched_prev) <- c("prev", "ct")
+matched_prev <- rep(list(matrix(nrow=length(data$age_mid))),nsim) #create list to store model output matched to correct age bins
 
 # Run model and store likelihoods
 start.time <- Sys.time()
@@ -97,8 +96,7 @@ for(i in 1:nrow(par_arr)){
   pars$log.gradient <- par_arr[i,3]
   sol          <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
   store_sim    <- getit(max(time))  #store age profile after burnin period
-  matched_prev[[i]]["prev"] <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
-  matched_prev[[i]]["ct"] <- (store_sim[,"ct1"][matched_indices]+store_sim[,"ct2"][matched_indices]+store_sim[,"ct3"][matched_indices]) #select ct cases from relevant age categories
+  matched_prev[[i]] <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
   logliks <- loglik(k = data$k, n = data$n, prev = matched_prev[[i]]) #run likelihood function
   lik_arr[i] <- sum(-logliks)
 }
@@ -108,17 +106,28 @@ time.taken <- end.time - start.time
 time.taken
 
 # plot
-bfit <- matched_prev[[which.min(lik_arr)]]["prev"] #prevalence with min likelihood
+bfit <- matched_prev[[which.min(lik_arr)]] #prevalence with min likelihood
 plot(data$age_mid, bfit, type='l')
 points(data$age_mid, data$prev)
 
+## Estimating no. cases of CT in each given year ##
+# approach: (1) After burnin, select best-fit par set based on lowest log lik
+#           (2) Simulate model and estimate total no. annual CT cases by sol[850,"ctt"]
 
-# time is in days, so need to sum ct cases over 365 days to get total for the year
+# return the par_arr set with the lowest likelihood
+bfit_pars <- par_arr[which.min(lik_arr),]
 
+# save this best-fit set to the par vector
+pars$log.lambda0  <- bfit_pars[1]
+pars$log.lambda1  <- bfit_pars[2]
+pars$log.gradient <- bfit_pars[3]
 
-
-
-
+## to ponder: Is ctt showing cumulative CT cases or incident cases?
+##            If the former, then simply storing sol[850,"ctt"] (ie CT cases post-burnin) will give the annual no. CT cases?
+time <- seq(1,850, 1)
+sol  <- ode(y = y, times = time, parms = pars,  func = age_si)
+sol[850,"ctt"]
+plot(sol[,"time"], sol[, "ctt"])
 
 
 ## Plot priors ##
