@@ -16,6 +16,8 @@ source("model.R")
 # Load packages
 library(deSolve)
 library(lhs)
+library(foreach)    #for parallelisation
+library(doParallel) #for parallelisation
 
 # Read in data #
 # data <- read.csv("data/netherlands_95.csv")
@@ -84,7 +86,7 @@ loglik <- function(k, n, prev){
 
 ## Latin hypercube sampling
 set.seed(1001)
-nsim  <- 3
+nsim  <- 2
 npars <- 3
 
 par_arr <- randomLHS(nsim, npars) #create parameter array
@@ -96,11 +98,28 @@ par_arr[,3] <- log(runif(par_arr[,3], min=0, max=0.2))        #log gradient
 # dummy <- apply(exp(par_arr), 2, hist, main = "") #plot prior distributions
 
 lik_arr <- vector(mode="numeric", length=nsim) #create likelihood array
-matched_prev <- rep(list(matrix(nrow=length(data$age_mid))),nsim) #create list to store model output matched to correct age bins
+matched_prev <- matrix(nrow=length(data$age_mid)) #create matrix to store model output matched to correct age bins
 
 # Run model and store likelihoods
-for(i in 1:nrow(par_arr)){
-  #get cluster to run each i in parallel
+# for(i in 1:nrow(par_arr)){
+#   pars$log.lambda0  <- par_arr[i,1]
+#   pars$log.lambda1  <- par_arr[i,2]
+#   pars$log.gradient <- par_arr[i,3]
+#   sol          <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+#   store_sim    <- getit(max(time))  #store age profile after burnin period
+#   matched_prev <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+#   logliks <- loglik(k = data$k, n = data$n, prev = matched_prev) #run likelihood function
+#   lik_arr[i] <- sum(-logliks)
+# }
+
+#parallelised version of above function
+no_cores <- detectCores() #set no. cores to use
+# Initiate cluster
+cl <- makeCluster(no_cores)
+registerDoParallel(cl)
+
+### works but need to find out how to save output so that can save it on cluster ###
+foreach(i=1:nrow(par_arr), .combine=rbind, .packages='deSolve') %dopar% {  #dopar makes loop run in parallel
   pars$log.lambda0  <- par_arr[i,1]
   pars$log.lambda1  <- par_arr[i,2]
   pars$log.gradient <- par_arr[i,3]
@@ -111,15 +130,18 @@ for(i in 1:nrow(par_arr)){
   lik_arr[i] <- sum(-logliks)
 }
 
+#return resources, e.g. memory, to the cluster
+stopImplicitCluster()
+
 #save parameter array 
 saveRDS(par_arr, file = "modpars.Rdata")
-# par_set <- readRDS("modpars.Rdata")
-# head(par_set)
+par_set <- readRDS("modpars.Rdata")
+head(par_set)
 
 #save likelihood array 
 saveRDS(lik_arr, file = "modliks.Rdata")
-# lik_set <- readRDS("modliks.Rdata")
-# head(lik_set)
+lik_set <- readRDS("modliks.Rdata")
+head(lik_set)
 
 # plot prevalence with min likelihood vs. the data
 # bfit <- matched_prev[[which.min(lik_arr)]]
