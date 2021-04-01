@@ -1,16 +1,25 @@
 ########### Model fitting
-
+#directory when using cluster
+setwd("/storage/users/gmilne/test")
 # Load scripts #
-source("R files/demogdat.R")
-source("R files/setparms.R")
-source("R files/model.R")
+source("demogdat.R")
+source("setparms.R")
+source("model.R")
+
+#directory when not using the cluster
+# setwd("~/Desktop/R Projects/stan")
+# Load scripts #
+# source("R files/demogdat.R")
+# source("R files/setparms.R")
+# source("R files/model.R")
 
 # Load packages
 library(deSolve)
-require(lhs) #for latin hypercube sampling
+library(lhs)
 
 # Read in data #
-data <- read.csv("data/netherlands_95.csv")
+# data <- read.csv("data/netherlands_95.csv")
+data <- read.csv("netherlands_95.csv")
 number_of_data_points = length(data$n)
 
 ### select age groups from model output that match data age groups
@@ -75,73 +84,82 @@ loglik <- function(k, n, prev){
 
 ## Latin hypercube sampling
 set.seed(1001)
-nsim <- 3
+nsim  <- 3
+npars <- 3
 
-par_arr <- randomLHS(nsim, 3) #create parameter array
+par_arr <- randomLHS(nsim, npars) #create parameter array
 par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
 par_arr[,2] <- log(rbeta(par_arr[,2], shape1 = 2, shape2=80)) #log lambda1
 par_arr[,3] <- log(runif(par_arr[,3], min=0, max=0.2))        #log gradient
 
-#par(mfrow=c(2,2))
-#dummy <- apply(exp(par_arr), 2, hist, main = "") #plot prior distributions
+# par(mfrow=c(2,2))
+# dummy <- apply(exp(par_arr), 2, hist, main = "") #plot prior distributions
 
 lik_arr <- vector(mode="numeric", length=nsim) #create likelihood array
 matched_prev <- rep(list(matrix(nrow=length(data$age_mid))),nsim) #create list to store model output matched to correct age bins
 
 # Run model and store likelihoods
-start.time <- Sys.time()
 for(i in 1:nrow(par_arr)){
+  #get cluster to run each i in parallel
   pars$log.lambda0  <- par_arr[i,1]
   pars$log.lambda1  <- par_arr[i,2]
   pars$log.gradient <- par_arr[i,3]
   sol          <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
   store_sim    <- getit(max(time))  #store age profile after burnin period
-  matched_prev[[i]] <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
-  logliks <- loglik(k = data$k, n = data$n, prev = matched_prev[[i]]) #run likelihood function
+  matched_prev <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+  logliks <- loglik(k = data$k, n = data$n, prev = matched_prev) #run likelihood function
   lik_arr[i] <- sum(-logliks)
 }
 
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-time.taken
+#save parameter array 
+saveRDS(par_arr, file = "modpars.Rdata")
+# par_set <- readRDS("modpars.Rdata")
+# head(par_set)
 
-# plot
-bfit <- matched_prev[[which.min(lik_arr)]] #prevalence with min likelihood
-plot(data$age_mid, bfit, type='l')
-points(data$age_mid, data$prev)
+#save likelihood array 
+saveRDS(lik_arr, file = "modliks.Rdata")
+# lik_set <- readRDS("modliks.Rdata")
+# head(lik_set)
+
+# plot prevalence with min likelihood vs. the data
+# bfit <- matched_prev[[which.min(lik_arr)]]
+# plot(data$age_mid, bfit, type='l')
+# points(data$age_mid, data$prev)
 
 ## Estimating no. cases of CT in each given year ##
 # approach: (1) After burnin, select best-fit par set based on lowest log lik
 #           (2) Simulate model and estimate total no. annual CT cases by sol[850,"ctt"]
 
 # return the par_arr set with the lowest likelihood
-bfit_pars <- par_arr[which.min(lik_arr),]
+# bfit_pars <- par_arr[which.min(lik_arr),]
 
 # save this best-fit set to the par vector
-pars$log.lambda0  <- bfit_pars[1]
-pars$log.lambda1  <- bfit_pars[2]
-pars$log.gradient <- bfit_pars[3]
-
-## to ponder: Is ctt showing cumulative CT cases or incident cases?
-##            If the former, then simply storing sol[850,"ctt"] (ie CT cases post-burnin) will give the annual no. CT cases?
-time <- seq(1,850, 1)
-sol  <- ode(y = y, times = time, parms = pars,  func = age_si)
-sol[850,"ctt"]
-plot(sol[,"time"], sol[, "ctt"])
+# pars$log.lambda0  <- bfit_pars[1]
+# pars$log.lambda1  <- bfit_pars[2]
+# pars$log.gradient <- bfit_pars[3]
+# 
+# sol <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+# df <- getit(850)
+# par(mfrow=c(2,2))
+# plot(df[,"obs_pI"]~df[,"a"], type='l')
+# points(data$age_mid, data$prev)
+# plot(df[,"Na"]~df[,"a"], type='l', ylim=c(0,70000))
+# points(pars$age, pars$Na)
+# lines(rep(15, 401), seq(0,60000, by=60000/400), col="red", lty=2)
+# lines(rep(40, 401), seq(0,60000, by=60000/400), col="red", lty=2)
 
 
 ## Plot priors ##
-nsim <- 1000
+# nsim <- 1000
 # set prior on lambda0 #
-set.seed(1001)
-plot(density(par_arr[,1]), main = "lambda0 prior")
-polygon(density(par_arr[,1]), col = "lightblue")
+# set.seed(1001)
+# plot(density(par_arr[,1]), main = "lambda0 prior")
+# polygon(density(par_arr[,1]), col = "lightblue")
 
 # set prior on lambda1 #
-plot(density(par_arr[,2]), main = "lambda1 prior")
-polygon(density(par_arr[,2]), col = "lightblue")
+# plot(density(par_arr[,2]), main = "lambda1 prior")
+# polygon(density(par_arr[,2]), col = "lightblue")
 
 # set prior on gradient #
-plot(density(par_arr[,3]), main = "gradient prior")
-polygon(density(par_arr[,3]), col = "lightblue")
-
+# plot(density(par_arr[,3]), main = "gradient prior")
+# polygon(density(par_arr[,3]), col = "lightblue")

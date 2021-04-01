@@ -8,4 +8,4 @@
 module load apps/R-3.6.3.tcl
 
 cd /storage/users/gmilne/test 
-R CMD BATCH --no-save /storage/users/gmilne/test/stan-mod.R
+R CMD BATCH --no-save /storage/users/gmilne/test/fitting.R

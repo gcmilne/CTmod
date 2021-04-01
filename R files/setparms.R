@@ -2,9 +2,9 @@
 ## SET PARAMETERS & INITs ######
 #############################
 #directory when not using cluster
-source("R files/demogdat.R")
+# source("R files/demogdat.R")
 # change of directory for cluster
-# source("demogdat.R")
+source("demogdat.R")
 
 pars  <- list(scale=50, shape= 1, agrps=400, amax=100, log.lambda0 = log(0.05),
               log.lambda1 = log(0), log.gradient = log(0), se=0.98475, sp=0.98725)
@@ -34,5 +34,5 @@ S0 <- I0 <- Im0 <- vector("numeric", length=pars$agrps)
 S0[1:length(S0)] <- pars$Na
 y <- c(S0, I0, Im0)
 
-# set time for model running (burnin period = 850 days)
+# set time for model running (burnin period = 850 years)
 time <- seq(1,850, 1)
