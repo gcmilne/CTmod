@@ -18,24 +18,19 @@ age_si = function(time, y, pars) {
   dS <- dI <- dIm <- vector("numeric",length=pars$agrps)
   
   ## force of infection
-  #burnin <- 250
-  #if (time<burnin){
   foi <- lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))
-  #  } else{
-  #  foi <- 0.55*((pars$lambda0 + pars$lambda1*(pars$age^2) * (pars$age * exp(-pars$gradient*pars$age)))*pars$shape)
-  #}
 
   # calculate change in seroprev and no. seroconversions in pregnancy
   dprev     <- vector("numeric", length=pars$agrps)
   seroconv1 <- vector("numeric", length=pars$agrps)
   seroconv2 <- vector("numeric", length=pars$agrps)
   seroconv3 <- vector("numeric", length=pars$agrps)
-  matAb1     <- vector("numeric", length=pars$agrps)
-  matAb2     <- vector("numeric", length=pars$agrps)
-  matAb3     <- vector("numeric", length=pars$agrps)
-  c1       <- vector("numeric", length=pars$agrps)
-  c2       <- vector("numeric", length=pars$agrps)
-  c3       <- vector("numeric", length=pars$agrps)
+  matAb1    <- vector("numeric", length=pars$agrps)
+  matAb2    <- vector("numeric", length=pars$agrps)
+  matAb3    <- vector("numeric", length=pars$agrps)
+  c1        <- vector("numeric", length=pars$agrps)
+  c2        <- vector("numeric", length=pars$agrps)
+  c3        <- vector("numeric", length=pars$agrps)
   ct1       <- vector("numeric", length=pars$agrps)
   ct2       <- vector("numeric", length=pars$agrps)
   ct3       <- vector("numeric", length=pars$agrps)
@@ -44,8 +39,8 @@ age_si = function(time, y, pars) {
   Na <- S+I+Im
   
   ## total deaths
-  deaths <- sum(pars$d*Na)
-  
+  deaths <- sum((pars$d)*Na)
+
   ## births distributed among age groups according to fertility
   births_age <-  deaths*pars$propfert
   births <- sum(births_age)
