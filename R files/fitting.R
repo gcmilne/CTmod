@@ -86,7 +86,7 @@ loglik <- function(k, n, prev){
 
 ## Latin hypercube sampling
 set.seed(1001)
-nsim  <- 2
+nsim  <- 10000
 npars <- 3
 
 par_arr <- randomLHS(nsim, npars) #create parameter array
@@ -113,13 +113,12 @@ matched_prev <- matrix(nrow=length(data$age_mid)) #create matrix to store model 
 # }
 
 #parallelised version of above function
-no_cores <- detectCores() #set no. cores to use
+no_cores <- makeCluster() #set no. cores to use
 # Initiate cluster
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
-### works but need to find out how to save output so that can save it on cluster ###
-foreach(i=1:nrow(par_arr), .combine=rbind, .packages='deSolve') %dopar% {  #dopar makes loop run in parallel
+out_list <- foreach(i=1:nrow(par_arr), .combine=rbind, .packages='deSolve') %dopar% {  #dopar makes loop run in parallel
   pars$log.lambda0  <- par_arr[i,1]
   pars$log.lambda1  <- par_arr[i,2]
   pars$log.gradient <- par_arr[i,3]
@@ -135,13 +134,13 @@ stopImplicitCluster()
 
 #save parameter array 
 saveRDS(par_arr, file = "modpars.Rdata")
-par_set <- readRDS("modpars.Rdata")
-head(par_set)
+# par_set <- readRDS("modpars.Rdata")
+# head(par_set)
 
 #save likelihood array 
-saveRDS(lik_arr, file = "modliks.Rdata")
-lik_set <- readRDS("modliks.Rdata")
-head(lik_set)
+saveRDS(out_list, file = "modliks.Rdata")
+# lik_set <- readRDS("modliks.Rdata")
+# head(lik_set)
 
 # plot prevalence with min likelihood vs. the data
 # bfit <- matched_prev[[which.min(lik_arr)]]
