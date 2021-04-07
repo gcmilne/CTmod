@@ -8,11 +8,10 @@ age_si = function(time, y, pars) {
   shape    <- exp(pars$log.shape)
     
   ## set up state variables from input
-  # Infected - either born with congenital disease (seroconversion during pregnancy) or via FoI
   S <- y[1:pars$agrps]
-  
-  # Carrier of maternal antibodies at birth b/c of seroconversion in pregnancy but not congenitally diseased
+  # Infected - either born with congenital disease (seroconversion during pregnancy) or via FoI
   I <- y[(pars$agrps+1):(2*pars$agrps)]
+  # Carrier of maternal antibodies at birth b/c of seroconversion in pregnancy but not congenitally diseased
   Im <- y[(2*pars$agrps+1):(3*pars$agrps)]
   
   # set derivatives
@@ -101,11 +100,11 @@ age_si = function(time, y, pars) {
   for (i in 1:pars$agrps) {
     if (i==1) {
       
-      # Susceptible - born seronegative or having lost mat antibodies, no previus exposure
+      # susceptible - born seronegative or having lost maternal antibodies, no previous exposure
       dS[i]  <-  (births - matAbt - ctt) + pars$r*Im[i] - foi[i]*S[i] - pars$d[i]*S[i] - pars$da*S[i] 
-      # Infected - either congenitally or by FoI
+      # infected - either congenitally or by foi
       dI[i]  <- (ctt + foi[i]*(Na[i]-I[i]) - pars$d[i]*I[i] - pars$da*I[i])
-      # Maternal antibody 
+      # maternal antibody positive 
       dIm[i] <- matAbt - (foi[i]+ pars$r+ pars$d[i] + pars$da)*Im[i]
       
     } else if (i<pars$agrps) {
