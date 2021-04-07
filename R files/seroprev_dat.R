@@ -33,15 +33,15 @@ age_pop[1] <- age_pop[1]-1
 tot_pop <- tot_pop[-length(tot_pop)]
 
 #subset Netherlands data by year of data collection
-neth_96 <- temporal %>% subset(year==1996)  #1996 (1995 has demographic data available)
+neth_95 <- temporal %>% subset(year==1996)  #1995/96 (1995 has demographic data available)
 
 #distribute n according to demographic data from specific year
-f <- spline(age_pop, tot_pop, xout=neth_96$age_mid)
-neth_96$n <- round(f$y/sum(f$y)*neth_96$n, 0)
+f <- spline(age_pop, tot_pop, xout=neth_95$age_mid)
+neth_95$n <- round(f$y/sum(f$y)*neth_95$n, 0)
 #calculate k
-neth_96$k <- round(neth_96$prevalence * neth_96$n, 0)
+neth_95$k <- round(neth_95$prevalence * neth_95$n, 0)
 #recalculate prevalence
-neth_96$prevalence <- neth_96$k/neth_96$n
+neth_95$prevalence <- neth_95$k/neth_95$n
 
 ### set country & year ###
 country <- "Netherlands"
@@ -58,15 +58,15 @@ age_pop[1] <- age_pop[1]-1
 tot_pop <- tot_pop[-length(tot_pop)]
 
 #subset Netherlands data by year of data collection
-neth_05 <- temporal %>% subset(year==2005)  #2005
+neth_06 <- temporal %>% subset(year==2005)  #2006/07 (2005 has demographic data available)
 
 #distribute n according to demographic data from specific year
-f <- spline(age_pop, tot_pop, xout=neth_05$age_mid)
-neth_05$n <- round((f$y/sum(f$y))*neth_05$n, 0)
+f <- spline(age_pop, tot_pop, xout=neth_06$age_mid)
+neth_06$n <- round((f$y/sum(f$y))*neth_06$n, 0)
 #calculate k
-neth_05$k <- round(neth_05$prevalence * neth_05$n, 0)
+neth_06$k <- round(neth_06$prevalence * neth_06$n, 0)
 #recalculate prevalence
-neth_05$prevalence <- neth_05$k/neth_05$n
+neth_06$prevalence <- neth_06$k/neth_06$n
 
-# plot(neth_96$age_mid, neth_96$prevalence, ylim=c(0,1))
-# points(neth_05$age_mid, neth_05$prevalence, col="red")
+# plot(neth_95$age_mid, neth_95$prevalence, ylim=c(0,1))
+# points(neth_06$age_mid, neth_06$prevalence, col="red")

@@ -5,7 +5,8 @@ age_si = function(time, y, pars) {
   lambda0  <- exp(pars$log.lambda0)
   lambda1  <- exp(pars$log.lambda1)
   gradient <- exp(pars$log.gradient)
-  
+  shape    <- exp(pars$log.shape)
+    
   ## set up state variables from input
   # Infected - either born with congenital disease (seroconversion during pregnancy) or via FoI
   S <- y[1:pars$agrps]
@@ -17,9 +18,15 @@ age_si = function(time, y, pars) {
   # set derivatives
   dS <- dI <- dIm <- vector("numeric",length=pars$agrps)
   
-  ## force of infection
-  foi <- lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))
-
+  # force of infection
+  foi <- vector("numeric", length=pars$agrps)
+  
+  if( time <= pars$burnin){
+    foi <- lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))
+  } else if (time > pars$burnin){
+    foi <- (lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age)))*shape #decrease foi after burnin
+  }
+  
   # calculate change in seroprev and no. seroconversions in pregnancy
   dprev     <- vector("numeric", length=pars$agrps)
   seroconv1 <- vector("numeric", length=pars$agrps)

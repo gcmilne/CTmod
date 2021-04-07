@@ -4,6 +4,7 @@ setwd("/storage/users/gmilne/test")
 # Load scripts #
 source("demogdat.R")
 source("setparms.R")
+source("seroprev_dat.R")
 source("model.R")
 
 #directory when not using the cluster
@@ -11,6 +12,7 @@ source("model.R")
 # Load scripts #
 # source("R files/demogdat.R")
 # source("R files/setparms.R")
+# source("R files/seroprev_dat.R")
 # source("R files/model.R")
 
 # Load packages
@@ -18,14 +20,14 @@ library(deSolve)
 library(lhs)
 library(foreach)    #for parallelisation
 library(doParallel) #for parallelisation
+library(dplyr)
 
 # Read in data #
-# data <- read.csv("data/netherlands_95.csv")
-data <- read.csv("netherlands_95.csv")
+data <- neth_96  # from "R files/seroprev_dat.R" script (NB length of datasets from both years are the same)
 number_of_data_points = length(data$n)
 
 ### select age groups from model output that match data age groups
-clean_dat <- data.frame("age_mid"=data$age_mid, "k"=data$k, "n"=data$n, "prev"=data$prev)
+clean_dat <- data.frame("age_mid"=data$age_mid, "k"=data$k, "n"=data$n, "prev"=data$prevalence)
 
 #create new dataset
 matched_dat <- clean_dat
@@ -79,26 +81,32 @@ getit <- function(time) {
   out <- out[-nrow(out),]
 }
 
-### Likelihood function
-loglik <- function(k, n, prev){ 
-  dbinom(k, n, prev, log=T) 
+## Joint likelihood function: for fitting both timepoints simultaneously
+loglik <- function(k1, n1, prev1, k2, n2, prev2){
+  dbinom(k1, n1, prev1, log=T) + dbinom(k2, n2, prev2, log=T)
 }
+
+# Likelihood function: for fitting one timepoint
+# loglik <- function(k, n, prev){ 
+#   dbinom(k, n, prev, log=T)
+# }
 
 ## Latin hypercube sampling
 set.seed(1001)
-nsim  <- 10000
-npars <- 3
+nsim  <- 2
+# npars <- 3
+npars <- 4
 
 par_arr <- randomLHS(nsim, npars) #create parameter array
 par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
 par_arr[,2] <- log(rbeta(par_arr[,2], shape1 = 2, shape2=80)) #log lambda1
 par_arr[,3] <- log(runif(par_arr[,3], min=0, max=0.2))        #log gradient
+par_arr[,4] <- log(runif(par_arr[,4], min=0.5, max=1))        #log shape
 
 # par(mfrow=c(2,2))
 # dummy <- apply(exp(par_arr), 2, hist, main = "") #plot prior distributions
 
 lik_arr <- vector(mode="numeric", length=nsim) #create likelihood array
-matched_prev <- matrix(nrow=length(data$age_mid)) #create matrix to store model output matched to correct age bins
 
 # Run model and store likelihoods
 # for(i in 1:nrow(par_arr)){
@@ -113,7 +121,7 @@ matched_prev <- matrix(nrow=length(data$age_mid)) #create matrix to store model 
 # }
 
 #parallelised version of above function
-no_cores <- makeCluster() #set no. cores to use
+no_cores <- detectCores() #set no. cores to use
 # Initiate cluster
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
@@ -122,27 +130,36 @@ out_list <- foreach(i=1:nrow(par_arr), .combine=rbind, .packages='deSolve') %dop
   pars$log.lambda0  <- par_arr[i,1]
   pars$log.lambda1  <- par_arr[i,2]
   pars$log.gradient <- par_arr[i,3]
-  sol          <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
-  store_sim    <- getit(max(time))  #store age profile after burnin period
-  matched_prev <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
-  logliks <- loglik(k = data$k, n = data$n, prev = matched_prev) #run likelihood function
-  lik_arr[i] <- sum(-logliks)
+  pars$log.shape    <- par_arr[i,4]
+  sol           <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+  store_sim     <- getit(pars$burnin)  #store age profile after burnin period (TIMEPOINT 1, 95/96)
+  matched_prev  <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+  store_sim2    <- getit(pars$burnin+11)  #store age profile 11 years after burnin period (TIMEPOINT 2, 06/07)
+  matched_prev2 <- store_sim2[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+  logliks       <- loglik(k1 = neth_95$k, n1 = neth_95$n, prev1 = matched_prev, 
+                          k2 = neth_06$k, n2 = neth_06$n, prev2 = matched_prev2)
+  lik_arr[i]    <- sum(-logliks)
 }
+
+# out_list
+# exp(par_arr)
 
 #return resources, e.g. memory, to the cluster
 stopImplicitCluster()
 
 #save parameter array 
-saveRDS(par_arr, file = "modpars.Rdata")
+saveRDS(par_arr, file = "modpars_2tp.Rdata")
 # par_set <- readRDS("modpars.Rdata")
 # head(par_set)
 
 #save likelihood array 
-saveRDS(out_list, file = "modliks.Rdata")
+saveRDS(out_list, file = "modliks_2tp.Rdata")
 # lik_set <- readRDS("modliks.Rdata")
 # head(lik_set)
 
-# plot prevalence with min likelihood vs. the data
+# sort 1,000 best-fitting par sets
+
+
 # bfit <- matched_prev[[which.min(lik_arr)]]
 # plot(data$age_mid, bfit, type='l')
 # points(data$age_mid, data$prev)

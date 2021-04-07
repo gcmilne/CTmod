@@ -2,17 +2,18 @@
 ## SET PARAMETERS & INITs ######
 #############################
 #directory when not using cluster
-# source("R files/demogdat.R")
+source("R files/demogdat.R")
 # change of directory for cluster
-source("demogdat.R")
+# source("demogdat.R")
 
-pars  <- list(scale=50, shape= 1, agrps=400, amax=100, log.lambda0 = log(0.05),
+pars  <- list(scale=50, log.shape= log(0.30), agrps=400, amax=100, log.lambda0 = log(0.02),
               log.lambda1 = log(0), log.gradient = log(0), se=0.98475, sp=0.98725)
 pars$la <- (pars$amax/pars$agrps)  # no. years in each age group (here = 1 yr)
 pars$da <-  1/pars$la  # ageing rate
 pars$age <- seq(0+pars$la/2, pars$amax-pars$la/2, length.out=pars$agrps) # age at midpoints of age groups
 pars$r <- 1/(21/365)  # maternally-derived IgG half life of 3 weeks (Villard et al., 2016. Diagnostic microbiology and infectious disease;84(1):22-33)
 pars$mctr <- c(0.15, 0.44, 0.71)  # SYROCOT 2007. The Lancet 369
+pars$burnin <- 850
  
 # ### interpolated parameters from demographic data
 f <- spline(age_pop, tot_pop, xout=pars$age)
@@ -35,4 +36,5 @@ S0[1:length(S0)] <- pars$Na
 y <- c(S0, I0, Im0)
 
 # set time for model running (burnin period = 850 years)
-time <- seq(1,850, 1)
+time <- seq(1,pars$burnin+11, 1)
+
