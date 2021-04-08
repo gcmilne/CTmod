@@ -6,6 +6,7 @@
 
 # Load scripts #
 source("R files/demogdat.R")
+# source("demogdat.R")
 
 # Load packages
 library(dplyr)
@@ -13,6 +14,7 @@ library(wpp2019)
 
 #read in temporal data from the Netherlands
 temporal <- read.csv("data/netherlands_temporal.csv")
+# temporal <- read.csv("netherlands_temporal.csv")
 
 #load required datasets
 data(popF) # population distribution females
@@ -70,3 +72,34 @@ neth_06$prevalence <- neth_06$k/neth_06$n
 
 # plot(neth_95$age_mid, neth_95$prevalence, ylim=c(0,1))
 # points(neth_06$age_mid, neth_06$prevalence, col="red")
+
+##### set up to run model in "fitting.R"
+##### Read in data #
+data <- neth_95  # from "R files/seroprev_dat.R" script (NB length of datasets from both years are the same)
+number_of_data_points = length(data$n)
+
+### select age groups from model output that match data age groups
+clean_dat <- data.frame("age_mid"=data$age_mid, "k"=data$k, "n"=data$n, "prev"=data$prevalence)
+
+#create new dataset
+matched_dat <- clean_dat
+# x[,2] increases by one each time data age midpoint is closest match to modelled age midpoint
+x <- cbind(pars$age, findInterval(pars$age, matched_dat$age_mid))
+#returns FALSE if there's change between element i and element i+1
+y1 <- diff(x[,2]) <= 0
+
+# each time x[,2] increases by 1, save value of x[,1][i+1] to matched_dat$age_mid[i]
+matched_ages <- vector("numeric", pars$agrps)
+for(i in 1:length(y1)){
+  if(y1[i]==T){
+    matched_ages[i] <- NA
+  }else if(y1[i]==F){
+    matched_ages[i] <- x[,1][i+1]
+  }
+}
+
+#removes last element (which is 0 because of indexing)
+matched_ages <- head(matched_ages, -1)
+
+# find the indices which match the age group most closely
+matched_indices <- which(!is.na(matched_ages))
