@@ -1,32 +1,51 @@
-########### Model fitting
+#######################################
+########### Model fitting #############
+#######################################
+
 rm(list = ls()) # clear working environment
 
-#directory when using cluster
-# setwd("/storage/users/gmilne/test/parallel")
+#######################
+#### Set directory ####
+#######################
+# setwd("/storage/users/gmilne/test/parallel")  #cluster
+setwd("~/Desktop/R Projects/stan")  #local
 
-#directory when not using the cluster
-setwd("~/Desktop/R Projects/stan")
-
-# Set seed
-# SEED = as.numeric(Sys.getenv("SEED")) # cluster
-SEED = 1                              # local
+############
+# Set seed #
+############
+# SEED = as.numeric(Sys.getenv("SEED"))  #cluster
+SEED = 1                              #local
 set.seed(SEED)
 
-# Load scripts #
-# source("demogdat.R")
-# source("setparms.R")
-# source("seroprev_dat.R")
-# source("model.R")
-source("R files/demogdat.R")
-source("R files/setparms.R")
-source("R files/seroprev_dat.R")
-source("R files/model.R")
+##################
+## Load scripts ##
+##################
+# source("demogdat.R")      #cluster
+# source("setparms.R")      #cluster
+# source("seroprev_dat.R")  #cluster
+# source("model.R")         #cluster
+source("R files/demogdat.R")      #local
+source("R files/setparms.R")      #local
+source("R files/seroprev_dat.R")  #local
+source("R files/model.R")         #local
 
-# Load packages
+#################
+# Load packages #
+#################
 library(deSolve)
 library(lhs)
 library(dplyr)
 
+###################
+# Additional data #
+###################
+nsim  <- 100  #no. iterations on each for loop
+niter <- 20   #no. iterations on the cluster
+npars <- 4    #no. parameters to fit
+
+###############
+## Functions ##
+###############
 ## Function to get age profiles at given time
 getit <- function(time) {
   row <- which(abs(sol[,"time"]-time)==min(abs(sol[,"time"]-time)))
@@ -61,10 +80,9 @@ loglik <- function(k1, n1, prev1, k2, n2, prev2){
   dbinom(k1, n1, prev1, log=T) + dbinom(k2, n2, prev2, log=T)
 }
 
-## Latin hypercube sampling
-nsim  <- 100
-npars <- 4
-
+##############################
+## Latin hypercube sampling ##
+##############################
 par_arr <- randomLHS(nsim, npars) #create parameter array
 par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
 par_arr[,2] <- log(rbeta(par_arr[,2], shape1 = 2, shape2=80)) #log lambda1
@@ -74,7 +92,9 @@ par_arr[,4] <- log(runif(par_arr[,4], min=0.2, max=0.8))      #log shape
 # par(mfrow=c(2,2))
 # dummy <- apply(exp(par_arr), 2, hist, main = "") #plot prior distributions
 
-# Run model and store likelihoods
+#####################################
+## Run model and store likelihoods ##
+#####################################
 lik_arr <- vector(mode="numeric", length=nsim) #create likelihood array
 
 system.time(
@@ -94,13 +114,13 @@ system.time(
   }
 )
 
-## save parameter values & likelihoods in one dataframe
 # likpar_arr <- data.frame(par_arr, lik_arr)
 # names(likpar_arr) <- c("log.lambda0", "log.lambda1", "log.gradient", "log.shape", "log.lik")
 # saveRDS(likpar_arr, file = paste("parliks_", SEED, ".Rdata", sep = ""))
 
-## Read in and combine all parameter/likelihood values ##
-niter <- 20  #no. iterations on the cluster
+##############################################################
+## POST-CLUSTER: Read in parameter sets & likelihood values ##
+##############################################################
 out_likpar <- data.frame(matrix(ncol=npars+1, nrow=niter*nsim))
 names(out_likpar) <- c("log.lambda0", "log.lambda1", "log.gradient", "log.shape", "likelihood")
 counter <- seq(1, (nsim*niter), by = 1/nsim)  # used in for loop to pick correct parliks_ file
@@ -114,7 +134,10 @@ for(i in seq(1, niter*nsim, by=nsim)){
   }
 }
 
-## plot parameter values vs. likelihood
+##########################
+## Exploratory plotting ##
+##########################
+## Plot parameter values vs. likelihood
 par(mfrow=c(2,2))
 plot(exp(out_likpar$log.lambda0), out_likpar$likelihood)
 abline(lm(out_likpar$likelihood ~ exp(out_likpar$log.lambda0)), col="red")
@@ -128,64 +151,94 @@ abline(lm(out_likpar$likelihood ~ exp(out_likpar$log.gradient)), col="red")
 plot(exp(out_likpar$log.shape), out_likpar$likelihood)
 abline(lm(out_likpar$log.shape ~ exp(out_likpar$log.gradient)), col="red")
 
-# See what the best fitting foi form looks like
+## Plot the best fitting foi form
 x<-exp(out_likpar[which.min(out_likpar$likelihood),])
 lambda0 <-  x[1]$log.lambda0
 lambda1 <-  x[2]$log.lambda1
 gradient <- x[3]$log.gradient
 shape <-    x[4]$log.shape
-par(mfrow=c(2,1))
+par(mfrow=c(1,1))
 foi <- lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))
 plot(pars$age, foi, type='l')
 foi <- (lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age)))*shape
 plot(pars$age, foi, type='l', lty=2)
 
-
-# Get x number of best-fitting par sets & their indices
+## Get x number of best-fitting par sets & their indices
 bfit <- sort(out_likpar$likelihood, index.return=T)
 top_pars <- out_likpar[head(bfit$ix, 10),]
 
-# see what range the best-fit pars span
+## See what range the best-fit pars span
 par(mfrow=c(2,2))
 plot(exp(top_pars$log.lambda0), top_pars$likelihood)
 plot(exp(top_pars$log.lambda1), top_pars$likelihood)
 plot(exp(top_pars$log.gradient), top_pars$likelihood)
 plot(exp(top_pars$log.shape), top_pars$likelihood)
 
+## Plot the distribution of 1,000 best-fit par sets (near prior boundaries?)
+top_pars <- out_likpar[head(bfit$ix, 1000),]
+par(mfrow=c(2,2))
+hist(exp(top_pars$log.lambda0),  main = "lambda0 (1,000 best fit)", xlab = "", ylab = "")
+hist(exp(top_pars$log.lambda1),  main = "lambda1 (1,000 best fit)", xlab = "", ylab = "")
+hist(exp(top_pars$log.gradient), main = "gradient (1,000 best fit)", xlab = "", ylab = "")
+hist(exp(top_pars$log.shape),    main = "shape (1,000 best fit)", xlab = "", ylab = "")
 
-## simulate model & estimate cases of CT for best fitting parameter set
-bfit <- out_likpar[which.min(out_likpar$likelihood),]
-pars$log.lambda0  <- bfit$log.lambda0
-pars$log.lambda1  <- bfit$log.lambda1
-pars$log.gradient <- bfit$log.gradient
-pars$log.shape    <- bfit$log.shape
-sol <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+#####################################################################
+## simulate model & show fit to data for a range of parameter sets ##
+#####################################################################
+params <- data.frame(matrix(nrow=4, ncol=npars+1))
+names(params) <- c("log.lambda0", "log.lambda1", "log.gradient", "log.shape", "likelihood")
+sorted_lik    <- sort(out_likpar$likelihood, index.return=T)$ix #sort by likelihood value
+params[1:2,]  <- out_likpar[head(sorted_lik, 2),]               #best fit
+params[3,]    <- out_likpar[tail(sorted_lik, 1),]               #worst fit
+params[4,]    <- out_likpar[sorted_lik[nrow(out_likpar)/2],]    #middling fit
 
-#Plot first time point vs. data
-df <- getit(850)
-par(mfrow=c(1,1))
-plot(df[,"obs_pI"]~df[,"a"], type='l', xlab="Age (years)", ylab="Prevalence")
+prev_list1 <- rep(list(matrix(nrow=length(neth_95$age_mid), ncol=1)), nrow(params)) #for timepoint 1
+prev_list2 <- rep(list(matrix(nrow=length(neth_95$age_mid), ncol=1)), nrow(params)) #for timepoint 2
+
+for(i in 1:nrow(params)){
+  pars$log.lambda0  <- params[i, "log.lambda0"]
+  pars$log.lambda1  <- params[i, "log.lambda1"]
+  pars$log.gradient <- params[i, "log.gradient"]
+  pars$log.shape    <- params[i, "log.shape"]
+  sol <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+  df  <- getit(pars$burnin)
+  prev_list1[[i]]  <- df[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+  df2 <- getit(pars$burnin+11)
+  prev_list2[[i]]  <- df2[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+}
+
+#plot first time point vs. data
+par(mfrow=c(2,1))
+plot(pars$age[matched_indices], prev_list1[[1]], type='l', ylim=c(0,1), ylab="Prevalence", 
+     xlab="Age (years)", main = "Netherlands 1995")
 points(neth_95$age_mid, neth_95$prevalence)
-# how many cases of CT that year?
-sol[850, "ctt"]
+lines(pars$age[matched_indices], prev_list1[[2]])
+lines(pars$age[matched_indices], prev_list1[[3]], col="grey")
+lines(pars$age[matched_indices], prev_list1[[4]], col="lightgrey")
 
-#Plot second time point vs. data
-df2 <- getit(850+11)
+#plot second time point vs. data
+plot(pars$age[matched_indices], prev_list2[[1]], type='l', ylim=c(0,1), ylab="Prevalence", 
+     xlab="Age (years)", main = "Netherlands 2006")
+points(neth_95$age_mid, neth_95$prevalence)
+lines(pars$age[matched_indices], prev_list2[[2]])
+lines(pars$age[matched_indices], prev_list2[[3]], col="grey")
+lines(pars$age[matched_indices], prev_list2[[4]], col="lightgrey")
+
+########################################
+### sample 1000 foi profiles & plot ####
+########################################
 par(mfrow=c(1,1))
-plot(df2[,"obs_pI"]~df2[,"a"], type='l', xlab="Age (years)", ylab="Prevalence")
-points(neth_06$age_mid, neth_06$prevalence)
-# how many cases of CT that year?
-sol[(850+11), "ctt"]
+foi <- (exp(out_likpar$log.lambda0[1]) + exp(out_likpar$log.lambda1[1]) * (pars$age * exp(-exp(out_likpar$log.gradient[1])*pars$age)))*exp(out_likpar$log.shape[1]) #decrease foi after burnin
+plot(pars$age, foi, type='l')
+foi <- vector("list", length=1000)
+for(i in 1:1000){
+  foi[[i]] <- (exp(out_likpar$log.lambda0[i]) + exp(out_likpar$log.lambda1[i]) * (pars$age * exp(-exp(out_likpar$log.gradient[i])*pars$age)))*exp(out_likpar$log.shape[i]) #decrease foi after burnin
+  lines(pars$age, foi[[i]])
+}
 
-
-
-# plot(df[,"Na"]~df[,"a"], type='l', ylim=c(0,70000))
-# points(pars$age, pars$Na)
-# lines(rep(15, 401), seq(0,60000, by=60000/400), col="red", lty=2)
-# lines(rep(40, 401), seq(0,60000, by=60000/400), col="red", lty=2)
-
-
+#################
 ## Plot priors ##
+#################
 # nsim <- 1000
 # set prior on lambda0 #
 # set.seed(1001)
