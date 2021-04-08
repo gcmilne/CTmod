@@ -1,56 +1,31 @@
 ########### Model fitting
+rm(list = ls()) # clear working environment
+
 #directory when using cluster
-setwd("/storage/users/gmilne/test")
-# Load scripts #
-source("demogdat.R")
-source("setparms.R")
-source("seroprev_dat.R")
-source("model.R")
+# setwd("/storage/users/gmilne/test/parallel")
 
 #directory when not using the cluster
-# setwd("~/Desktop/R Projects/stan")
+setwd("~/Desktop/R Projects/stan")
+
+# Set seed
+# SEED = as.numeric(Sys.getenv("SEED")) # cluster
+SEED = 1                              # local
+set.seed(SEED)
+
 # Load scripts #
-# source("R files/demogdat.R")
-# source("R files/setparms.R")
-# source("R files/seroprev_dat.R")
-# source("R files/model.R")
+# source("demogdat.R")
+# source("setparms.R")
+# source("seroprev_dat.R")
+# source("model.R")
+source("R files/demogdat.R")
+source("R files/setparms.R")
+source("R files/seroprev_dat.R")
+source("R files/model.R")
 
 # Load packages
 library(deSolve)
 library(lhs)
-library(foreach)    #for parallelisation
-library(doParallel) #for parallelisation
 library(dplyr)
-
-# Read in data #
-data <- neth_96  # from "R files/seroprev_dat.R" script (NB length of datasets from both years are the same)
-number_of_data_points = length(data$n)
-
-### select age groups from model output that match data age groups
-clean_dat <- data.frame("age_mid"=data$age_mid, "k"=data$k, "n"=data$n, "prev"=data$prevalence)
-
-#create new dataset
-matched_dat <- clean_dat
-# x[,2] increases by one each time data age midpoint is closest match to modelled age midpoint
-x <- cbind(pars$age, findInterval(pars$age, matched_dat$age_mid))
-#returns FALSE if there's change between element i and element i+1
-y1 <- diff(x[,2]) <= 0
-
-# each time x[,2] increases by 1, save value of x[,1][i+1] to matched_dat$age_mid[i]
-matched_ages <- vector("numeric", pars$agrps)
-for(i in 1:length(y1)){
-  if(y1[i]==T){
-    matched_ages[i] <- NA
-  }else if(y1[i]==F){
-    matched_ages[i] <- x[,1][i+1]
-  }
-}
-
-#removes last element (which is 0 because of indexing)
-matched_ages <- head(matched_ages, -1)
-
-# find the indices which match the age group most closely
-matched_indices <- which(!is.na(matched_ages))
 
 ## Function to get age profiles at given time
 getit <- function(time) {
@@ -86,101 +61,124 @@ loglik <- function(k1, n1, prev1, k2, n2, prev2){
   dbinom(k1, n1, prev1, log=T) + dbinom(k2, n2, prev2, log=T)
 }
 
-# Likelihood function: for fitting one timepoint
-# loglik <- function(k, n, prev){ 
-#   dbinom(k, n, prev, log=T)
-# }
-
 ## Latin hypercube sampling
-set.seed(1001)
-nsim  <- 2
-# npars <- 3
+nsim  <- 100
 npars <- 4
 
 par_arr <- randomLHS(nsim, npars) #create parameter array
 par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
 par_arr[,2] <- log(rbeta(par_arr[,2], shape1 = 2, shape2=80)) #log lambda1
 par_arr[,3] <- log(runif(par_arr[,3], min=0, max=0.2))        #log gradient
-par_arr[,4] <- log(runif(par_arr[,4], min=0.5, max=1))        #log shape
+par_arr[,4] <- log(runif(par_arr[,4], min=0.2, max=0.8))      #log shape
 
 # par(mfrow=c(2,2))
 # dummy <- apply(exp(par_arr), 2, hist, main = "") #plot prior distributions
 
+# Run model and store likelihoods
 lik_arr <- vector(mode="numeric", length=nsim) #create likelihood array
 
-# Run model and store likelihoods
-# for(i in 1:nrow(par_arr)){
-#   pars$log.lambda0  <- par_arr[i,1]
-#   pars$log.lambda1  <- par_arr[i,2]
-#   pars$log.gradient <- par_arr[i,3]
-#   sol          <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
-#   store_sim    <- getit(max(time))  #store age profile after burnin period
-#   matched_prev <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
-#   logliks <- loglik(k = data$k, n = data$n, prev = matched_prev) #run likelihood function
-#   lik_arr[i] <- sum(-logliks)
-# }
+system.time(
+  for(i in 1:nrow(par_arr)){
+    pars$log.lambda0  <- par_arr[i,1]
+    pars$log.lambda1  <- par_arr[i,2]
+    pars$log.gradient <- par_arr[i,3]
+    pars$log.shape    <- par_arr[i,4]
+    sol           <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+    store_sim     <- getit(pars$burnin)  #store age profile after burnin period (TIMEPOINT 1, 95/96)
+    matched_prev  <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+    store_sim2    <- getit(pars$burnin+11)  #store age profile 11 years after burnin period (TIMEPOINT 2, 06/07)
+    matched_prev2 <- store_sim2[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+    logliks       <- loglik(k1 = neth_95$k, n1 = neth_95$n, prev1 = matched_prev, 
+                            k2 = neth_06$k, n2 = neth_06$n, prev2 = matched_prev2)
+    lik_arr[i]    <- sum(-logliks)
+  }
+)
 
-#parallelised version of above function
-no_cores <- detectCores() #set no. cores to use
-# Initiate cluster
-cl <- makeCluster(no_cores)
-registerDoParallel(cl)
+## save parameter values & likelihoods in one dataframe
+# likpar_arr <- data.frame(par_arr, lik_arr)
+# names(likpar_arr) <- c("log.lambda0", "log.lambda1", "log.gradient", "log.shape", "log.lik")
+# saveRDS(likpar_arr, file = paste("parliks_", SEED, ".Rdata", sep = ""))
 
-out_list <- foreach(i=1:nrow(par_arr), .combine=rbind, .packages='deSolve') %dopar% {  #dopar makes loop run in parallel
-  pars$log.lambda0  <- par_arr[i,1]
-  pars$log.lambda1  <- par_arr[i,2]
-  pars$log.gradient <- par_arr[i,3]
-  pars$log.shape    <- par_arr[i,4]
-  sol           <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
-  store_sim     <- getit(pars$burnin)  #store age profile after burnin period (TIMEPOINT 1, 95/96)
-  matched_prev  <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
-  store_sim2    <- getit(pars$burnin+11)  #store age profile 11 years after burnin period (TIMEPOINT 2, 06/07)
-  matched_prev2 <- store_sim2[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
-  logliks       <- loglik(k1 = neth_95$k, n1 = neth_95$n, prev1 = matched_prev, 
-                          k2 = neth_06$k, n2 = neth_06$n, prev2 = matched_prev2)
-  lik_arr[i]    <- sum(-logliks)
+## Read in and combine all parameter/likelihood values ##
+niter <- 20  #no. iterations on the cluster
+out_likpar <- data.frame(matrix(ncol=npars+1, nrow=niter*nsim))
+names(out_likpar) <- c("log.lambda0", "log.lambda1", "log.gradient", "log.shape", "likelihood")
+counter <- seq(1, (nsim*niter), by = 1/nsim)  # used in for loop to pick correct parliks_ file
+
+#works for multiples of 10
+for(i in seq(1, niter*nsim, by=nsim)){
+  if(i==1){
+    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/parliks_", i, ".RData", sep = ""))
+  } else if (i > 1 & i < (niter*nsim)){
+    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/parliks_", i-(i-counter[i]), ".RData", sep = ""))
+  }
 }
 
-# out_list
-# exp(par_arr)
+## plot parameter values vs. likelihood
+par(mfrow=c(2,2))
+plot(exp(out_likpar$log.lambda0), out_likpar$likelihood)
+abline(lm(out_likpar$likelihood ~ exp(out_likpar$log.lambda0)), col="red")
 
-#return resources, e.g. memory, to the cluster
-stopImplicitCluster()
+plot(exp(out_likpar$log.lambda1), out_likpar$likelihood)
+abline(lm(out_likpar$likelihood ~ exp(out_likpar$log.lambda1)), col="red")
 
-#save parameter array 
-saveRDS(par_arr, file = "modpars_2tp.Rdata")
-# par_set <- readRDS("modpars.Rdata")
-# head(par_set)
+plot(exp(out_likpar$log.gradient), out_likpar$likelihood)
+abline(lm(out_likpar$likelihood ~ exp(out_likpar$log.gradient)), col="red")
 
-#save likelihood array 
-saveRDS(out_list, file = "modliks_2tp.Rdata")
-# lik_set <- readRDS("modliks.Rdata")
-# head(lik_set)
+plot(exp(out_likpar$log.shape), out_likpar$likelihood)
+abline(lm(out_likpar$log.shape ~ exp(out_likpar$log.gradient)), col="red")
 
-# sort 1,000 best-fitting par sets
+# See what the best fitting foi form looks like
+x<-exp(out_likpar[which.min(out_likpar$likelihood),])
+lambda0 <-  x[1]$log.lambda0
+lambda1 <-  x[2]$log.lambda1
+gradient <- x[3]$log.gradient
+shape <-    x[4]$log.shape
+par(mfrow=c(2,1))
+foi <- lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))
+plot(pars$age, foi, type='l')
+foi <- (lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age)))*shape
+plot(pars$age, foi, type='l', lty=2)
 
 
-# bfit <- matched_prev[[which.min(lik_arr)]]
-# plot(data$age_mid, bfit, type='l')
-# points(data$age_mid, data$prev)
+# Get x number of best-fitting par sets & their indices
+bfit <- sort(out_likpar$likelihood, index.return=T)
+top_pars <- out_likpar[head(bfit$ix, 10),]
 
-## Estimating no. cases of CT in each given year ##
-# approach: (1) After burnin, select best-fit par set based on lowest log lik
-#           (2) Simulate model and estimate total no. annual CT cases by sol[850,"ctt"]
+# see what range the best-fit pars span
+par(mfrow=c(2,2))
+plot(exp(top_pars$log.lambda0), top_pars$likelihood)
+plot(exp(top_pars$log.lambda1), top_pars$likelihood)
+plot(exp(top_pars$log.gradient), top_pars$likelihood)
+plot(exp(top_pars$log.shape), top_pars$likelihood)
 
-# return the par_arr set with the lowest likelihood
-# bfit_pars <- par_arr[which.min(lik_arr),]
 
-# save this best-fit set to the par vector
-# pars$log.lambda0  <- bfit_pars[1]
-# pars$log.lambda1  <- bfit_pars[2]
-# pars$log.gradient <- bfit_pars[3]
-# 
-# sol <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
-# df <- getit(850)
-# par(mfrow=c(2,2))
-# plot(df[,"obs_pI"]~df[,"a"], type='l')
-# points(data$age_mid, data$prev)
+## simulate model & estimate cases of CT for best fitting parameter set
+bfit <- out_likpar[which.min(out_likpar$likelihood),]
+pars$log.lambda0  <- bfit$log.lambda0
+pars$log.lambda1  <- bfit$log.lambda1
+pars$log.gradient <- bfit$log.gradient
+pars$log.shape    <- bfit$log.shape
+sol <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+
+#Plot first time point vs. data
+df <- getit(850)
+par(mfrow=c(1,1))
+plot(df[,"obs_pI"]~df[,"a"], type='l', xlab="Age (years)", ylab="Prevalence")
+points(neth_95$age_mid, neth_95$prevalence)
+# how many cases of CT that year?
+sol[850, "ctt"]
+
+#Plot second time point vs. data
+df2 <- getit(850+11)
+par(mfrow=c(1,1))
+plot(df2[,"obs_pI"]~df2[,"a"], type='l', xlab="Age (years)", ylab="Prevalence")
+points(neth_06$age_mid, neth_06$prevalence)
+# how many cases of CT that year?
+sol[(850+11), "ctt"]
+
+
+
 # plot(df[,"Na"]~df[,"a"], type='l', ylim=c(0,70000))
 # points(pars$age, pars$Na)
 # lines(rep(15, 401), seq(0,60000, by=60000/400), col="red", lty=2)
