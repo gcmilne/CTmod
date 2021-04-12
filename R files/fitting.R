@@ -271,6 +271,14 @@ lines(df[,"a"], df[,"obs_pI"], type='l', col="red")  #first timepoint
 df<-getit(pars$burnin+11)
 lines(df[,"a"], df[,"obs_pI"], type='l', col="red")  #second timepoint
 
+for(i in 1:11){
+  df<-getit(pars$burnin+i)
+  print(df[,"ct1"])
+  
+}
+
+sol[(pars$burnin):(pars$burnin+11), "ctt"] ## CT cases over fitting time period
+
 ########################################
 ### sample 1000 foi profiles & plot ####
 ########################################
