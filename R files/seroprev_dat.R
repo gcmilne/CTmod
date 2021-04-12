@@ -5,16 +5,16 @@
 #####
 
 # Load scripts #
-source("R files/demogdat.R")
-# source("demogdat.R")
+# source("R files/demogdat.R")  #local
+source("demogdat.R")  #cluster
 
 # Load packages
 library(dplyr)
 library(wpp2019)
 
 #read in temporal data from the Netherlands
-temporal <- read.csv("data/netherlands_temporal.csv")
-# temporal <- read.csv("netherlands_temporal.csv")
+# temporal <- read.csv("data/netherlands_temporal.csv")  #local
+temporal <- read.csv("netherlands_temporal.csv")  #cluster
 
 #load required datasets
 data(popF) # population distribution females
