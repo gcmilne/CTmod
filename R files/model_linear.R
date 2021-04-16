@@ -18,15 +18,24 @@ age_si = function(time, y, pars) {
   # set derivatives
   dS <- dI <- dIm <- vector("numeric",length=pars$agrps)
   
-  # step-wise force of infection decrease
-  foi <- vector("numeric", length=pars$agrps)
-
-  if( time < (pars$burnin-tdecline)){
-    foi <- lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))
-  } else if (time >= (pars$burnin-tdecline)){
-    foi <- (lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age)))*shape #decrease foi after burnin
+  # linear force of infection decrease
+  t <- c((pars$burnin - round(tdecline,0))-1, (pars$burnin+11))   #time period to interpolate
+  shape_diff <- c(1, shape)                                       #shape at t[1] and t[2]
+  t_shape <- spline(t, shape_diff, xout=seq(t[1], t[2], by=1))$y  #interpolate
+  t_shape <- tail(t_shape, -1)                                    #remove first element so FoI begins to decrease @ t(pars$burnin)
+  
+  foi <- rep(list(vector("numeric", length=pars$agrps)), length(time))
+  
+  for(i in 1:length(time)){
+    if (time[i] < (pars$burnin-round(tdecline,0))){
+      foi[[i]] <- lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))
+    } else if (time[i] >= (pars$burnin-round(tdecline,0))){
+      ## returns object length warning (suspect because t_shape = length of 44, whereas pars$age is length 400). Still seems to work though
+      # ("longer object length is not a multiple of shorter object length")
+      foi[[i]] <- (lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))) * t_shape[i-(pars$burnin-round(tdecline, 0))+1]
+    }
   }
-
+  
   # calculate change in seroprev and no. seroconversions in pregnancy
   dprev     <- vector("numeric", length=pars$agrps)
   seroconv1 <- vector("numeric", length=pars$agrps)
@@ -47,7 +56,7 @@ age_si = function(time, y, pars) {
   
   ## total deaths
   deaths <- sum((pars$d)*Na)
-
+  
   ## births distributed among age groups according to fertility
   births_age <-  deaths*pars$propfert
   births <- sum(births_age)
@@ -65,7 +74,7 @@ age_si = function(time, y, pars) {
   
   # Adjusting seroprevalence according to equations from Diggle (2011)
   obs_pI <- pI * (pars$se + pars$sp-1) + (1-pars$sp)
-
+  
   # Calculating seroconversions in pregnancy and cases of congenital disease
   for(i in 1:(pars$agrps-3)){
     if(i==1){
@@ -97,28 +106,29 @@ age_si = function(time, y, pars) {
   # total number of antibody positive and congenitally diseased births
   matAbt <- sum(matAb1) + sum(matAb2) + sum(matAb3)
   ctt <- sum(ct1) + sum(ct2) + sum(ct3)
-
-  for (i in 1:pars$agrps) {
-    if (i==1) {
-      
-      # susceptible - born seronegative or having lost maternal antibodies, no previous exposure
-      dS[i]  <-  (births - matAbt - ctt) + pars$r*Im[i] - foi[i]*S[i] - pars$d[i]*S[i] - pars$da*S[i] 
-      # infected - either congenitally or by foi
-      dI[i]  <- (ctt + foi[i]*(Na[i]-I[i]) - pars$d[i]*I[i] - pars$da*I[i])
-      # maternal antibody positive 
-      dIm[i] <- matAbt - (foi[i]+ pars$r+ pars$d[i] + pars$da)*Im[i]
-      
-    } else if (i<pars$agrps) {
-      dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[i]*S[i] - pars$d[i]*S[i] - pars$da*S[i] 
-      dI[i]  <- pars$da*I[i-1]  + foi[i]*(Na[i] - I[i]) - pars$d[i] * I[i] - pars$da*I[i]
-      dIm[i] <- pars$da*Im[i-1] - (foi[i] + pars$r + pars$d[i] + pars$da) * Im[i] 
-      
-    } else {
-      dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[i]*S[i] - (pars$d[i])*S[i]
-      dI[i]  <- pars$da*I[i-1]  + foi[i]*(Na[i]-I[i]) - (pars$d[i])*I[i] 
-      dIm[i] <- pars$da*Im[i-1] - (foi[i] + pars$r + pars$d[i])*Im[i] 
+  for(j in 1:length(time)){
+    for (i in 1:pars$agrps) {
+      if (i==1) {
+        
+        # susceptible - born seronegative or having lost maternal antibodies, no previous exposure
+        dS[i]  <-  (births - matAbt - ctt) + pars$r*Im[i] - foi[[j]][i]*S[i] - pars$d[i]*S[i] - pars$da*S[i] 
+        # infected - either congenitally or by foi
+        dI[i]  <- (ctt + foi[[j]][i]*(Na[i]-I[i]) - pars$d[i]*I[i] - pars$da*I[i])
+        # maternal antibody positive 
+        dIm[i] <- matAbt - (foi[[j]][i]+ pars$r+ pars$d[i] + pars$da)*Im[i]
+        
+      } else if (i<pars$agrps) {
+        dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[[j]][i]*S[i] - pars$d[i]*S[i] - pars$da*S[i] 
+        dI[i]  <- pars$da*I[i-1]  + foi[[j]][i]*(Na[i] - I[i]) - pars$d[i] * I[i] - pars$da*I[i]
+        dIm[i] <- pars$da*Im[i-1] - (foi[[j]][i] + pars$r + pars$d[i] + pars$da) * Im[i] 
+        
+      } else {
+        dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[i]*S[i] - (pars$d[i])*S[i]
+        dI[i]  <- pars$da*I[i-1]  + foi[[j]][i]*(Na[i]-I[i]) - (pars$d[i])*I[i] 
+        dIm[i] <- pars$da*Im[i-1] - (foi[[j]][i] + pars$r + pars$d[i])*Im[i] 
+      }
     }
-  }
+  }  
   
   ## total susceptible, infected etc
   It <- sum(I)
