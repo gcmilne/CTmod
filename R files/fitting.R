@@ -23,11 +23,13 @@ set.seed(SEED)
 source("demogdat.R")      #cluster
 source("setparms.R")      #cluster
 source("seroprev_dat.R")  #cluster
-source("model.R")         #cluster
+# source("model.R")         #cluster (stepwise FoI decrease model)
+source("model_linear.R")  #cluster (linear FoI decrease model)
 # source("R files/demogdat.R")      #local
 # source("R files/setparms.R")      #local
 # source("R files/seroprev_dat.R")  #local
-# source("R files/model.R")         #local
+# source("R files/model.R")         #local (stepwise Fo Idecrease model)
+# source("R files/model_linear.R")  #local  (linear FoI decreasemodel)
 
 #################
 # Load packages #
