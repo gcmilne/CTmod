@@ -123,7 +123,7 @@ age_si = function(time, y, pars) {
         dIm[i] <- pars$da*Im[i-1] - (foi[[j]][i] + pars$r + pars$d[i] + pars$da) * Im[i] 
         
       } else {
-        dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[i]*S[i] - (pars$d[i])*S[i]
+        dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[[j]][i]*S[i] - (pars$d[i])*S[i]
         dI[i]  <- pars$da*I[i-1]  + foi[[j]][i]*(Na[i]-I[i]) - (pars$d[i])*I[i] 
         dIm[i] <- pars$da*Im[i-1] - (foi[[j]][i] + pars$r + pars$d[i])*Im[i] 
       }
