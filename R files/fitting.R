@@ -41,8 +41,7 @@ library(dplyr)
 ###################
 # Additional data #
 ###################
-nsim  <- 100   #no. iterations on each for loop
-niter <- 100  #no. iterations on the cluster
+nsim  <- 100  #no. iterations on each for loop
 npars <- 5    #no. parameters to fit
 
 ###############

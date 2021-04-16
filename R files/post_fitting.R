@@ -1,6 +1,7 @@
 ######################################
 ## POST-CLUSTER analysis & plotting ##
 ######################################
+niter <- 10  #no. iterations on the cluster
 
 ##  Read in parameter sets & likelihood values 
 out_likpar <- data.frame(matrix(ncol=npars+1, nrow=niter*nsim))
@@ -11,17 +12,11 @@ counter <- seq(1, (nsim*niter), by = 1/nsim)  # used in for loop to pick correct
 i_seq <- seq(1, niter*nsim, by=nsim)
 for(i in i_seq){
   if(i==1){
-    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/fit4_5pars/parliks5-r2_", i, ".RData", sep = ""))
+    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/linear_mod/parliks5_linear_", i, ".RData", sep = ""))
   } else if (i > 1 & i < (niter*nsim)){
-    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/fit4_5pars/parliks5-r2_", i-(i-counter[i]), ".RData", sep = ""))
+    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/linear_mod/parliks5_linear_", i-(i-counter[i]), ".RData", sep = ""))
   }
 }
-
-lambda1 <- 0.15
-lambda0<-0.01
-gradient <- 0.6
-foi <- lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))
-plot(pars$age, foi)
 
 ##########################
 ## Exploratory plotting ##
