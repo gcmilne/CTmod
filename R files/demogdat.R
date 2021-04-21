@@ -73,4 +73,3 @@ births_age <- fert_tot*prop_fert_age*pop_f/(5*pop_f) ## 5 is becuase TFR is defi
 pf <- pop_f/(pop_m[-length(pop_m)]+pop_f)
 
 rm(pop_f, pop_m, fert_tot)
-
