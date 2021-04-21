@@ -20,16 +20,14 @@ set.seed(SEED)
 ##################
 ## Load scripts ##
 ##################
-source("demogdat.R")      #cluster
-source("setparms.R")      #cluster
-source("seroprev_dat.R")  #cluster
-# source("model.R")         #cluster (stepwise FoI decrease model)
-source("model_linear.R")  #cluster (linear FoI decrease model)
-# source("R files/demogdat.R")      #local
-# source("R files/setparms.R")      #local
-# source("R files/seroprev_dat.R")  #local
-# source("R files/model.R")         #local (stepwise Fo Idecrease model)
-# source("R files/model_linear.R")  #local  (linear FoI decreasemodel)
+# source("seroprev_dat.R")  #cluster
+# source("demogdat.R")      #cluster
+# source("setparms.R")      #cluster
+# source("model.R")         #cluster
+source("R files/seroprev_dat.R")  #local
+source("R files/demogdat.R")      #local
+source("R files/setparms.R")      #local
+source("R files/model.R")         #local
 
 #################
 # Load packages #
@@ -101,22 +99,47 @@ lik_arr <- vector(mode="numeric", length=nsim) #create likelihood array
 
 system.time(
   for(i in 1:nrow(par_arr)){
-    pars$log.lambda0  <- par_arr[i,1]
-    pars$log.lambda1  <- par_arr[i,2]
-    pars$log.gradient <- par_arr[i,3]
-    pars$log.shape    <- par_arr[i,4]
-    pars$log.tdecline <- par_arr[i,5]
-    sol           <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
-    store_sim     <- getit(pars$burnin)  #store age profile after burnin period (TIMEPOINT 1, 95/96)
-    matched_prev  <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
-    store_sim2    <- getit(pars$burnin+11)  #store age profile 11 years after burnin period (TIMEPOINT 2, 06/07)
-    matched_prev2 <- store_sim2[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
-    logliks       <- loglik(k1 = neth_95$k, n1 = neth_95$n, prev1 = matched_prev, 
-                            k2 = neth_06$k, n2 = neth_06$n, prev2 = matched_prev2)
-    lik_arr[i]    <- sum(-logliks)
+    
+    if(pars$constant==1){   #for non-age-structured data (where there is only 1 datapoint per timepoint)
+      
+      ## NB: change matched_indices & pars$tdiff depending on the dataset being fit
+      pars$log.lambda0  <- par_arr[i,"log.lambda0"]
+      pars$log.shape    <- par_arr[i,"log.shape"]
+      pars$log.tdecline <- par_arr[i,"log.tdecline"]
+      sol           <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+      store_sim     <- getit(pars$burnin)  #store age profile after burnin period (TIMEPOINT 1)
+      matched_prev  <- store_sim[,"obs_pI"][nz_matched_indices]  #select observed prevalence from relevant age categories
+      store_sim2    <- getit(pars$burnin + pars$tdiff)  #store age profile n years after burnin period (TIMEPOINT 2)
+      matched_prev2 <- store_sim2[,"obs_pI"][nz_matched_indices]  #select observed prevalence from relevant age categories
+      ## for non-age-structured data (where there is only 1 datapoint per timepoint)
+      matched_prev  <- mean(matched_prev)  #simple mean 
+      matched_prev2 <- mean(matched_prev2) #simple mean
+      logliks       <- loglik(k1 = nz1$k, n1 = nz1$n, prev1 = matched_prev, 
+                              k2 = nz2$k, n2 = nz2$n, prev2 = matched_prev2)
+      lik_arr[i]    <- sum(-logliks)
+      
+    } else if (pars$constant==0){  #for age-structured data
+      
+      ## NB: change matched_indices & pars$tdiff depending on the dataset being fit
+      pars$log.lambda0  <- par_arr[i,"log.lambda0"]
+      pars$log.lambda1  <- par_arr[i,"log.lambda1"]
+      pars$log.gradient <- par_arr[i,"log.gradient"]
+      pars$log.shape    <- par_arr[i,"log.shape"]
+      pars$log.tdecline <- par_arr[i,"log.tdecline"]
+      sol           <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+      store_sim     <- getit(pars$burnin)  #store age profile after burnin period (TIMEPOINT 1)
+      matched_prev  <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+      store_sim2    <- getit(pars$burnin + pars$tdiff)  #store age profile n years after burnin period (TIMEPOINT 2)
+      matched_prev2 <- store_sim2[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+      logliks       <- loglik(k1 = neth_95$k, n1 = neth_95$n, prev1 = matched_prev, 
+                              k2 = neth_06$k, n2 = neth_06$n, prev2 = matched_prev2)
+      lik_arr[i]    <- sum(-logliks)
+    }
+    
   }
 )
 
+# save output 
 likpar_arr <- data.frame(par_arr, lik_arr)
 names(likpar_arr) <- c("log.lambda0", "log.lambda1", "log.gradient", "log.shape", "log.tdecline", "log.lik")
 saveRDS(likpar_arr, file = paste("parliks5_linear_", SEED, ".Rdata", sep = ""))
