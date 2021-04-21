@@ -2,10 +2,16 @@
 ## Country-specific demographic data ##
 #######################################
 
+## NB: change country depending on dataset being fit
+
 ### set country & year ###
-country <- "Netherlands"
-year <- "1995-2000"
-year1 <- "1995"
+# country <- "Netherlands"
+# year <- "1995-2000"
+# year1 <- "1995"
+
+country <- "New Zealand"
+year <- "1980-1985"
+year1 <- "1980"
 
 library(wpp2019)
 
@@ -67,5 +73,4 @@ births_age <- fert_tot*prop_fert_age*pop_f/(5*pop_f) ## 5 is becuase TFR is defi
 pf <- pop_f/(pop_m[-length(pop_m)]+pop_f)
 
 rm(pop_f, pop_m, fert_tot)
-
 
