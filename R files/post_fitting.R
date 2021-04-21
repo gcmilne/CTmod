@@ -1,7 +1,18 @@
 ######################################
 ## POST-CLUSTER analysis & plotting ##
 ######################################
-niter <- 10  #no. iterations on the cluster
+
+##################
+## Load scripts ##
+##################
+source("R files/seroprev_dat.R")  #local
+source("R files/demogdat.R")      #local
+source("R files/setparms.R")      #local
+source("R files/model.R")         #local (stepwise FoI decrease model)
+source("R files/model_linear.R")  #local  (linear FoI decrease model)
+
+## Data
+niter <- 100  #no. iterations on the cluster
 
 ##  Read in parameter sets & likelihood values 
 out_likpar <- data.frame(matrix(ncol=npars+1, nrow=niter*nsim))
@@ -157,17 +168,19 @@ top_par    <- head(out_likpar[order(out_likpar$likelihood),], 1) #sort by likeli
 pars$log.lambda0 <- top_par$log.lambda0
 pars$log.lambda1 <- top_par$log.lambda1
 pars$log.gradient <- top_par$log.gradient
-pars$log.shape <- log(0.10)
-pars$log.tdecline <- log(10)
+pars$log.shape <- top_par$log.shape
+pars$log.tdecline <- top_par$log.tdecline
 
 sol <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
-#### find out why time dependence of foi returning NA
-plot(sol[,"time"], sol[,"pIt"], type='l')
 
 df   <- getit(pars$burnin)
-prev_list1  <- df[,"obs_pI"][matched_indices]
+matched_prev  <- df[,"obs_pI"][matched_indices]
 df2  <- getit(pars$burnin+11)
-prev_list2  <- df2[,"obs_pI"][matched_indices]
+matched_prev2  <- df2[,"obs_pI"][matched_indices]
+
+logliks     <- loglik(k1 = neth_95$k, n1 = neth_95$n, prev1 = matched_prev, 
+                        k2 = neth_06$k, n2 = neth_06$n, prev2 = matched_prev2)
+sum(-logliks)
 
 par(mfrow=c(2,1))
 plot(pars$age[matched_indices], prev_list1, type='l', ylim=c(0,1), ylab="Prevalence",
@@ -217,7 +230,7 @@ library(ggplot2)
 prior <- out_likpar$log.lambda0
 
 #posterior
-sorted_lik <- head(out_likpar[order(out_likpar$likelihood),], 10)
+sorted_lik <- head(out_likpar[order(out_likpar$likelihood),], 100)
 post <- sorted_lik$log.lambda0
 
 # Calculate 95% posterior credible interval
@@ -233,8 +246,8 @@ lambda0 <- ggplot(dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
   theme(legend.position = "none", panel.grid = element_blank(), axis.ticks = element_blank()) +
   labs(fill = "") + 
-  # scale_x_continuous(breaks = seq(0, 0.2, 0.1), limits = c(0, 0.2), expand = c(0, 0)) +
-  # scale_y_continuous(breaks = seq(0, 54, 20), limits = c(0, 54), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 0.2, 0.1), limits = c(0, 0.2), expand = c(0, 0)) +
+  scale_y_continuous(breaks = seq(0, 150, 75), limits = c(0, 150), expand = c(0, 0)) +
   xlab("Lambda0") + ylab("Density") + 
   theme(plot.margin=unit(c(rep(1,4)),"cm"))
 
@@ -258,8 +271,8 @@ lambda1 <- ggplot(dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
   theme(legend.position = "none", panel.grid = element_blank(), axis.ticks = element_blank()) +
   labs(fill = "") + 
-  # scale_x_continuous(breaks = seq(0, 0.1, 0.05), limits = c(0, 0.1), expand = c(0, 0)) +
-  # scale_y_continuous(breaks = seq(0, 12, 4), limits = c(0, 12), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 0.2, 0.1), limits = c(0, 0.2), expand = c(0, 0)) +
+  scale_y_continuous(breaks = seq(0, 7, 3), limits = c(0, 7), expand = c(0, 0)) +
   xlab("Lambda1") + ylab("Density") + 
   theme(plot.margin=unit(c(rep(1,4)),"cm"))
 
@@ -284,8 +297,8 @@ gradient <-
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
   theme(legend.position = "none", panel.grid = element_blank(), axis.ticks = element_blank()) +
   labs(fill = "") + 
-  # scale_x_continuous(breaks = seq(0, 1, 0.5), limits = c(0, 1), expand = c(0, 0)) +
-  # scale_y_continuous(breaks = seq(0, 1.8, .5), limits = c(0, 1.8), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 2, 1), limits = c(0, 2), expand = c(0, 0)) +
+  scale_y_continuous(breaks = seq(0, 1, .5), limits = c(0, 1), expand = c(0, 0)) +
   xlab("Gradient") + ylab("Density") + 
   theme(plot.margin=unit(c(rep(1,4)),"cm"))
 
@@ -309,8 +322,8 @@ shape <- ggplot(dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 0.
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
   theme(legend.position = "none", panel.grid = element_blank(), axis.ticks = element_blank()) +
   labs(fill = "") + 
-  # scale_x_continuous(breaks = seq(0, 0.8, 0.4), limits = c(0, 0.8), expand = c(0, 0)) +
-  # scale_y_continuous(breaks = seq(0, 3, 1), limits = c(0, 3), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 0.8, 0.4), limits = c(0, 0.8), expand = c(0, 0)) +
+  scale_y_continuous(breaks = seq(0, 1.6, 0.75), limits = c(0, 1.6), expand = c(0, 0)) +
   xlab("Shape") + ylab("Density") + 
   theme(plot.margin=unit(c(rep(1,4)),"cm"))
 
@@ -334,15 +347,15 @@ tdecline <-ggplot(dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
   theme(legend.position = "none", panel.grid = element_blank(), axis.ticks = element_blank()) +
   labs(fill = "") + 
-  # scale_x_continuous(breaks = seq(0, 100, 50), limits = c(0, 100), expand = c(0, 0)) +
-  # scale_y_continuous(breaks = seq(0, 0.03, 0.01), limits = c(0, 0.03), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 100, 50), limits = c(0, 100), expand = c(0, 0)) +
+  scale_y_continuous(breaks = seq(0, 0.02, 0.01), limits = c(0, 0.02), expand = c(0, 0)) +
   xlab("tdecline") + ylab("Density") + 
   theme(plot.margin=unit(c(rep(1,4)),"cm"))
 
 ## Multipanel plot of priors vs. posteriors
 library(ggpubr)
 
-png("plots/posteriors_100.png", height=4, width = 8, units="in", res=300)
+png("plots/posteriors_linear_100.png", height=4, width = 8, units="in", res=300)
 ggarrange(lambda0, lambda1, gradient, shape, tdecline, ncol=3, nrow=2, 
           labels=c("(a)", "(b)", "(c)", "(d)", "(e)"), 
           font.label=list(size=12, family="Times"), hjust = -2)
@@ -370,11 +383,13 @@ rm(cis)
 library("ggplot2")
 
 sorted_lik <- head(out_likpar[order(out_likpar$likelihood),], 1)
+
 pars$log.lambda0  <- sorted_lik$log.lambda0
 pars$log.lambda1  <- sorted_lik$log.lambda1
 pars$log.gradient <- sorted_lik$log.gradient
 pars$log.shape    <- sorted_lik$log.shape
 pars$log.tdecline <- sorted_lik$log.tdecline
+
 sol <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
 df  <- getit(pars$burnin)
 prev_list1  <- df[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
@@ -429,11 +444,44 @@ ggarrange(t1, t2, ncol=1, nrow=2,
           labels=c("(a)", "(b)"), 
           font.label=list(size=12, family="Times"), hjust = -1)
 
-ggsave(filename = "plots/bfit_stepwise_netherlands.eps", width = 6, height = 6, 
+ggsave(filename = "plots/bfit_linear_netherlands.eps", width = 6, height = 6, 
        units = "in", family = "Times")
 
+foi <- exp(pars$log.lambda0) + exp(pars$log.lambda1) * (pars$age * exp(-exp(pars$log.gradient)*pars$age))
+plot(pars$age, foi, 'l')
 
 #############################################################
 ## Calculate credible intervals around parameter estimates ##
 #############################################################
+lambda0  <- exp(pars$log.lambda0)
+lambda1  <- 0.1
+gradient <- 0
+shape    <- exp(pars$log.shape)
+tdecline <- exp(pars$log.tdecline)
+foi <- (lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age)))*shape #decrease foi after burnin
+par(mfrow=c(1,1))
+plot(pars$age, foi, 'l')
 
+#############################
+### Supplementary figures ###
+#############################
+sol <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+df <- getit(pars$burnin)
+
+# Plot N over age
+data <- data.frame(mod_a=df[,"a"], mod_Na=df[,"Na"], dat_a=head(pars$age, -1), dat_Na=head(pars$Na, -1))
+
+pop_size <- ggplot(data=data, aes(x=mod_a, y=Nt)) + 
+  geom_line(aes(x=mod_a, y=mod_Na), size=1) +
+  geom_point(aes(x=dat_a, y=dat_Na), colour = "grey", size=1) + 
+  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+  theme(legend.position = "none", panel.grid = element_blank(), axis.ticks = element_blank()) +
+  # scale_x_continuous(breaks = seq(0, 80, 20), limits = c(0, 80), expand = c(0, 0)) +
+  # scale_y_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1), expand = c(0, 0)) +
+  xlab("Age (years)") + ylab("Population size") + 
+  theme(plot.margin=unit(c(rep(1,4)),"cm"))
+pop_size
+# ggsave(filename = "plots/pop_size.eps", width = 6, height = 6, 
+       # units = "in", family = "Times")
+
+# Plot burn-in
