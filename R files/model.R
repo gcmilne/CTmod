@@ -18,13 +18,45 @@ age_si = function(time, y, pars) {
   # set derivatives
   dS <- dI <- dIm <- vector("numeric",length=pars$agrps)
   
-  # step-wise force of infection decrease
-  foi <- vector("numeric", length=pars$agrps)
-
-  if( time < (pars$burnin-tdecline)){
-    foi <- lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))
-  } else if (time >= (pars$burnin-tdecline)){
-    foi <- (lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age)))*shape #decrease foi after burnin
+  ########################
+  ## force of infection ##
+  ########################
+  # set up linear force of infection decrease
+  t <- c((pars$burnin - round(tdecline))-1, (pars$burnin+pars$tdiff))     #time period to interpolate
+  shape_diff <- c(1, shape)                                               #shape at t[1] and t[2]
+  t_shape <- spline(t, shape_diff, xout=seq(t[1], t[2], by=1))$y          #interpolate
+  t_shape <- tail(t_shape, -1)                                            #remove first element so FoI begins to decrease @ t(pars$burnin)
+  
+  # create foi array based on whether foi model is constant or age-varying 
+  if(pars$constant==1){
+    foi <- rep(list(vector("numeric", length=1)), length(time))          #age-constant foi
+  } else if (pars$constant==0){
+    foi <- rep(list(vector("numeric", length=pars$agrps)), length(time)) #age-varying foi
+  }
+  
+  # if constant age-foi...
+  if(pars$constant==1){
+    for(j in 1:length(time)){
+      if(time[j] < (pars$burnin-round(tdecline))){
+        foi[[j]] <- lambda0
+      } else if (pars$stepwise==1 & time[j] >= (pars$burnin-round(tdecline))){ #stepwise foi decrease
+        foi[[j]] <- lambda0 * shape
+      } else if (pars$stepwise==0 & time[j] >= (pars$burnin-round(tdecline))){ #linear foi decrease
+        foi[[j]] <- lambda0 * t_shape[j-(pars$burnin-round(tdecline))+1]
+      }
+    }
+    
+    # if age-varying foi...
+  } else if (pars$constant==0){
+    for(j in 1:length(time)){
+      if(time[j] < (pars$burnin-round(tdecline))){
+        foi[[j]] <- lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))
+      } else if (pars$stepwise==1 & time[j] >= (pars$burnin-round(tdecline))){ #stepwise foi decrease
+        foi[[j]] <- (lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age)))*shape
+      } else if (pars$stepwise==0 & time[j] >= (pars$burnin-round(tdecline))){ #linear foi decrease
+        foi[[j]] <- (lambda0 + lambda1 * (pars$age * exp(-gradient*pars$age))) * t_shape[j-(pars$burnin-round(tdecline))+1]
+      }
+    }
   }
 
   # calculate change in seroprev and no. seroconversions in pregnancy
@@ -98,26 +130,59 @@ age_si = function(time, y, pars) {
   matAbt <- sum(matAb1) + sum(matAb2) + sum(matAb3)
   ctt <- sum(ct1) + sum(ct2) + sum(ct3)
 
-  for (i in 1:pars$agrps) {
-    if (i==1) {
-      
-      # susceptible - born seronegative or having lost maternal antibodies, no previous exposure
-      dS[i]  <-  (births - matAbt - ctt) + pars$r*Im[i] - foi[i]*S[i] - pars$d[i]*S[i] - pars$da*S[i] 
-      # infected - either congenitally or by foi
-      dI[i]  <- (ctt + foi[i]*(Na[i]-I[i]) - pars$d[i]*I[i] - pars$da*I[i])
-      # maternal antibody positive 
-      dIm[i] <- matAbt - (foi[i]+ pars$r+ pars$d[i] + pars$da)*Im[i]
-      
-    } else if (i<pars$agrps) {
-      dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[i]*S[i] - pars$d[i]*S[i] - pars$da*S[i] 
-      dI[i]  <- pars$da*I[i-1]  + foi[i]*(Na[i] - I[i]) - pars$d[i] * I[i] - pars$da*I[i]
-      dIm[i] <- pars$da*Im[i-1] - (foi[i] + pars$r + pars$d[i] + pars$da) * Im[i] 
-      
-    } else {
-      dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[i]*S[i] - (pars$d[i])*S[i]
-      dI[i]  <- pars$da*I[i-1]  + foi[i]*(Na[i]-I[i]) - (pars$d[i])*I[i] 
-      dIm[i] <- pars$da*Im[i-1] - (foi[i] + pars$r + pars$d[i])*Im[i] 
+  ## select correct model based on assumption of age-invariant foi or age-varying foi
+  if(pars$constant==1){
+    
+    for(j in 1:length(time)){
+      for (i in 1:pars$agrps) {
+        if (i==1) {
+          # susceptible - born seronegative or having lost maternal antibodies, no previous exposure
+          dS[i]  <-  (births - matAbt - ctt) + pars$r*Im[i] - foi[[j]]*S[i] - pars$d[i]*S[i] - pars$da*S[i] 
+          # infected - either congenitally or by foi
+          dI[i]  <- (ctt + foi[[j]]*(Na[i]-I[i]) - pars$d[i]*I[i] - pars$da*I[i])
+          # maternal antibody positive 
+          dIm[i] <- matAbt - (foi[[j]]+ pars$r+ pars$d[i] + pars$da)*Im[i]
+          
+        } else if (i<pars$agrps) {
+          dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[[j]]*S[i] - pars$d[i]*S[i] - pars$da*S[i] 
+          dI[i]  <- pars$da*I[i-1]  + foi[[j]]*(Na[i] - I[i]) - pars$d[i] * I[i] - pars$da*I[i]
+          dIm[i] <- pars$da*Im[i-1] - (foi[[j]] + pars$r + pars$d[i] + pars$da) * Im[i] 
+          
+        } else {
+          dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[[j]]*S[i] - (pars$d[i])*S[i]
+          dI[i]  <- pars$da*I[i-1]  + foi[[j]]*(Na[i]-I[i]) - (pars$d[i])*I[i] 
+          dIm[i] <- pars$da*Im[i-1] - (foi[[j]] + pars$r + pars$d[i])*Im[i] 
+          
+        }
+      }
     }
+    
+  } else if (pars$constant==0){
+    
+    for(j in 1:length(time)){
+      for (i in 1:pars$agrps) {
+        if (i==1) {
+          # susceptible - born seronegative or having lost maternal antibodies, no previous exposure
+          dS[i]  <-  (births - matAbt - ctt) + pars$r*Im[i] - foi[[j]][i]*S[i] - pars$d[i]*S[i] - pars$da*S[i] 
+          # infected - either congenitally or by foi
+          dI[i]  <- (ctt + foi[[j]][i]*(Na[i]-I[i]) - pars$d[i]*I[i] - pars$da*I[i])
+          # maternal antibody positive 
+          dIm[i] <- matAbt - (foi[[j]][i]+ pars$r+ pars$d[i] + pars$da)*Im[i]
+          
+        } else if (i<pars$agrps) {
+          dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[[j]][i]*S[i] - pars$d[i]*S[i] - pars$da*S[i] 
+          dI[i]  <- pars$da*I[i-1]  + foi[[j]][i]*(Na[i] - I[i]) - pars$d[i] * I[i] - pars$da*I[i]
+          dIm[i] <- pars$da*Im[i-1] - (foi[[j]][i] + pars$r + pars$d[i] + pars$da) * Im[i] 
+          
+        } else {
+          dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[[j]][i]*S[i] - (pars$d[i])*S[i]
+          dI[i]  <- pars$da*I[i-1]  + foi[[j]][i]*(Na[i]-I[i]) - (pars$d[i])*I[i] 
+          dIm[i] <- pars$da*Im[i-1] - (foi[[j]][i] + pars$r + pars$d[i])*Im[i] 
+          
+        }
+      }
+    }
+    
   }
   
   ## total susceptible, infected etc
