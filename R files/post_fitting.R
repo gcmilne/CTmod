@@ -485,3 +485,18 @@ pop_size
        # units = "in", family = "Times")
 
 # Plot burn-in
+
+
+###### Plot entire posterior of foi over age
+sorted_lik <- exp(head(out_likpar[order(out_likpar$likelihood),], 100))
+
+foi <- sorted_lik$log.lambda0[1] + sorted_lik$log.lambda1[1] * (pars$age * exp(-sorted_lik$log.gradient[1]*pars$age))
+plot(pars$age, foi, 'l', ylim=c(0,0.1))
+
+foi <- rep(list(vector(length=pars$agrps)), 100)
+for(i in 1:100){
+  foi[[i]] <- sorted_lik$log.lambda0[i] + sorted_lik$log.lambda1[i] * (pars$age * exp(-sorted_lik$log.gradient[i]*pars$age))
+  lines(pars$age, foi[[i]])
+}
+
+
