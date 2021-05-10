@@ -17,96 +17,95 @@ library(wpp2019)
 #################################################
 ################## Netherlands ##################
 #################################################
-# temporal <- read.csv("data/netherlands_temporal.csv")  #local
-# # temporal <- read.csv("netherlands_temporal.csv")  #cluster
-# 
-# #load required datasets
-# data(popF) # population distribution females
-# data(popM) # population distribution males
-# 
-# ### set country & year ###
-# country <- "Netherlands"
-# year1 <- "1995"
-# 
-# #calculate total pop size for given year
-# tmpdf <- subset(popF, name==country)
-# pop_f <- tmpdf[,year1]*1000 # total population by age (females)
-# tmpdf <- subset(popM, name==country)
-# pop_m <- tmpdf[,year1]*1000 # total population by age (males)
-# tot_pop <- pop_m + pop_f #total population all ages
-# age_pop <- age_mort[-1] #set age categories
-# age_pop[1] <- age_pop[1]-1
-# tot_pop <- tot_pop[-length(tot_pop)]
-# 
-# #subset Netherlands data by year of data collection
-# neth_95 <- temporal %>% subset(year==1996)  #1995/96 (1995 has demographic data available)
-# 
-# #distribute n according to demographic data from specific year
-# f <- spline(age_pop, tot_pop, xout=neth_95$age_mid)
-# neth_95$n <- round(f$y/sum(f$y)*neth_95$n, 0)
-# #calculate k
-# neth_95$k <- round(neth_95$prevalence * neth_95$n, 0)
-# #recalculate prevalence
-# neth_95$prevalence <- neth_95$k/neth_95$n
-# 
-# ### set country & year ###
-# country <- "Netherlands"
-# year1 <- "2005"
-# 
-# #calculate total pop size for given year
-# tmpdf <- subset(popF, name==country)
-# pop_f <- tmpdf[,year1]*1000 # total population by age (females)
-# tmpdf <- subset(popM, name==country)
-# pop_m <- tmpdf[,year1]*1000 # total population by age (males)
-# tot_pop <- pop_m + pop_f #total population all ages
-# age_pop <- age_mort[-1] #set age categories
-# age_pop[1] <- age_pop[1]-1
-# tot_pop <- tot_pop[-length(tot_pop)]
-# 
-# #subset Netherlands data by year of data collection
-# neth_06 <- temporal %>% subset(year==2005)  #2006/07 (2005 has demographic data available)
-# 
-# #distribute n according to demographic data from specific year
-# f <- spline(age_pop, tot_pop, xout=neth_06$age_mid)
-# neth_06$n <- round((f$y/sum(f$y))*neth_06$n, 0)
-# #calculate k
-# neth_06$k <- round(neth_06$prevalence * neth_06$n, 0)
-# #recalculate prevalence
-# neth_06$prevalence <- neth_06$k/neth_06$n
-# 
-# # plot(neth_95$age_mid, neth_95$prevalence, ylim=c(0,1))
-# # points(neth_06$age_mid, neth_06$prevalence, col="red")
-# 
-# ##### set up to run model in "fitting.R"
-# ##### Read in data #
-# data <- neth_95  # from "R files/seroprev_dat.R" script (NB length of datasets from both years are the same)
-# number_of_data_points = length(data$n)
-# 
-# ### select age groups from model output that match data age groups
-# clean_dat <- data.frame("age_mid"=data$age_mid, "k"=data$k, "n"=data$n, "prev"=data$prevalence)
-# 
-# #create new dataset
-# matched_dat <- clean_dat
-# # x[,2] increases by one each time data age midpoint is closest match to modelled age midpoint
-# x <- cbind(pars$age, findInterval(pars$age, matched_dat$age_mid))
-# #returns FALSE if there's change between element i and element i+1
-# y1 <- diff(x[,2]) <= 0
-# 
-# # each time x[,2] increases by 1, save value of x[,1][i+1] to matched_dat$age_mid[i]
-# matched_ages <- vector("numeric", pars$agrps)
-# for(i in 1:length(y1)){
-#   if(y1[i]==T){
-#     matched_ages[i] <- NA
-#   }else if(y1[i]==F){
-#     matched_ages[i] <- x[,1][i+1]
-#   }
-# }
-# 
-# #removes last element (which is 0 because of indexing)
-# matched_ages <- head(matched_ages, -1)
-# 
-# # find the indices which match the age group most closely
-# matched_indices <- which(!is.na(matched_ages))
+temporal <- read.csv("data/netherlands_temporal.csv")  #local
+# temporal <- read.csv("netherlands_temporal.csv")  #cluster
+
+#load required datasets
+data(popF) # population distribution females
+data(popM) # population distribution males
+
+### set country & year ###
+country <- "Netherlands"
+year1 <- "1995"
+
+#calculate total pop size for given year
+tmpdf <- subset(popF, name==country)
+pop_f <- tmpdf[,year1]*1000 # total population by age (females)
+tmpdf <- subset(popM, name==country)
+pop_m <- tmpdf[,year1]*1000 # total population by age (males)
+tot_pop <- pop_m + pop_f #total population all ages
+age_pop <- age_mort[-1] #set age categories
+age_pop[1] <- age_pop[1]-1
+tot_pop <- tot_pop[-length(tot_pop)]
+
+#subset Netherlands data by year of data collection
+neth_95 <- temporal %>% subset(year==1995)  #1995/96 (1995 has demographic data available)
+
+#distribute n according to demographic data from specific year
+f <- spline(age_pop, tot_pop, xout=neth_95$age_mid)
+neth_95$n <- round(f$y/sum(f$y)*neth_95$n, 0)
+#calculate k
+neth_95$k <- round(neth_95$prevalence * neth_95$n, 0)
+#recalculate prevalence
+neth_95$prevalence <- neth_95$k/neth_95$n
+
+### set country & year ###
+country <- "Netherlands"
+year1 <- "2005"
+
+#calculate total pop size for given year
+tmpdf <- subset(popF, name==country)
+pop_f <- tmpdf[,year1]*1000 # total population by age (females)
+tmpdf <- subset(popM, name==country)
+pop_m <- tmpdf[,year1]*1000 # total population by age (males)
+tot_pop <- pop_m + pop_f #total population all ages
+age_pop <- age_mort[-1] #set age categories
+age_pop[1] <- age_pop[1]-1
+tot_pop <- tot_pop[-length(tot_pop)]
+
+#subset Netherlands data by year of data collection
+neth_06 <- temporal %>% subset(year==2006)  #2006/07 (2005 has demographic data available)
+
+#distribute n according to demographic data from specific year
+f <- spline(age_pop, tot_pop, xout=neth_06$age_mid)
+neth_06$n <- round((f$y/sum(f$y))*neth_06$n, 0)
+#calculate k
+neth_06$k <- round(neth_06$prevalence * neth_06$n, 0)
+#recalculate prevalence
+neth_06$prevalence <- neth_06$k/neth_06$n
+
+# plot(neth_95$age_mid, neth_95$prevalence, ylim=c(0,1))
+# points(neth_06$age_mid, neth_06$prevalence, col="red")
+
+##### calculate age indices that match the model ouput for "fitting.R"
+data <- neth_95
+number_of_data_points = length(data$n)
+
+### select age groups from model output that match data age groups
+clean_dat <- data.frame("age_mid"=data$age_mid, "k"=data$k, "n"=data$n, "prev"=data$prevalence)
+
+#create new dataset
+matched_dat <- clean_dat
+# x[,2] increases by one each time data age midpoint is closest match to modelled age midpoint
+x <- cbind(pars$age, findInterval(pars$age, matched_dat$age_mid))
+#returns FALSE if there's change between element i and element i+1
+y1 <- diff(x[,2]) <= 0
+
+# each time x[,2] increases by 1, save value of x[,1][i+1] to matched_dat$age_mid[i]
+matched_ages <- vector("numeric", pars$agrps)
+for(i in 1:length(y1)){
+  if(y1[i]==T){
+    matched_ages[i] <- NA
+  }else if(y1[i]==F){
+    matched_ages[i] <- x[,1][i+1]
+  }
+}
+
+#removes last element (which is 0 because of indexing)
+matched_ages <- head(matched_ages, -1)
+
+# find the indices which match the age group most closely
+neth_matched_indices <- which(!is.na(matched_ages))
 
 #################################################
 ################## New Zealand ##################
@@ -122,4 +121,207 @@ preg <- subset(pars$propfert, pars$propfert>0)        #keep only pregnant women
 min.age <- which(pars$propfert == preg[1])            #save 1st age index of pregnant women
 max.age <- which(pars$propfert == preg[length(preg)]) #save last age index of pregnant women
 nz_matched_indices <- seq(min.age, max.age, by=1)     #create sequence of age indices for extracting correct modelled seroprevalence
+
+
+################################################################
+################## Global seroprevalence data ##################
+################################################################
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+
+data <- read.csv("data/seroprev_global.csv")
+min_samples <- 4 #minimum number of longitudinal samples
+
+# clean data
+data <- data %>%
+  filter(exclude=="n") %>%                            # exclude rows with epidemiological biases or other errors
+  filter(!is.na(first_sample)) %>%                    # remove rows with no info on sampling year
+  filter(method=="ELISA" & method2=="" & method3=="") # only include studies using ELISA (& no other methods)
+  # filter(method=="ELISA" & method2=="" & method3=="") # only include studies using ELISA (in combo w other methods)
+
+
+# calculate prevalence
+data$prev <- data$k/data$n
+
+# calculate median sampling year
+for(i in 1:nrow(data)){
+  data$year[i] <- floor(median(seq(data$first_sample[i],data$last_sample[i], 1)))
+}
+
+# include countries with minimum of 5 observations
+data <- data %>%
+  group_by(country) %>%
+  filter(n() >= min_samples)
+
+# create separate dfs for countries, group by year & calculate weighted prevalence
+countries <- unique(data$country)
+data_list <- vector(mode = "list", length = length(countries))
+
+for(i in 1:length(countries)){
+  data_list[[i]] <- 
+    data %>%
+    filter(country==countries[i]) %>% 
+    filter(!is.na(year)) %>%
+    arrange(year) %>%
+    group_by(year) %>%
+    summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), country=countries[i]) %>%
+    as.data.frame()
+}
+
+# make ggplots for each of the countries
+p <- vector(mode = "list", length = length(countries))
+
+#for(j in 1:length(who_regions)){  ## if you want to order plots by region too
+for(i in 1:length(countries)){
+  p[[i]] <- ggplot(data_list[[i]], aes(x=year, y=w.prev)) + 
+    geom_point() + 
+    geom_smooth(method = "lm", formula = 'y~x') +
+    xlab("Year") + ylab("Seroprevalence") +
+    scale_y_continuous(breaks = seq(0,1, 0.2)) +
+    labs(title = paste(countries[i])) + 
+    theme_light()
+}
+
+wrap_plots(p)
+
+######
+## Regional plots
+######
+
+## Brazil
+brazil <- data %>%
+  filter(country=="brazil") %>%
+  filter(!is.na(year)) %>%
+  filter(!is.na(state)) %>%
+  arrange(state) %>%
+  group_by(state) %>%
+  as.data.frame() %>%
+  summarise(year, k, n, state, prev)
+
+states <- unique(brazil$state)
+
+data_list <- vector(mode = "list", length = length(states))
+
+for(i in 1:length(states)){
+  data_list[[i]] <- 
+    data %>%
+    filter(state==states[i]) %>% 
+    filter(!is.na(year)) %>%
+    arrange(year) %>%
+    group_by(year) %>%
+    summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), state=states[i]) %>%
+    as.data.frame()
+}
+
+## find states that are repeated more than once
+# make ggplots for each of the countries
+p <- vector(mode = "list", length = length(states))
+
+for(i in 1:length(data_list)){
+  print(nrow(data_list[[i]]))
+}
+
+
+for(i in 1:length(states)){
+  p[[i]] <- ggplot(data_list[[i]], aes(x=year, y=w.prev)) + 
+    geom_point() + 
+    geom_smooth(method = "lm", formula = 'y~x') +
+    scale_y_continuous(breaks = seq(0,1, 0.2)) +
+    labs(title = paste(states[i]))
+}
+
+p[[6]]
+wrap_plots(p)
+
+
+# iran
+
+iran <- data %>%
+  filter(country=="iran") %>%
+  filter(!is.na(year)) %>%
+  filter(!is.na(state)) %>%
+  arrange(state) %>%
+  group_by(state) %>%
+  as.data.frame() %>%
+  summarise(year, k, n, state, prev)
+
+states <- unique(iran$state)
+
+data_list <- vector(mode = "list", length = length(states))
+
+for(i in 1:length(states)){
+  data_list[[i]] <- 
+    data %>%
+    filter(state==states[i]) %>% 
+    filter(!is.na(year)) %>%
+    arrange(year) %>%
+    group_by(year) %>%
+    summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), state=states[i]) %>%
+    as.data.frame()
+}
+
+## find states that are repeated more than once
+# make ggplots for each of the countries
+p <- vector(mode = "list", length = length(states))
+
+for(i in 1:length(data_list)){
+  print(nrow(data_list[[i]]))
+}
+
+
+for(i in 1:length(states)){
+  p[[i]] <- ggplot(data_list[[i]], aes(x=year, y=w.prev)) + 
+    geom_point() + 
+    geom_smooth(method = "lm", formula = 'y~x') +
+    scale_y_continuous(breaks = seq(0,1, 0.2)) +
+    labs(title = paste(states[i]))
+}
+
+wrap_plots(p)
+
+# turkey
+
+turkey <- data %>%
+  filter(country=="turkey") %>%
+  filter(!is.na(year)) %>%
+  filter(!is.na(state)) %>%
+  arrange(state) %>%
+  group_by(state) %>%
+  as.data.frame() %>%
+  summarise(year, k, n, state, prev)
+
+states <- unique(turkey$state)
+
+data_list <- vector(mode = "list", length = length(states))
+
+for(i in 1:length(states)){
+  data_list[[i]] <- 
+    data %>%
+    filter(state==states[i]) %>% 
+    filter(!is.na(year)) %>%
+    arrange(year) %>%
+    group_by(year) %>%
+    summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), state=states[i]) %>%
+    as.data.frame()
+}
+
+## find states that are repeated more than once
+# make ggplots for each of the countries
+p <- vector(mode = "list", length = length(states))
+
+for(i in 1:length(data_list)){
+  print(nrow(data_list[[i]]))
+}
+
+
+for(i in 1:length(states)){
+  p[[i]] <- ggplot(data_list[[i]], aes(x=year, y=w.prev)) + 
+    geom_point() + 
+    geom_smooth(method = "lm", formula = 'y~x') +
+    scale_y_continuous(breaks = seq(0,1, 0.2)) +
+    labs(title = paste(states[i]))
+}
+
+wrap_plots(p)
 
