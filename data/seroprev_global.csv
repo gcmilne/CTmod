@@ -6,14 +6,14 @@ Brazil,2015,2008,2009,24,148,Americas,Santa Catarina,NA,,,n,sampling 2008-2009
 Brazil,2011,2005,2007,56,87,Americas,São Paulo,ELISA,IFA,,n,https://www.scielo.br/scielo.php?pid=S1516-31802011000400010&script=sci_arttext
 Brazil,2009,2014,2014,242,492,Americas,Paraná,CLIA,,,n,
 Brazil,2010,2005,2005,661,963,Americas,Ceará,MEIA,,,n,
-Brazil,2011,2007,2007,170,320,Americas,Paraná,ELISA,IFA,,n,I separated into 2 sampling years
+Brazil,2011,2007,2007,170,320,Americas,Paraná,ELISA,IFA,,n,I seperarted into 2 sampling years
 Brazil,2011,2008,2008,158,287,Americas,Paraná,ELISA,IFA,,n,
 Brazil,2013,2010,2010,883,1534,Americas,Paraná,MEIA,,,n,
 Brazil,2013,2010,2010,234,400,Americas,Rio de Janeiro,ELISA,IFA,,n,
 Brazil,2008,NA,NA,625,832,Americas,Rio de Janeiro,,,,n,sampling year not noted 
 Brazil,2006,2000,2000,6125,10408,Americas,Rio Grande do Sul,MEIA,,,n,
 Brazil,1995,1990,1990,484,698,Americas,NA,ELISA,,,n,can't find paper (so no regional data)
-Brazil,2018,2009,2009,525,726,Americas, Bahia,ELISA,,,n,
+Brazil,2018,2009,2009,525,726,Americas,Bahia,ELISA,,,n,
 Brazil,2014,2012,2012,335,487,Americas,Tocantins,ELISA,,,n,
 Brazil,2012,2007,2007,1057,2136,Americas,Minas Gerais,NA,,,n,
 Brazil,2005,1997,1997,1583,2126,Americas,Rio Grande do Sul,IFA,,,n,
@@ -24,7 +24,7 @@ Brazil,2011,2008,2008,6910,10316,Americas,Goiás,Western blot,,,n,
 Brazil,2009,1998,1998,241,41112,Americas,Rio Grande do Sul,,,,y,screening based on diagnosis of acute toxoplasmosis -- excluded
 Brazil,2015,2005,2005,120,213,Americas,São Paulo,ELISA,,,n,
 Brazil,2017,2009,2009,210,356,Americas,Rio Grande do Norte,ELISA,CLIA,Electrochemiluminescence,n,
-Brazil,2009,2007,2007,126,190,Americas, Rio Grande do Norte,MEIA,,,n,
+Brazil,2009,2007,2007,126,190,Americas,Rio Grande do Norte,MEIA,,,n,
 Brazil,1990,1988,1988,67,481,Americas,São Paulo,,,,y,Paper examining active toxoplasmosis (i.e. IgM; no methods looking at IgG) - excluded
 Brazil,2000,1996,1996,1044,1559,Americas,Paraná,IFA,,,n,
 Brazil,2010,2006,2006,345,556,Americas,São Paulo,NA,,,n,Corrected n from 574 to 556
@@ -47,7 +47,7 @@ Iran,2017,2014,2014,79,200,Eastern Mediterranean,West Azerbaijan Province,ELISA,
 Iran,2012,NA,NA,186,500,Eastern Mediterranean,Zanjan Province,,,,n,sampling year not noted
 Iran,2014,NA,NA,170,289,Eastern Mediterranean,NA,,,,n,sampling year not noted
 Iran,2015,2010,2012,30,80,Eastern Mediterranean,Isfahan Province,ELISA,,,n,
-Iran,2011,2008,2009,250,721,Eastern Mediterranean,Lorestan province,ELISA,,,n,https://d1wqtxts1xzle7.cloudfront.net/24897981/vol05-no2.pdf?1343094092=&response-content-disposition=inline%3B+filename%3DA_comparison_of_HIV_AIDS_related_knowled.pdf&Expires=1620643960&Signature=CV0p-Sr4LAhWl0WbExFKX02lsH5LWMWxlXi3s9NBOGCOvycgVcs12cdMl9gV1B-WSouS8Hx2PBT8sENl7l~clX1Ivo~SPd2Wr9rDhMA6XGva2xl1asZ4svav6BjFQQJLdOCsxnhEvFXeZvEdjEvKPkMSjnMJvZDBfHugCaod7EY8vp7qdBzSkDe4baufvIIe~SJNvgnAXGzwYuXBEmeWRndcalBbgeQjX0OgXVOsvWstD6jAugp0aCnFzYyOrc4pHcityxvszIwhMkCJs~yeHjy1psGsJFeTduTccdzO1LroUWMj3b18xjrSZw9jhL8~KU~R33xU0zrwkx6u2Qb~Vg__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA#page=98
+Iran,2011,2008,2009,250,721,Eastern Mediterranean,Lorestan Province,ELISA,,,n,https://d1wqtxts1xzle7.cloudfront.net/24897981/vol05-no2.pdf?1343094092=&response-content-disposition=inline%3B+filename%3DA_comparison_of_HIV_AIDS_related_knowled.pdf&Expires=1620643960&Signature=CV0p-Sr4LAhWl0WbExFKX02lsH5LWMWxlXi3s9NBOGCOvycgVcs12cdMl9gV1B-WSouS8Hx2PBT8sENl7l~clX1Ivo~SPd2Wr9rDhMA6XGva2xl1asZ4svav6BjFQQJLdOCsxnhEvFXeZvEdjEvKPkMSjnMJvZDBfHugCaod7EY8vp7qdBzSkDe4baufvIIe~SJNvgnAXGzwYuXBEmeWRndcalBbgeQjX0OgXVOsvWstD6jAugp0aCnFzYyOrc4pHcityxvszIwhMkCJs~yeHjy1psGsJFeTduTccdzO1LroUWMj3b18xjrSZw9jhL8~KU~R33xU0zrwkx6u2Qb~Vg__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA#page=98
 Iran,2018,2016,2017,28,110,Eastern Mediterranean,,,,,y,"sampling 2016–2017; only 25 pregnant patients, rest were immunocompromised; sample sizes & k & n unclear -- exclude"
 Iran,2017,2010,2013,267,391,Eastern Mediterranean,East Azarbaijan Province,ELISA,,,n,Chose results that used ELISA (study used multiple serological tests on same samples); corrected k from 202 to 267
 Iran,2016,NA,NA,194,360,Eastern Mediterranean,,,,,y,"case control study of T. gondii & prenatal depression, not general population — exclude"
@@ -158,5 +158,5 @@ China,2014,2010,2013,1218,9139,Western Pacific,Shandong Province,ELISA,,,n,
 China,2011,NA,NA,52,1307,Western Pacific,,ELISA,,,n,
 China,2011,NA,NA,351,6849,Western Pacific,,ELISA,,,n,
 China,2016,2013,2015,32,276,Western Pacific,Hebei Province,ELISA,,,n,
-China,2014,2010,2013,151,2740,Western Pacific,Hebei province,ELISA,,,n,
+China,2014,2010,2013,151,2740,Western Pacific,Hebei Province,ELISA,,,n,
 China,2015,2011,2014,11,3014,Western Pacific,Jiangsu Province,ELISA,,,n,

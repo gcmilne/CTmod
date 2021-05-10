@@ -136,10 +136,9 @@ min_samples <- 4 #minimum number of longitudinal samples
 # clean data
 data <- data %>%
   filter(exclude=="n") %>%                            # exclude rows with epidemiological biases or other errors
-  filter(!is.na(first_sample)) %>%                    # remove rows with no info on sampling year
-  filter(method=="ELISA" & method2=="" & method3=="") # only include studies using ELISA (& no other methods)
+  filter(!is.na(first_sample)) #%>%                    # remove rows with no info on sampling year
+  # filter(method=="ELISA" & method2=="" & method3=="") # only include studies using ELISA (& no other methods)
   # filter(method=="ELISA" & method2=="" & method3=="") # only include studies using ELISA (in combo w other methods)
-
 
 # calculate prevalence
 data$prev <- data$k/data$n
@@ -149,7 +148,7 @@ for(i in 1:nrow(data)){
   data$year[i] <- floor(median(seq(data$first_sample[i],data$last_sample[i], 1)))
 }
 
-# include countries with minimum of 5 observations
+# include countries with minimum of x observations
 data <- data %>%
   group_by(country) %>%
   filter(n() >= min_samples)
@@ -165,7 +164,7 @@ for(i in 1:length(countries)){
     filter(!is.na(year)) %>%
     arrange(year) %>%
     group_by(year) %>%
-    summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), country=countries[i]) %>%
+    summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), country=countries[i], state=state) %>%
     as.data.frame()
 }
 
@@ -185,143 +184,77 @@ for(i in 1:length(countries)){
 
 wrap_plots(p)
 
-######
-## Regional plots
-######
+####################
+## Regional plots ##
+####################
 
-## Brazil
-brazil <- data %>%
-  filter(country=="brazil") %>%
-  filter(!is.na(year)) %>%
-  filter(!is.na(state)) %>%
-  arrange(state) %>%
-  group_by(state) %>%
-  as.data.frame() %>%
-  summarise(year, k, n, state, prev)
-
-states <- unique(brazil$state)
-
-data_list <- vector(mode = "list", length = length(states))
-
-for(i in 1:length(states)){
-  data_list[[i]] <- 
-    data %>%
-    filter(state==states[i]) %>% 
+# omit rows with no regional data
+for(i in 1:length(countries)){
+  data_list[[i]] <- data_list[[i]] %>%
     filter(!is.na(year)) %>%
+    filter(!is.na(state))
+}
+
+# store names of unique states
+states <- vector(mode = "list", length = length(countries))
+for(i in 1:length(countries)){
+  states[[i]] <- unique(data_list[[i]]$state)
+}
+
+# find n times each unique state is present in dataset
+n_states <- table(data$state)
+
+# store names of states if >n number of samples
+n <- 3
+
+freq_states <- vector("numeric", length=length(n_states))
+
+for(i in 1:length(n_states)){
+  if(n_states[i] >= n){
+    print(n_states[i])
+    freq_states[i] <- names(n_states[i])
+  }else{
+    freq_states[i] <- NA
+  }
+}
+
+freq_states <- freq_states[!is.na(freq_states)] #omit na
+
+## store data & calculate weighted prevalence for these states
+regional_data <- vector(mode = "list", length = length(freq_states))
+
+for(i in 1:length(freq_states)){
+  regional_data[[i]] <- data %>%
+    filter(!is.na(year)) %>%
+    filter(!is.na(state)) %>%
+    filter(state==freq_states[[i]]) %>%
     arrange(year) %>%
     group_by(year) %>%
-    summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), state=states[i]) %>%
+    summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), country=country, state=freq_states[[i]]) %>%
     as.data.frame()
 }
 
-## find states that are repeated more than once
-# make ggplots for each of the countries
-p <- vector(mode = "list", length = length(states))
-
-for(i in 1:length(data_list)){
-  print(nrow(data_list[[i]]))
+# omit those with fewer than n observations
+for(i in 1:length(freq_states)){
+  if(length(unique(regional_data[[i]]$year)) < n){
+    regional_data[[i]] <- NA
+  }
 }
 
+regional_data <- regional_data[!is.na(regional_data)] #omit na
 
-for(i in 1:length(states)){
-  p[[i]] <- ggplot(data_list[[i]], aes(x=year, y=w.prev)) + 
+# ggplot for each state
+p <- vector(mode = "list", length = length(regional_data))
+for(i in 1:length(regional_data)){
+  p[[i]] <- vector(mode = "list", length = length(regional_data[[i]]))
+}
+
+for(i in 1:length(regional_data)){
+  p[[i]] <- ggplot(regional_data[[i]], aes(x=year, y=w.prev)) + 
     geom_point() + 
     geom_smooth(method = "lm", formula = 'y~x') +
     scale_y_continuous(breaks = seq(0,1, 0.2)) +
-    labs(title = paste(states[i]))
-}
-
-p[[6]]
-wrap_plots(p)
-
-
-# iran
-
-iran <- data %>%
-  filter(country=="iran") %>%
-  filter(!is.na(year)) %>%
-  filter(!is.na(state)) %>%
-  arrange(state) %>%
-  group_by(state) %>%
-  as.data.frame() %>%
-  summarise(year, k, n, state, prev)
-
-states <- unique(iran$state)
-
-data_list <- vector(mode = "list", length = length(states))
-
-for(i in 1:length(states)){
-  data_list[[i]] <- 
-    data %>%
-    filter(state==states[i]) %>% 
-    filter(!is.na(year)) %>%
-    arrange(year) %>%
-    group_by(year) %>%
-    summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), state=states[i]) %>%
-    as.data.frame()
-}
-
-## find states that are repeated more than once
-# make ggplots for each of the countries
-p <- vector(mode = "list", length = length(states))
-
-for(i in 1:length(data_list)){
-  print(nrow(data_list[[i]]))
-}
-
-
-for(i in 1:length(states)){
-  p[[i]] <- ggplot(data_list[[i]], aes(x=year, y=w.prev)) + 
-    geom_point() + 
-    geom_smooth(method = "lm", formula = 'y~x') +
-    scale_y_continuous(breaks = seq(0,1, 0.2)) +
-    labs(title = paste(states[i]))
+    labs(title = paste(freq_states[i]))
 }
 
 wrap_plots(p)
-
-# turkey
-
-turkey <- data %>%
-  filter(country=="turkey") %>%
-  filter(!is.na(year)) %>%
-  filter(!is.na(state)) %>%
-  arrange(state) %>%
-  group_by(state) %>%
-  as.data.frame() %>%
-  summarise(year, k, n, state, prev)
-
-states <- unique(turkey$state)
-
-data_list <- vector(mode = "list", length = length(states))
-
-for(i in 1:length(states)){
-  data_list[[i]] <- 
-    data %>%
-    filter(state==states[i]) %>% 
-    filter(!is.na(year)) %>%
-    arrange(year) %>%
-    group_by(year) %>%
-    summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), state=states[i]) %>%
-    as.data.frame()
-}
-
-## find states that are repeated more than once
-# make ggplots for each of the countries
-p <- vector(mode = "list", length = length(states))
-
-for(i in 1:length(data_list)){
-  print(nrow(data_list[[i]]))
-}
-
-
-for(i in 1:length(states)){
-  p[[i]] <- ggplot(data_list[[i]], aes(x=year, y=w.prev)) + 
-    geom_point() + 
-    geom_smooth(method = "lm", formula = 'y~x') +
-    scale_y_continuous(breaks = seq(0,1, 0.2)) +
-    labs(title = paste(states[i]))
-}
-
-wrap_plots(p)
-
