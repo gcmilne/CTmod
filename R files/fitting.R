@@ -1,33 +1,41 @@
 #######################################
 ########### Model fitting #############
 #######################################
-
-# rm(list = ls()) # clear working environment
+rm(list = ls()) # clear working environment
 
 #######################
 #### Set directory ####
 #######################
-setwd("/storage/users/gmilne/test/parallel")  #cluster
-# setwd("~/Desktop/R Projects/stan")  #local
+# setwd("/storage/users/gmilne/test/parallel")  #cluster
+setwd("~/Desktop/R Projects/stan")  #local
 
 ############
 # Set seed #
 ############
-SEED = as.numeric(Sys.getenv("SEED"))  #cluster
-# SEED = 1                              #local
+if(getwd()=="/Users/gregorymilne/Desktop/R Projects/stan"){ #local
+  SEED = 1
+  
+} else if (getwd()=="/storage/users/gmilne/test/parallel"){ #cluster
+  SEED = as.numeric(Sys.getenv("SEED"))
+}
+
 set.seed(SEED)
 
 ##################
 ## Load scripts ##
 ##################
-# source("seroprev_dat.R")  #cluster
-# source("demogdat.R")      #cluster
-# source("setparms.R")      #cluster
-# source("model.R")         #cluster
-source("R files/seroprev_dat.R")  #local
-source("R files/demogdat.R")      #local
-source("R files/setparms.R")      #local
-source("R files/model.R")         #local
+if (getwd()=="/Users/gregorymilne/Desktop/R Projects/stan"){ #local
+  # source("R files/seroprev_dat.R")
+  source("R files/demogdat.R")
+  source("R files/setparms.R")
+  source("R files/model.R")
+  
+} else if (getwd()=="/storage/users/gmilne/test/parallel"){ #cluster
+  # source("seroprev_dat.R")
+  source("demogdat.R")
+  source("setparms.R")
+  source("model.R")
+}
 
 #################
 # Load packages #
@@ -39,8 +47,31 @@ library(dplyr)
 ###################
 # Additional data #
 ###################
-nsim  <- 100  #no. iterations on each for loop
-npars <- 5    #no. parameters to fit
+## no. iterations on each for loop
+nsim  <- 100  
+
+## no. parameters to fit
+if(pars$constant==1){
+  npars <- 3
+  
+} else if (pars$constant==0){
+  npars <- 5
+}
+
+## Change objects according to dataset being fit:
+if (country == "Netherlands"){
+  data1 <- neth_95
+  data2 <- neth_06
+  matched_indices <- neth_matched_indices
+  pars$tdiff <- abs(data1$year[1] - data2$year[1])
+
+} else if (country == "New Zealand"){
+  data1 <- nz1
+  data2 <- nz2
+  matched_indices <- nz_matched_indices
+  pars$tdiff <- abs(data1$year - data2$year)
+
+}
 
 ###############
 ## Functions ##
@@ -71,7 +102,7 @@ getit <- function(time) {
                     matAb1=matAb1, matAb2=matAb2, matAb3=matAb3, 
                     ct1=ct1, ct2=ct2, ct3=ct3, Na=Na)
   ## remove last age category for aesthetics
-  out <- out[-nrow(out),]
+  # out <- out[-nrow(out),]
 }
 
 ## Joint likelihood function: for fitting both timepoints simultaneously
@@ -82,12 +113,23 @@ loglik <- function(k1, n1, prev1, k2, n2, prev2){
 ##############################
 ## Latin hypercube sampling ##
 ##############################
-par_arr <- randomLHS(nsim, npars) #create parameter array
-par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
-par_arr[,2] <- log(qunif(par_arr[,2], min=0, max=0.2))        #log lambda1
-par_arr[,3] <- log(qunif(par_arr[,3], min=0, max=2))          #log gradient
-par_arr[,4] <- log(qunif(par_arr[,4], min=0, max=0.8))        #log shape
-par_arr[,5] <- log(qunif(par_arr[,5], min=0, max=100))        #log tdecline
+if(pars$constant==1){
+  
+  par_arr <- randomLHS(nsim, npars) #create parameter array
+  par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
+  par_arr[,2] <- log(qunif(par_arr[,4], min=0, max=0.8))        #log shape
+  par_arr[,3] <- log(qunif(par_arr[,5], min=0, max=100))        #log tdecline
+  
+} else if (pars$constant==0){
+  
+  par_arr <- randomLHS(nsim, npars) #create parameter array
+  par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
+  par_arr[,2] <- log(qunif(par_arr[,2], min=0, max=0.2))        #log lambda1
+  par_arr[,3] <- log(qunif(par_arr[,3], min=0, max=2))          #log gradient
+  par_arr[,4] <- log(qunif(par_arr[,4], min=0, max=0.8))        #log shape
+  par_arr[,5] <- log(qunif(par_arr[,5], min=0, max=100))        #log tdecline
+  
+}
 
 # par(mfrow=c(3,2))
 # dummy <- apply(exp(par_arr), 2, hist, main = "") #plot prior distributions
@@ -102,16 +144,14 @@ system.time(
     
     if(pars$constant==1){   #for non-age-structured data (where there is only 1 datapoint per timepoint)
       
-      ## NB: change matched_indices & pars$tdiff depending on the dataset being fit
       pars$log.lambda0  <- par_arr[i,"log.lambda0"]
       pars$log.shape    <- par_arr[i,"log.shape"]
       pars$log.tdecline <- par_arr[i,"log.tdecline"]
       sol           <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
       store_sim     <- getit(pars$burnin)  #store age profile after burnin period (TIMEPOINT 1)
-      matched_prev  <- store_sim[,"obs_pI"][nz_matched_indices]  #select observed prevalence from relevant age categories
+      matched_prev  <- store_sim[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
       store_sim2    <- getit(pars$burnin + pars$tdiff)  #store age profile n years after burnin period (TIMEPOINT 2)
-      matched_prev2 <- store_sim2[,"obs_pI"][nz_matched_indices]  #select observed prevalence from relevant age categories
-      ## for non-age-structured data (where there is only 1 datapoint per timepoint)
+      matched_prev2 <- store_sim2[,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
       matched_prev  <- mean(matched_prev)  #simple mean 
       matched_prev2 <- mean(matched_prev2) #simple mean
       logliks       <- loglik(k1 = nz1$k, n1 = nz1$n, prev1 = matched_prev, 
@@ -120,7 +160,6 @@ system.time(
       
     } else if (pars$constant==0){  #for age-structured data
       
-      ## NB: change matched_indices & pars$tdiff depending on the dataset being fit
       pars$log.lambda0  <- par_arr[i,"log.lambda0"]
       pars$log.lambda1  <- par_arr[i,"log.lambda1"]
       pars$log.gradient <- par_arr[i,"log.gradient"]
@@ -139,7 +178,31 @@ system.time(
   }
 )
 
-# save output 
+## save output ##
+# create dataframe
 likpar_arr <- data.frame(par_arr, lik_arr)
-names(likpar_arr) <- c("log.lambda0", "log.lambda1", "log.gradient", "log.shape", "log.tdecline", "log.lik")
-saveRDS(likpar_arr, file = paste("parliks5_linear_", SEED, ".Rdata", sep = ""))
+
+# name dataframe
+if (pars$constant==1){
+  names(likpar_arr) <- c("log.lambda0", "log.shape", "log.tdecline", "log.lik")
+} else if (pars$constant==0){
+  names(likpar_arr) <- c("log.lambda0", "log.lambda1", "log.gradient", "log.shape", "log.tdecline", "log.lik")
+}
+
+# save dataframe
+if (pars$constant==1){
+  
+  if (pars$stepwise==1){
+    saveRDS(likpar_arr, file = paste("parliks_consant_stepwise_", SEED, ".Rdata", sep = ""))
+  } else if (pars$stepwise==0){
+    saveRDS(likpar_arr, file = paste("parliks_consant_linear_", SEED, ".Rdata", sep = ""))
+  }
+  
+} else if (pars$constant==0){
+  
+  if (pars$stepwise==1){
+    saveRDS(likpar_arr, file = paste("parliks_varying_stepwise_", SEED, ".Rdata", sep = ""))
+  } else if (pars$stepwise==0){
+    saveRDS(likpar_arr, file = paste("parliks_varying_linear_", SEED, ".Rdata", sep = ""))
+  }
+}
