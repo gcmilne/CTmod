@@ -13,6 +13,8 @@ source("R files/demogdat.R")  #local
 # Load packages
 library(dplyr)
 library(wpp2019)
+library(ggplot2)
+library(lme4)
 
 # #################################################
 # ################## Netherlands ##################
@@ -316,49 +318,49 @@ for(i in 1:length(p_value_w)){
 }
 
 ## Option (2): Fit a hierarchical model for all countries together
+# saveRDS(df, "data/global_data.rds")
 
-## Fixed effects model ##
+# read in data
+df <- readRDS("data/global_data.rds")
 
-# put data list into one dataframe
-df <- do.call(rbind.data.frame, data_list)
+# calculate prevalence
+df$prev <- df$k/df$n
 
-#unweighted model
-lm.mod <- lm(w.prev ~ year, data=df)
-summary(lm.mod)
+# standardise year
+df$yrstd <- (df$year-mean(df$year))/sd(df$year)
 
-#weighted model
-lm.mod_w <- lm(w.prev ~ year, data=df, weights=n)
-# summary(lm.mod_w)
+## over-fitted model
+m0 <- lmer(prev~yrstd+(yrstd|country), data=df)
 
-# plot fitted points
-# plot(df$year, df$w.prev)
-# lines(df$year, lm.mod$fitted.values)              #unweighted model
-# lines(df$year, lm.mod_w$fitted.values, col="red") #weighted model
+df$yfit0 <- fitted(m0)
 
-## Mixed effects model (with country as random effect) ##
-library(nlme)
+p0 <- ggplot(data=df, aes(y=yfit0, x=year, group=country, col=country)) +
+  geom_line() +
+  geom_point(data=df, aes(y=prev, x=year, col=country)) +
+  facet_wrap(~country)
 
-df$country <- as.factor(df$country)
+## simpler model
+m1<-lmer(prev~yrstd+(1|country), data=df)
 
-# weighted mixed effects model (with country as random intercept and random gradient)
-me_mod <- lme(fixed=w.prev ~ year, random=~year|country, data=df, weights=~n)
-# summary(me_mod)
+df$yfit1 <- fitted(m1)
 
-# plot the output of the me_mod vs the observed data
-par(mfrow=c(1,1))
-# plot(df$year, df$w.prev, col=df$country, ylim=c(0, 1)) #observed data
-# for(i in 1:nrow(country_fits)){ #fitted line for each country 
-#   abline(me_mod$coefficients$fixed[1] + me_mod$coefficients$random$country[i,1], 
-#          me_mod$coefficients$fixed[2] + me_mod$coefficients$random$country[i,2], col=df$country, 
-#          lty=i)
-# }
-# abline(me_mod$coefficients$fixed[1], me_mod$coefficients$fixed[2], col="red") #best-fit line (all countries)
+p1 <- ggplot(data=df, aes(y=yfit1, x=year, group=country, col=country)) +
+  geom_line() +
+  geom_point(data=df, aes(y=prev, x=year, col=country)) +
+  facet_wrap(~country)
 
-## Examine residual plots ##
-par(mfrow=c(2,1))
-# Plot residuals vs. fitted values
-# plot(me_mod$fitted[,1], me_mod$residuals[,1], xlab="Fitted values", ylab="Residuals")
-# lines(seq(0.2,0.7,by=0.1), rep(0,6), lty=3)
-# Plot residuals vs. predictor (year)
-# plot(df$year, me_mod$residuals[,1], xlab="Year", ylab="Residuals")
-# lines(seq(1980, 2020, by=10), rep(0,5), lty=3)
+## simpler model, with weights
+m2<-lmer(prev~yrstd+(1|country), data=df, weights = n)
+
+df$yfit2 <- fitted(m2)
+
+p2 <- ggplot(data=df, aes(y=yfit2, x=year, group=country, col=country)) +
+  geom_line() +
+  geom_point(data=df, aes(y=prev, x=year, col=country)) +
+  facet_wrap(~country)
+
+## no evidence to support the more complex model
+anova(m0, m1)
+
+## simpler model with weights fits better than complex model without weights
+anova(m0, m2)
