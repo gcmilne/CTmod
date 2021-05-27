@@ -22,20 +22,9 @@ age_si = function(time, y, pars) {
   ## force of infection ##
   ########################
   
-  ## foi models that DO work as expected: ##
-  # (1) age-constant stepwise foi decline
-  # (2) age-constant linear foi decline
-  # (3) age-constant no foi decline
-  # (4) age-doubling linear foi decline
-  # (5) age-doubling no foi decline
-  
-  ## foi models that don't seem to work as expected: ##
-  # (1) age-doubling stepwise foi decline:
-  # --- model runs and gives correct age profile but no temporal decline
-  
   threshold <- pars$burnin - tdecline
   
-  ## Age-constant foi models ##
+  ### Age-constant foi models ###
   if(pars$age_foi == "constant") { 
     
     
@@ -51,7 +40,7 @@ age_si = function(time, y, pars) {
         foi <- lambda0 
         
       } else if (time >= threshold) {
-        yr_rate <- (1-shape)/((pars$burnin + pars$tdiff) - threshold)  #define yearly rate of decline
+        yr_rate <- (1 - shape) / ((pars$burnin + pars$tdiff) - threshold)  #define yearly rate of decline
         t_current <- time - (pars$burnin - pars$tdiff - 1)  #time difference
         foi <- lambda0 * (1-(yr_rate * t_current)) 
       }
@@ -70,18 +59,18 @@ age_si = function(time, y, pars) {
     }
     
     
-    ## Age-doubling foi models ##
+    ### Age-doubling foi models ###
   } else if (pars$age_foi == "double") { 
     
     
     #set up foi doubling from ages 20 to 40
-    lambda_double <- vector("numeric", length=pars$agrps)          #initiate vector
-    lambda_diff <- (2*lambda0 - lambda0)                           #difference in lambda from age group i to i+1
-    ages <- (20*pars$agrps/pars$amax+1):(40*pars$agrps/pars$amax)  #specified age groups
+    lambda_double <- vector("numeric", length = pars$agrps)  #initiate vector
+    lambda_diff <- (2*lambda0 - lambda0)                     #difference in lambda from age group i to i+1
+    ages <- (20 * pars$agrps / pars$amax + 1) : (40 * pars$agrps / pars$amax)  #specified age groups
     
-    lambda_double <- c(rep(lambda0, (20.5*pars$agrps/pars$amax)-1), 
-                       seq(lambda0, lambda0*2, by=lambda_diff/length(ages)), 
-                       rep(lambda0*2, length((40.5*pars$agrps/pars$amax): (pars$amax*pars$agrps/pars$amax))))
+    lambda_double <- c(rep(lambda0, (20.5 * pars$agrps / pars$amax) - 1), 
+                       seq(lambda0, lambda0 * 2, by = lambda_diff / length(ages)), 
+                       rep(lambda0*2, length((40.5 * pars$agrps / pars$amax) : (pars$amax * pars$agrps / pars$amax))))
     
     lambda_double <- lambda_double[-1]
     
@@ -102,26 +91,68 @@ age_si = function(time, y, pars) {
         yr_rate <- (1-shape)/((pars$burnin + pars$tdiff) - threshold)  #define yearly rate of decline
         t_current <- time - (pars$burnin - pars$tdiff - 1)  #time difference
         foi <- lambda_double * (1-(yr_rate * t_current))
-        
-        
-        #(3) stepwise temporal decline 
-      } else if (pars$temporal_foi == "stepwise") {
-        
-        if (time < threshold) {
-          foi <- lambda_double
-          
-        } else if (time >= threshold) {
-          foi <- lambda_double * shape
-        }
-        
       }
+      
+      #(3) stepwise temporal decline 
+    } else if (pars$temporal_foi == "stepwise") {
+      
+      if (time < threshold) {
+        foi <- lambda_double
+        
+      } else if (time >= threshold) {
+        foi <- lambda_double * shape
+      }
+      
     }
     
-    ## Age-halving foi models ##
-  } 
-  #else if (pars$age_foi=="half") {
-  
-  #}
+    
+    ### Age-halving foi models ###
+  } else if (pars$age_foi == "half") {
+    
+    #set up foi doubling from ages 20 to 40
+    lambda_half <- vector("numeric", length=pars$agrps)  #initiate vector
+    lambda_diff <- (lambda0 - 0.5 * lambda0)             #difference in lambda from age group i to i+1
+    ages <- (20 * pars$agrps/pars$amax + 1) : (40 * pars$agrps / pars$amax)  #specified age groups
+    
+    lambda_half <- c(rep(lambda0, (20.5 * pars$agrps / pars$amax) - 1), 
+                       seq(lambda0, lambda0 * 0.5, by = -lambda_diff / length(ages)), 
+                       rep(lambda0 * 0.5, length((40.5 * pars$agrps / pars$amax): (pars$amax * pars$agrps / pars$amax))))
+    
+    lambda_half <- lambda_half[-1]
+    
+    
+    #(1) no temporal decline
+    if(pars$temporal_foi == "none") {
+      foi <- lambda_half
+      
+      
+      #(2) linear temporal decline
+    } else if (pars$temporal_foi == "linear") {
+      
+      if (time < threshold) {
+        foi <- lambda_half
+        
+      } else if (time >= threshold) {
+        
+        yr_rate <- (1 - shape) / ((pars$burnin + pars$tdiff) - threshold)  #define yearly rate of decline
+        t_current <- time - (pars$burnin - pars$tdiff - 1)  #time difference
+        foi <- lambda_half * (1-(yr_rate * t_current))
+      }
+      
+      #(3) stepwise temporal decline 
+    } else if (pars$temporal_foi == "stepwise") {
+      
+      if (time < threshold) {
+        foi <- lambda_half
+        
+      } else if (time >= threshold) {
+        foi <- lambda_half * shape
+      }
+      
+    }
+    
+    
+  }
   
   # calculate change in seroprev and no. seroconversions in pregnancy
   dprev     <- vector("numeric", length=pars$agrps)
@@ -139,16 +170,16 @@ age_si = function(time, y, pars) {
   ct3       <- vector("numeric", length=pars$agrps)
   
   # modelled population size
-  Na <- S+I+Im
+  Na <- S + I + Im
   
   ## total deaths
-  deaths <- sum((pars$d)*Na)
+  deaths <- sum((pars$d) * Na)
   
   ## total ageing out of max age cat
   byebye <- Na[pars$agrps] * pars$da
   
   ## births distributed among age groups according to fertility
-  births_age <- (deaths+byebye)*pars$propfert
+  births_age <- (deaths + byebye) * pars$propfert
   births     <- sum(births_age)
   
   ## Calculate conception distribution for 3 trimesters
@@ -165,7 +196,7 @@ age_si = function(time, y, pars) {
   
   # Adjusting seroprevalence according to equations from Diggle (2011)
   obs_pI <- pI * (pars$se + pars$sp - 1) + (1 - pars$sp)
-
+  
   # Calculating seroconversions in pregnancy and cases of congenital disease
   for (i in 1:(pars$agrps - 3)) {
     
@@ -233,8 +264,8 @@ age_si = function(time, y, pars) {
     
     
     ## age-varying foi models
-  } else if (pars$age_foi == "double" | pars$age_foi == "half") {
-
+  } else if (pars$age_foi != "constant") {
+    
     for (i in 1:pars$agrps) {
       
       if (i==1) {
