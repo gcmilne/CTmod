@@ -37,6 +37,10 @@ pars$temporal_foi <-  "linear"
 # Options: "constant", "half" or "double")
 pars$age_foi      <- "half"
 
+# trouble shooting parameter
+# Options: 1 (plots graph of age-foi profile); 0 (model runs without age-foi graph plot)
+pars$troubleshoot <- 1
+
 ## Number of years between 1st & last data time points
 pars$tdiff <- max(fitting_data$year) - min(fitting_data$year)
 

@@ -307,30 +307,34 @@ age_si = function(time, y, pars) {
   
   
   # Sense-check that correct foi model is chosen
-  if (pars$age_foi != "constant") {
+  if (pars$troubleshoot == 1) {
     
-    if (time == 1) {
-      par(mfrow = c(1,1))
-      plot(pars$age, foi, 'l', ylim = c(0, 0.08))
+    if (pars$age_foi != "constant") {
       
-    } else if (time > 1 & time < threshold) {
-      lines(pars$age, foi)
+      if (time == 1) {
+        par(mfrow = c(1,1))
+        plot(pars$age, foi, 'l', ylim = c(0, 0.08))
+        
+      } else if (time > 1 & time < threshold) {
+        lines(pars$age, foi)
+        
+      } else if (time >= threshold) {
+        lines(pars$age, foi, lty=2, col = "red")
+      }
       
-    } else if (time >= threshold) {
-      lines(pars$age, foi, lty=2, col = "red")
-    }
-    
-  } else if (pars$age_foi == "constant") {
-    
-    if (time == 1) {
-      par(mfrow = c(1,1))
-      plot(pars$age, rep(foi, pars$agrps), 'l', ylim = c(0, 0.08))
+    } else if (pars$age_foi == "constant") {
       
-    } else if (time > 1 & time < threshold) {
-      lines(pars$age, rep(foi, pars$agrps))
+      if (time == 1) {
+        par(mfrow = c(1,1))
+        plot(pars$age, rep(foi, pars$agrps), 'l', ylim = c(0, 0.08))
+        
+      } else if (time > 1 & time < threshold) {
+        lines(pars$age, rep(foi, pars$agrps))
+        
+      } else if (time >= threshold) {
+        lines(pars$age, rep(foi, pars$agrps), lty=2, col = "red")
+      }
       
-    } else if (time >= threshold) {
-      lines(pars$age, rep(foi, pars$agrps), lty=2, col = "red")
     }
     
   }
