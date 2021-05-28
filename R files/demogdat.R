@@ -2,16 +2,16 @@
 ## Country-specific demographic data ##
 #######################################
 
-## NB: change country depending on dataset being fit
+## Read in data
+df <- readRDS("data/global_data.rds")
 
 ### set country & year ###
-# country <- "Netherlands"
-# year <- "1995-2000"
-# year1 <- "1995"
-
-country <- "New Zealand"
-year <- "1980-1985"
-year1 <- "1980"
+country <- pars$country
+# 5-year band
+year <- paste(as.character(round(min(fitting_data$year)/5)*5), 
+      as.character((round(min(fitting_data$year)/5)*5)+5), sep= "-")  
+# single year (first timepoint)
+year1 <- as.character(min(fitting_data$year))
 
 library(wpp2019)
 
@@ -73,3 +73,4 @@ births_age <- fert_tot*prop_fert_age*pop_f/(5*pop_f) ## 5 is becuase TFR is defi
 pf <- pop_f/(pop_m[-length(pop_m)]+pop_f)
 
 rm(pop_f, pop_m, fert_tot)
+
