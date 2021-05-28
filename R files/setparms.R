@@ -2,21 +2,10 @@
 ## SET PARAMETERS & INITIAL VALUES ##
 #####################################
 
-#Load demographic data
-if (getwd()=="/Users/gregorymilne/Desktop/R Projects/stan"){ #local
-  source("R files/demogdat.R")
-  
-} else if (getwd()=="/storage/users/gmilne/test/parallel"){ #cluster
-  source("demogdat.R")
-}
-
 pars  <- list(amax=55, 
               log.lambda0 = log(0.02),
-              log.lambda1 = log(0.01), 
-              log.gradient = log(0.20),
               log.shape= log(0.60),
-              log.tdecline = log(20), 
-              se=0.98475, sp=0.98725)
+              log.tdecline = log(20))
 
 pars$agrps    <- pars$amax*4
 pars$la       <- (pars$amax/pars$agrps)  # no. years in each age group
@@ -26,17 +15,38 @@ pars$r        <- 1/(21/365)  # maternally-derived IgG half life of 3 weeks (Vill
 pars$mctr     <- c(0.15, 0.44, 0.71)  # SYROCOT 2007. The Lancet 369
 pars$burnin   <- 50
 
+## country to be fit
+# For options type:
+# unique(df$country)
+pars$country <- "Brazil"
+fitting_data <- subset(df, df$country == pars$country)
+
+#Load demographic data
+if (getwd()=="/Users/gregorymilne/Desktop/R Projects/stan"){ #local
+  source("R files/demogdat.R")
+  
+} else if (getwd()=="/storage/users/gmilne/test/parallel"){ #cluster
+  source("demogdat.R")
+}
+
 # TEMPORAL foi decline
 # Options: "none", "stepwise" or "linear" 
-pars$temporal_foi <-  "stepwise"
+pars$temporal_foi <-  "linear"
 
 # AGE-related foi change
 # Options: "constant", "half" or "double")
-pars$age_foi      <- "double"
+pars$age_foi      <- "half"
 
-## Number of years between 1st & last data time points (change depending on the data being fit!)
-pars$tdiff <- 20
- 
+## Number of years between 1st & last data time points
+pars$tdiff <- max(fitting_data$year) - min(fitting_data$year)
+
+# no. years between each data point from first to last
+for(i in 1:nrow(fitting_data)-1){
+  year_diff[i] <- fitting_data$year[i+1] - fitting_data$year[i]
+} 
+
+
+
 ### interpolated parameters from demographic data
 # Population size #
 f <- spline(age_pop, tot_pop, xout=pars$age)
