@@ -3,8 +3,6 @@ age_si = function(time, y, pars) {
   
   # Back-transform parameters
   lambda0  <- exp(pars$log.lambda0)
-  lambda1  <- exp(pars$log.lambda1)
-  gradient <- exp(pars$log.gradient)
   shape    <- exp(pars$log.shape)
   tdecline <- exp(pars$log.tdecline)
   
