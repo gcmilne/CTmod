@@ -15,10 +15,11 @@ pars$r        <- 1/(21/365)  # maternally-derived IgG half life of 3 weeks (Vill
 pars$mctr     <- c(0.15, 0.44, 0.71)  # SYROCOT 2007. The Lancet 369
 pars$burnin   <- 50
 
-## country to be fit
-# For options type:
-# unique(df$country)
-pars$country <- "Brazil"
+## Country to be fit
+# (for options type: "unique(df$country)"
+df <- readRDS("data/global_data.rds") ## Read in data
+
+pars$country <- "United Kingdom"
 fitting_data <- subset(df, df$country == pars$country)
 
 #Load demographic data
@@ -39,17 +40,20 @@ pars$age_foi      <- "half"
 
 # trouble shooting parameter
 # Options: 1 (plots graph of age-foi profile); 0 (model runs without age-foi graph plot)
-pars$troubleshoot <- 1
+pars$troubleshoot <- 0
+
 
 ## Number of years between 1st & last data time points
 pars$tdiff <- max(fitting_data$year) - min(fitting_data$year)
 
 # no. years between each data point from first to last
+year_diff <- vector("numeric", length = nrow(fitting_data))
 for(i in 1:nrow(fitting_data)-1){
   year_diff[i] <- fitting_data$year[i+1] - fitting_data$year[i]
-} 
+}
 
-
+year_diff <- c(pars$burnin, year_diff[1:(length(year_diff)-1)]) # add burnin time
+year_diff <- cumsum(year_diff)  # cumulative sum to get model sampling times
 
 ### interpolated parameters from demographic data
 # Population size #
