@@ -25,13 +25,13 @@ set.seed(SEED)
 ## Load scripts ##
 ##################
 if (getwd()=="/Users/gregorymilne/Desktop/R Projects/stan"){ #local
-  source("R files/demogdat.R")
   source("R files/setparms.R")
+  source("R files/diagnostics.R")
   source("R files/model.R")
   
 } else if (getwd()=="/storage/users/gmilne/test/parallel"){ #cluster
-  source("demogdat.R")
   source("setparms.R")
+  source("diagnostics.R")
   source("model.R")
 }
 
@@ -46,7 +46,7 @@ library(dplyr)
 # Additional data #
 ###################
 ## no. iterations on each for loop
-nsim  <- 100  
+nsim  <- 3  
 
 ## no. parameters to fit
 npars <- 3
@@ -86,12 +86,12 @@ getit <- function(time) {
   # out <- out[-nrow(out),]
 }
 
-## Joint likelihood function: for fitting both timepoints simultaneously
-
-## To do: Update function to adjust number of ks and ns depending on rows of dataset being fit
-loglik <- function(k1, n1, prev1, k2, n2, prev2){
-  dbinom(k1, n1, prev1, log=T) + dbinom(k2, n2, prev2, log=T)
+## Likelihood function ##
+loglik <- function (k, n, prev) {
+  dbinom(k, n, prev, log = T)
 }
+
+logliks <- vector("numeric", length=nrow(fitting_data))  #initialise log likelihood vector
 
 ##############################
 ## Latin hypercube sampling ##
@@ -99,8 +99,10 @@ loglik <- function(k1, n1, prev1, k2, n2, prev2){
 
 par_arr <- randomLHS(nsim, npars) #create parameter array
 par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
-par_arr[,2] <- log(qunif(par_arr[,4], min=0, max=0.8))        #log shape
-par_arr[,3] <- log(qunif(par_arr[,5], min=0, max=100))        #log tdecline
+par_arr[,2] <- log(qunif(par_arr[,2], min=0, max=0.8))        #log shape
+par_arr[,3] <- log(qunif(par_arr[,3], min=0, max=100))        #log tdecline
+
+colnames(par_arr) <- c("log.lambda0", "log.shape", "log.tdecline")
 
 # par(mfrow=c(3,2))
 # dummy <- apply(exp(par_arr), 2, hist, main = "") #plot prior distributions
@@ -113,137 +115,74 @@ lik_arr <- vector(mode="numeric", length=nsim) #create likelihood array
 
 
 # Create list to store model output for each of the timepoints being fit
-matched_prev <- vector("list", length = nrow(fitting_data))
+matched_prev      <- vector("list", length = nrow(fitting_data))
+mean_matched_prev <- vector("list", length = nrow(fitting_data))
 
 
 system.time (
   
   for (i in 1:nrow(par_arr)) {
     
+    pars$log.lambda0  <- par_arr[i,"log.lambda0"]
+    pars$log.shape    <- par_arr[i,"log.shape"]
+    pars$log.tdecline <- par_arr[i,"log.tdecline"]
+    
+    sol                <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+    
     for (j in 1:nrow(fitting_data)) {
       
-      pars$log.lambda0  <- par_arr[i,"log.lambda0"]
-      pars$log.shape    <- par_arr[i,"log.shape"]
-      pars$log.tdecline <- par_arr[i,"log.tdecline"]
+      store_sim          <- getit(year_diff[j])  #store age profile at jth timepoint
+      matched_prev[[j]]  <- store_sim[,"pI"][matched_indices]  #select true prevalence from relevant age categories
       
       
-      ## First time point ##
-      if (j == 1){ 
+      ## Select relevant sensitivity & specificity values ##
+      if (is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  #if timepoint used 1 immunoassay type
         
-      sol                <- ode(y = y, times = time, parms = pars, func = age_si)  #save model solution
-      store_sim          <- getit(pars$burnin)                                     #store age profile
-      matched_prev[[j]]  <- store_sim[,"pI"][matched_indices]                      #select true prevalence from relevant age categories
-      
-      
-      # select relevant sensitivity & specificity values
-      if (is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  # if timepoint used 1 immunoassay type
-        
-        pars$se <- se_values$se [ which(fitting_data$method[j] == se_values$method) ]  #se
-        pars$sp <- sp_values$sp [ which(fitting_data$method[j] == sp_values$method) ]  #sp
-        
-        #adjust true prevalence by relevant diagnostic se and sp
-        matched_prev[[j]] <- matched_prev[[j]] * (pars$se + pars$sp - 1) + (1 - pars$sp)
+        pars$se <- assays$se [ which(fitting_data$method[j] == assays$method) ]  #se
+        pars$sp <- assays$sp [ which(fitting_data$method[j] == assays$method) ]  #sp
         
         
       } else if (!is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  # if timepoint used 2 immunoassays
         
-        se_method1 <- se_values$se [ which(fitting_data$method [j] == se_values$method) ]  #se of first immunoassay
-        se_method2 <- se_values$se [ which(fitting_data$method2[j] == se_values$method) ]  #se of second immunoassay
+        se_method1 <- assays$se [ which(fitting_data$method [j] == assays$method) ]  #se of first immunoassay
+        se_method2 <- assays$se [ which(fitting_data$method2[j] == assays$method) ]  #se of second immunoassay
         
-        sp_method1 <- sp_values$sp [ which(fitting_data$method [j] == sp_values$method) ]  #sp of first immunoassay
-        sp_method2 <- sp_values$sp [ which(fitting_data$method2[j] == sp_values$method) ]  #sp of second immunoassay
+        sp_method1 <- assays$sp [ which(fitting_data$method [j] == assays$method) ]  #sp of first immunoassay
+        sp_method2 <- assays$sp [ which(fitting_data$method2[j] == assays$method) ]  #sp of second immunoassay
         
         pars$se <- (se_method1 * fitting_data$prop_method1[j]) + (se_method2 * fitting_data$prop_method2[j]) #weighted se
         pars$sp <- (sp_method1 * fitting_data$prop_method1[j]) + (sp_method2 * fitting_data$prop_method2[j]) #weighted sp
         
-        #adjust true prevalence by relevant diagnostic se and sp
-        matched_prev[[j]] <- matched_prev[[j]] * (pars$se + pars$sp - 1) + (1 - pars$sp)
-          
         
       } else if (!is.na(fitting_data$method2[j]) & !is.na(fitting_data$method3[j])) {  # if timepoint used 3 immunoassays
         
-        se_method1 <- se_values$se [ which(fitting_data$method [j] == se_values$method) ]  #se of first immunoassay
-        se_method2 <- se_values$se [ which(fitting_data$method2[j] == se_values$method) ]  #se of second immunoassay
-        se_method3 <- se_values$se [ which(fitting_data$method3[j] == se_values$method) ]  #se of third immunoassay
+        se_method1 <- assays$se [ which(fitting_data$method [j] == assays$method) ]  #se of first immunoassay
+        se_method2 <- assays$se [ which(fitting_data$method2[j] == assays$method) ]  #se of second immunoassay
+        se_method3 <- assays$se [ which(fitting_data$method3[j] == assays$method) ]  #se of third immunoassay
         
-        sp_method1 <- sp_values$sp [ which(fitting_data$method [j] == sp_values$method) ]  #sp of first immunoassay
-        sp_method2 <- sp_values$sp [ which(fitting_data$method2[j] == sp_values$method) ]  #sp of second immunoassay
-        sp_method3 <- sp_values$sp [ which(fitting_data$method3[j] == sp_values$method) ]  #sp of third immunoassay
+        sp_method1 <- assays$sp [ which(fitting_data$method [j] == assays$method) ]  #sp of first immunoassay
+        sp_method2 <- assays$sp [ which(fitting_data$method2[j] == assays$method) ]  #sp of second immunoassay
+        sp_method3 <- assays$sp [ which(fitting_data$method3[j] == assays$method) ]  #sp of third immunoassay
         
         pars$se <- (se_method1 * fitting_data$prop_method1[j]) + (se_method2 * fitting_data$prop_method2[j]) + (se_method3 * fitting_data$prop_method3[j]) #weighted se
         pars$sp <- (sp_method1 * fitting_data$prop_method1[j]) + (sp_method2 * fitting_data$prop_method2[j]) + (sp_method3 * fitting_data$prop_method3[j]) #weighted sp
         
-        #adjust true prevalence by relevant diagnostic se and sp
-        matched_prev[[j]] <- matched_prev[[j]] * (pars$se + pars$sp - 1) + (1 - pars$sp)
-        
-      }        
+      }  
       
       
-      ## After first time point ##
-      } else if (j > 1 ){ 
-        
-        sol                <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
-        store_sim          <- getit(pars$burnin + year_diff[j])  #store age profile at ith timepoint
-        matched_prev[[j]]  <- store_sim[,"pI"][matched_indices]  #select true prevalence from relevant age categories
-        
-        
-        # select relevant sensitivity & specificity values
-        if (is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  # if timepoint used 1 immunoassay type
-          
-          pars$se <- se_values$se [ which(fitting_data$method[j] == se_values$method) ]  #se
-          pars$sp <- sp_values$sp [ which(fitting_data$method[j] == sp_values$method) ]  #sp
-          
-          #adjust true prevalence by relevant diagnostic se and sp
-          matched_prev[[j]] <- matched_prev[[j]] * (pars$se + pars$sp - 1) + (1 - pars$sp)
-          
-          
-        } else if (!is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  # if timepoint used 2 immunoassays
-          
-          se_method1 <- se_values$se [ which(fitting_data$method [j] == se_values$method) ]  #se of first immunoassay
-          se_method2 <- se_values$se [ which(fitting_data$method2[j] == se_values$method) ]  #se of second immunoassay
-          
-          sp_method1 <- sp_values$sp [ which(fitting_data$method [j] == sp_values$method) ]  #sp of first immunoassay
-          sp_method2 <- sp_values$sp [ which(fitting_data$method2[j] == sp_values$method) ]  #sp of second immunoassay
-          
-          pars$se <- (se_method1 * fitting_data$prop_method1[j]) + (se_method2 * fitting_data$prop_method2[j]) #weighted se
-          pars$sp <- (sp_method1 * fitting_data$prop_method1[j]) + (sp_method2 * fitting_data$prop_method2[j]) #weighted sp
-          
-          #adjust true prevalence by relevant diagnostic se and sp
-          matched_prev[[j]] <- matched_prev[[j]] * (pars$se + pars$sp - 1) + (1 - pars$sp)
-          
-          
-        } else if (!is.na(fitting_data$method2[j]) & !is.na(fitting_data$method3[j])) {  # if timepoint used 3 immunoassays
-          
-          se_method1 <- se_values$se [ which(fitting_data$method [j] == se_values$method) ]  #se of first immunoassay
-          se_method2 <- se_values$se [ which(fitting_data$method2[j] == se_values$method) ]  #se of second immunoassay
-          se_method3 <- se_values$se [ which(fitting_data$method3[j] == se_values$method) ]  #se of third immunoassay
-          
-          sp_method1 <- sp_values$sp [ which(fitting_data$method [j] == sp_values$method) ]  #sp of first immunoassay
-          sp_method2 <- sp_values$sp [ which(fitting_data$method2[j] == sp_values$method) ]  #sp of second immunoassay
-          sp_method3 <- sp_values$sp [ which(fitting_data$method3[j] == sp_values$method) ]  #sp of third immunoassay
-          
-          pars$se <- (se_method1 * fitting_data$prop_method1[j]) + (se_method2 * fitting_data$prop_method2[j]) + (se_method3 * fitting_data$prop_method3[j]) #weighted se
-          pars$sp <- (sp_method1 * fitting_data$prop_method1[j]) + (sp_method2 * fitting_data$prop_method2[j]) + (sp_method3 * fitting_data$prop_method3[j]) #weighted sp
-          
-          #adjust true prevalence by relevant diagnostic se and sp
-          matched_prev[[j]] <- matched_prev[[j]] * (pars$se + pars$sp - 1) + (1 - pars$sp)
-          
-        }
-        
-      }    
+      ## Adjust true prevalence by relevant diagnostic se and sp ##
+      matched_prev[[j]] <- matched_prev[[j]] * (pars$se + pars$sp - 1) + (1 - pars$sp)
       
+      ## Simple mean of modelled adjusted seroprevalence ##
+      mean_matched_prev[j] <- mean(matched_prev[[j]])
       
-      # simple mean of modelled adjusted seroprevalence
-      for (j in 1:length(matched_prev)) {
-        mean_matched_prev[j] <- mean(matched_prev[[j]])
-      }
-      
-      ## To do: Update function to adjust number of ks and ns depending on rows of dataset being fit
-      logliks       <- loglik(k1 = nz1$k, n1 = nz1$n, prev1 = matched_prev, 
-                              k2 = nz2$k, n2 = nz2$n, prev2 = matched_prev2)
-      lik_arr[i]    <- sum(-logliks)
+      ## Calculate log likelihood ##
+      logliks[j] <- loglik(k = fitting_data$k[j], n = fitting_data$n[j], prev = unlist(mean_matched_prev[j]))
       
     }
+    
+    lik_arr[i]    <- sum(-logliks)
+    
   }
 )
 
