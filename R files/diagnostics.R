@@ -110,10 +110,7 @@ sp_ifa <- c(0.9945,  #ref = https://www.sciencedirect.com/science/article/pii/S0
 )
 
 #sample size
-n_ifa  <- c(656,    #ref = https://www.sciencedirect.com/science/article/pii/S0732889305001033
-            NA,
-            NA
-)
+n_ifa  <- 656    #ref = https://www.sciencedirect.com/science/article/pii/S0732889305001033
 
 #mean sensitivity
 se_ifa <- mean(se_ifa)
@@ -168,30 +165,26 @@ n_wb <- 569
 ## Are values significantly different between methods? ##
 #########################################################
 
-##sensitivity
-se_values <- data.frame("se" = c(se_aa, se_clia, se_eclia, se_elfa, se_elisa, se_ha, se_meia, se_wb), 
-                        method = c("AA", "CLIA", "ECLIA", "ELFA", "ELISA", "HA", "MEIA", "WB"), 
-                        n = c(n_aa, n_clia, n_eclia, n_elfa, n_elisa, n_ha, n_meia, n_wb))
+##create dataframe
+assays    <- data.frame("se"   = c(se_aa, se_clia, se_eclia, se_elfa, se_elisa, se_ha, se_ifa, se_meia, se_wb), 
+                        
+                        "sp"   = c(sp_aa, sp_clia, sp_eclia, sp_elfa, sp_elisa, sp_ha, sp_ifa, sp_meia, sp_wb), 
+                        
+                        method = c("AA",  "CLIA",   "ECLIA",  "ELFA",  "ELISA",  "HA",  "IFA",  "MEIA",  "WB"), 
+                        
+                        n      = c(n_aa,  n_clia,   n_eclia,  n_elfa,  n_elisa,  n_ha,  n_ifa,  n_meia,  n_wb))
 
-#plot
+## Sensitivity
 # par(mfrow=c(2,1))
-# boxplot(se_values$se ~ se_values$method, xlab = "Method", ylab = "Sensitivity")
+# boxplot(assays$se ~ assays$method, xlab = "Method", ylab = "Sensitivity")
 
 #logistic regression
-# se_mod <- glm(se ~ method, family=binomial(logit), data=se_values, weights = n)
+# se_mod <- glm(se ~ method, family=binomial(logit), data=assays, weights = n)
 # summary(se_mod)
 
-##specificity
-sp_values <- data.frame("sp" = c(sp_aa, sp_clia, sp_eclia, sp_elfa, sp_elisa, sp_ha, sp_meia, sp_wb), 
-                        method = se_values$method, 
-                        n = c(n_aa, n_clia, n_eclia, n_elfa, n_elisa, n_ha, n_meia, n_wb))
-
-#plot
-# boxplot(sp_values$sp ~ sp_values$method, xlab = "Method", ylab = "Specificity")
+## Specificity
+# boxplot(assays$sp ~ assays$method, xlab = "Method", ylab = "Specificity")
 
 #logistic regression
-# sp_mod <- glm(sp ~ method, family=binomial(logit), data=sp_values, weights = n)
+# sp_mod <- glm(sp ~ method, family=binomial(logit), data=assays, weights = n)
 # summary(sp_mod)
-
-
-# rm(c(se_mod, sp_mod))
