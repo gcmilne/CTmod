@@ -2,16 +2,13 @@
 ## Country-specific demographic data ##
 #######################################
 
-## Read in data
-df <- readRDS("data/global_data.rds")
-
 ### set country & year ###
 country <- pars$country
 # 5-year band
 year <- paste(as.character(round(min(fitting_data$year)/5)*5), 
       as.character((round(min(fitting_data$year)/5)*5)+5), sep= "-")  
 # single year (first timepoint)
-year1 <- as.character(min(fitting_data$year))
+year1 <- as.character(round(min(fitting_data$year)/5)*5)
 
 library(wpp2019)
 
