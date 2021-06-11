@@ -35,6 +35,20 @@ df$yfit1 <- fitted(m1)
 #CIs around estimate
 confint(m1)
 
+
+## estimate annual declines in seroprevalence
+# model with un-standardised year
+m1<-lmer(prev~year+(1|country), data=df)
+df$yfit1 <- fitted(m1)
+
+#CIs around estimate
+confint(m1)
+
+
+
+# rename Iran to have shorter name for plotting
+df$country <- factor(df$country, labels= c(levels(df$country)[1:6], "Iran", levels(df$country)[8:11]))
+
 #create custom color scale
 library(RColorBrewer)
 myColors <- brewer.pal(11,"PuOr")
@@ -42,13 +56,14 @@ myColors[6] <- brewer.pal(11,"PRGn")[5]   #make pale colours bolder
 names(myColors) <- levels(df$country)
 colScale <- scale_colour_manual(name = "plotcols",values = myColors)
 
+
 #plot
 p1 <- ggplot(data=df, aes(y=yfit1, x=year, colour = country)) +
   geom_line() +
   geom_point(data=df, aes(y=prev, x=year)) +
   facet_wrap(~country) +
   ylab("Seroprevalence") +
-  xlab("Year") +
+  xlab("Median sampling year (standardised)") +
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") +
   theme(strip.background = element_rect(fill=myColors[9])) +
   # theme(strip.text = element_text(colour = 'black')) +
@@ -58,8 +73,14 @@ p1 <- ggplot(data=df, aes(y=yfit1, x=year, colour = country)) +
 p1 + colScale
 
 # save plot
-# ggsave(filename = "plots/lm-global-seroprev.png", width = 6, height = 6, 
-       # units = "in", family = "Times")
+ggsave(filename = "plots/lm-global-seroprev.png", width = 6, height = 6,
+       units = "in", family = "Times")
 
 ## no evidence to support the more complex model
 anova(m0, m1)
+
+
+## estimate accuracy of publication year as proxy for sampling year
+
+mean(df$year_published) - mean(df$year)
+t.test(df$year_published, df$year, paired=T)
