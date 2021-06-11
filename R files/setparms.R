@@ -13,20 +13,26 @@ pars$da       <-  1/pars$la  # ageing rate
 pars$age      <- seq(0+pars$la/2, pars$amax-pars$la/2, length.out=pars$agrps) # age at midpoints of age groups
 pars$r        <- 1/(21/365)  # maternally-derived IgG half life of 3 weeks (Villard et al., 2016. Diagnostic microbiology and infectious disease;84(1):22-33)
 pars$mctr     <- c(0.15, 0.44, 0.71)  # SYROCOT 2007. The Lancet 369
-pars$burnin   <- 50
+pars$burnin   <- 750
 
-## Country to be fit
-# (for options type: "unique(df$country)"
-df <- readRDS("data/global_data.rds") ## Read in data
+# Seroprevalence data
+if (getwd()=="/Users/gregorymilne/Desktop/R Projects/stan"){ #local
+  df <- readRDS("data/global_data.rds")
+  
+} else if (getwd()=="/storage/users/gmilne/test"){ #cluster
+  df <- readRDS("global_data.rds")
+}
 
-pars$country <- "United Kingdom"
+countries <- sort(unique(df$country)) #countries in the dataset
+
+pars$country <- "Brazil"
 fitting_data <- subset(df, df$country == pars$country)
 
-#Load demographic data
+# Load demographic data
 if (getwd()=="/Users/gregorymilne/Desktop/R Projects/stan"){ #local
   source("R files/demogdat.R")
   
-} else if (getwd()=="/storage/users/gmilne/test/parallel"){ #cluster
+} else if (getwd()=="/storage/users/gmilne/test"){ #cluster
   source("demogdat.R")
 }
 
@@ -36,12 +42,11 @@ pars$temporal_foi <-  "linear"
 
 # AGE-related foi change
 # Options: "constant", "half" or "double")
-pars$age_foi      <- "half"
+pars$age_foi      <- "constant"
 
 # trouble shooting parameter
 # Options: 1 (plots graph of age-foi profile); 0 (model runs without age-foi graph plot)
 pars$troubleshoot <- 0
-
 
 ## Number of years between 1st & last data time points
 pars$tdiff <- max(fitting_data$year) - min(fitting_data$year)
@@ -67,7 +72,7 @@ pars$d <- spline(x=age_mort, y=mort, xout=pars$age)$y # interpolated age specifi
 pars$d[which(pars$d<0)] <- 0  # zero minus elements
 
 # Birth rate #
-pars$propfert <- approx(age_fert,prop_fert_age,  xout=pars$age)$y
+pars$propfert <- approx(age_fert, prop_fert_age, xout=pars$age)$y
 pars$propfert[is.na(pars$propfert)] <- 0
 pars$propfert <- pars$propfert/sum(pars$propfert)
 
