@@ -1,162 +1,162 @@
-﻿country,year_published,first_sample,last_sample,k,n,who_region,state,method,method2,method3,prop_method1,prop_method2,prop_method3,exclude,notes,
-Brazil,2017,2014,2014,362,712,Americas,Bahia,ELISA,NA,NA,,,,n,https://www.scielo.br/scielo.php?pid=S0036-46652017005000254&script=sci_arttext,
-Brazil,2015,NA,NA,240,338,Americas,Tocantins,NA,NA,NA,,,,n,sampling year not noted,
-Brazil,2009,NA,NA,38,268,Americas,,NA,NA,NA,,,,y,"Venezula, not Brazil - excluded ",
-Brazil,2015,2008,2009,24,148,Americas,Santa Catarina,NA,NA,NA,,,,n,sampling 2008-2009,
-Brazil,2011,2005,2007,56,87,Americas,São Paulo,ELISA,IFA,NA,0.5,0.5,,n,https://www.scielo.br/scielo.php?pid=S1516-31802011000400010&script=sci_arttext,
-Brazil,2009,2014,2014,242,492,Americas,Paraná,CLIA,NA,NA,,,,n,,
-Brazil,2010,2005,2005,661,963,Americas,Ceará,MEIA,NA,NA,,,,n,,
-Brazil,2011,2007,2008,170,320,Americas,Paraná,IFA,NA,NA,,,,n,I seperarted into 2 sampling years,
-Brazil,2011,2008,2008,158,287,Americas,Paraná,ELISA,NA,NA,,,,n,,
-Brazil,2013,2010,2010,883,1534,Americas,Paraná,MEIA,NA,NA,,,,n,,
-Brazil,2013,2010,2010,234,400,Americas,Rio de Janeiro,ELISA,IFA,NA,0.5,0.5,,n,,
-Brazil,2008,NA,NA,625,832,Americas,Rio de Janeiro,NA,NA,NA,,,,n,sampling year not noted ,
-Brazil,2006,2000,2000,6125,10408,Americas,Rio Grande do Sul,MEIA,NA,NA,,,,n,,
-Brazil,1995,1990,1990,484,698,Americas,NA,ELISA,NA,NA,,,,n,can't find paper (so no regional data),
-Brazil,2018,2009,2009,525,726,Americas,Bahia,ELISA,NA,NA,,,,n,,
-Brazil,2014,2012,2012,335,487,Americas,Tocantins,ELISA,NA,NA,,,,n,,
-Brazil,2012,2007,2007,1057,2136,Americas,Minas Gerais,NA,NA,NA,,,,n,,
-Brazil,2005,1997,1997,1583,2126,Americas,Rio Grande do Sul,IFA,NA,NA,,,,n,,
-Brazil,2010,2003,2003,10812,20389,Americas,Paraná,MEIA,CLIA,NA,0.5,0.5,,n,Corrected seroprevalence estimate -- wrong seroprevalence was inputted  in systematic review dataset! (k corrected from 2638 to 10812),
-Brazil,2013,2007,2007,1151,2226,Americas,Paraná,CLIA,NA,NA,,,,n,Multi-site study,
-Brazil,2003,2000,2000,724,1261,Americas,Rio Grande do Sul,MEIA,NA,NA,,,,n,Corrected publication year from 2000 to 2003; paper = https://www.scielo.br/scielo.php?pid=S0021-75572003000100012&script=sci_arttext,
-Brazil,2011,2008,2008,6910,10316,Americas,Goiás,WB,NA,NA,,,,n,,
-Brazil,2009,1998,1998,241,41112,Americas,Rio Grande do Sul,NA,NA,NA,,,,y,screening based on diagnosis of acute toxoplasmosis -- excluded,
-Brazil,2015,2005,2005,120,213,Americas,São Paulo,ELISA,NA,NA,,,,n,,
-Brazil,2017,2009,2014,210,356,Americas,Rio Grande do Norte,ELISA,CLIA,ECLIA,0.070175439,0.701754386,0.228070175,n,,
-Brazil,2009,2007,2007,126,190,Americas,Rio Grande do Norte,MEIA,NA,NA,,,,n,,
-Brazil,1990,1988,1988,67,481,Americas,São Paulo,NA,NA,NA,,,,y,Paper examining active toxoplasmosis (i.e. IgM; no methods looking at IgG) - excluded,
-Brazil,2000,1996,1996,1044,1559,Americas,Paraná,IFA,NA,NA,,,,n,,
-Brazil,2010,2006,2006,345,556,Americas,São Paulo,NA,NA,NA,,,,n,Corrected n from 574 to 556,
-Brazil,2009,2007,2007,6615,9550,Americas,Sergipe,ELISA,NA,NA,,,,n,,
-Brazil,2012,NA,NA,2405,4021,Americas,Paraná,NA,NA,NA,,,,n,sampling year not noted ,
-Brazil,2015,NA,NA,427,551,Americas,NA,NA,NA,NA,,,,n,can't find paper (so no regional data or sampling year),
-Brazil,2008,2005,2005,183,334,Americas,Paraná,ELISA,IFA,NA,0.5,0.5,,n,,
-Brazil,2011,NA,NA,1297,2229,Americas,Bahia,NA,NA,NA,,,,n,sampling year not noted ,
-Colombia,2011,2014,2014,52,167,Americas,Norte de Santander Department,AA,NA,NA,,,,n,,
-Colombia,2008,2005,2005,437,955,Americas,Valle del Cauca Department,MEIA,NA,NA,,,,n,,
-Colombia,2011,2009,2010,637,2258,Americas,Cundinamarca Department,NA,NA,NA,,,,n,"Serology method not given for IgG, only for IgM and IgA",
-Colombia,2002,1998,1998,301,637,Americas,Cundinamarca Department,IFA,NA,NA,,,,n,Corrected n from 301 to 637 and k from 141 to 301 (incorrect data inputting in systematic review),
-Iran,2008,2008,2008,247,533,Eastern Mediterranean,Ilam Province,IFA,NA,NA,,,,n,,
-Iran,2011,2008,2010,99,225,Eastern Mediterranean,Tehran Province,ELISA,NA,NA,,,,n,,
-Iran,2017,2012,2013,66,264,Eastern Mediterranean,Lorestan Province,ELISA,NA,NA,,,,n,Year of publishing corrected from 2015 to 2017,
-Iran,2016,2014,2014,86,468,Eastern Mediterranean,Alborz Province,ELISA,NA,NA,,,,n,,
-Iran,2013,2010,2011,144,419,Eastern Mediterranean,Razavi Khorasan Province,ELISA,NA,NA,,,,n,,
-Iran,2016,2013,2014,249,786,Eastern Mediterranean,Khorasan Razavi Province,NA,NA,NA,,,,n,http://journal.nums.ac.ir/article-1-203-en.html,
-Iran,2017,2014,2014,79,200,Eastern Mediterranean,West Azerbaijan Province,ELISA,NA,NA,,,,n,,
-Iran,2012,NA,NA,186,500,Eastern Mediterranean,Zanjan Province,NA,NA,NA,,,,n,sampling year not noted,
-Iran,2014,NA,NA,170,289,Eastern Mediterranean,NA,NA,NA,NA,,,,n,sampling year not noted,
-Iran,2015,2010,2012,30,80,Eastern Mediterranean,Isfahan Province,ELISA,NA,NA,,,,n,,
-Iran,2011,2008,2009,250,721,Eastern Mediterranean,Lorestan Province,ELISA,NA,NA,,,,n,https://d1wqtxts1xzle7.cloudfront.net/24897981/vol05-no2.pdf?1343094092=&response-content-disposition=inline%3B+filename%3DA_comparison_of_HIV_AIDS_related_knowled.pdf&Expires=1620643960&Signature=CV0p-Sr4LAhWl0WbExFKX02lsH5LWMWxlXi3s9NBOGCOvycgVcs12cdMl9gV1B-WSouS8Hx2PBT8sENl7l~clX1Ivo~SPd2Wr9rDhMA6XGva2xl1asZ4svav6BjFQQJLdOCsxnhEvFXeZvEdjEvKPkMSjnMJvZDBfHugCaod7EY8vp7qdBzSkDe4baufvIIe~SJNvgnAXGzwYuXBEmeWRndcalBbgeQjX0OgXVOsvWstD6jAugp0aCnFzYyOrc4pHcityxvszIwhMkCJs~yeHjy1psGsJFeTduTccdzO1LroUWMj3b18xjrSZw9jhL8~KU~R33xU0zrwkx6u2Qb~Vg__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA#page=98,
-Iran,2018,2016,2017,28,110,Eastern Mediterranean,,NA,NA,NA,,,,y,"sampling 2016–2017; only 25 pregnant patients, rest were immunocompromised; sample sizes & k & n unclear -- exclude",
-Iran,2017,2010,2013,267,391,Eastern Mediterranean,East Azarbaijan Province,ELISA,NA,NA,,,,n,Chose results that used ELISA (study used multiple serological tests on same samples); corrected k from 202 to 267,
-Iran,2016,NA,NA,194,360,Eastern Mediterranean,,NA,NA,NA,,,,y,"case control study of T. gondii & prenatal depression, not general population — exclude",
-Iran,2013,2009,2010,898,1659,Eastern Mediterranean,East Azarbaijan Province,IFA,NA,NA,,,,n,sampling 2009–2010,
-Iran,2016,NA,NA,71,220,Eastern Mediterranean,,NA,NA,NA,,,,y,"case control study of T. gondii & diabetes, not general population — exclude",
-Iran,2016,NA,NA,93,150,Eastern Mediterranean,,NA,NA,NA,,,,y,"case control study of premature rupture of membrane, not general population — exclude",
-Iran,2014,2012,2012,221,555,Eastern Mediterranean,Golestan Province,ELISA,NA,NA,,,,n,,
-Iran,2017,2015,2015,85,261,Eastern Mediterranean,Markazi Province,ELISA,NA,NA,,,,n,,
-Iran,2017,2014,2015,155,440,Eastern Mediterranean,Golestan Province,ELISA,NA,NA,,,,n,sampling 2014–2015,
-Iran,2015,2013,2013,58,200,Eastern Mediterranean,Qazvin Province,ELISA,NA,NA,,,,n,,
-Iran,2015,2011,2013,485,519,Eastern Mediterranean,,NA,NA,NA,,,,y,sampling 2011–2013; unclear from abstract how many were IgG+ (either 14.8% or 78.6%); exclude,
-Iran,2014,2011,2011,137,501,Eastern Mediterranean,Khuzestan Province,ELISA,NA,NA,,,,n,,
-Turkey,2017,2006,2006,51,102,Europe,NA,ELISA,NA,NA,,,,n,sampling year taken from systematic review paper,
-Turkey,2014,2013,2013,127,419,Europe,NA,CLIA,NA,NA,,,,n,,
-Turkey,2014,2012,2013,56,196,Europe,Çanakkale Province,ELISA,NA,NA,,,,n,sampling 2012–2013,
-Turkey,2014,2008,2013,528,1682,Europe,Istanbul,ELISA,NA,NA,,,,n,sampling 2008–2013; corrected error in N from N=1709 to N=1682,
-Turkey,2011,2008,2009,408,1102,Europe,Denizli Province,ELISA,NA,NA,,,,n,sampling 2008–2009,
-Turkey,2015,2012,2014,400,910,Europe,Zonguldak Province ,CLIA,NA,NA,,,,n,sampling 2012–2014,
-Turkey,2004,NA,NA,694,1149,Europe,NA,ELISA,NA,NA,,,,n,can't find paper (so no regional data or sampling year),
-Turkey,2009,2005,2006,960,1972,Europe,Kocaeli Province,ELISA,NA,NA,,,,n,sampling 2005–2007,
-Turkey,2013,2003,2008,1871,4651,Europe,İzmir Province,ELISA,NA,NA,,,,n,sampling 2003–2008,
-Turkey,2013,2007,2012,1910,3340,Europe,Hatay Province,NA,NA,NA,,,,n,sampling 2007–2012,
-Turkey,2017,2014,2016,2427,7513,Europe,İzmir Province,CLIA,NA,NA,,,,n,sampling 2014–2016,
-Turkey,2005,2004,2004,117,389,Europe,Aydın Province,ELISA,IFA,NA,0.5,0.5,,n,,
-Turkey,2005,2002,2003,305,879,Europe,NA,NA,NA,NA,,,,n,sampling 2002–2003; can't access paper for regional and methodological data,
-Turkey,2014,2009,2013,291,1258,Europe,NA,ELFA,NA,NA,,,,n,sampling 2009–2013,
-Turkey,2017,2009,2016,5631,11564,Europe,Hatay Province,NA,NA,NA,,,,n,sampling 2009–2016,
-Turkey,2010,2008,2009,63,205,Europe,Malatya Province,NA,NA,NA,,,,n,sampling 2008–2009,
-Turkey,2007,2004,2006,860,1652,Europe,Hatay Province,ELISA,NA,NA,,,,n,sampling 2004–2006,
-Turkey,2014,2010,2013,1278,6140,Europe,Ankara Province,NA,NA,NA,,,,n,sampling 2010–2013,
-Turkey,2011,2000,2009,426,1646,Europe,Edirne Province,IFA,NA,NA,,,,n,sampling 2000–2009,
-Turkey,2013,2010,2011,268,1465,Europe,Uşak Province,ELISA,NA,NA,,,,n,sampling 2010–2011,
-Turkey,2015,2012,2013,3688,9809,Europe,Van Province,ELISA,NA,NA,,,,n,sampling 2012–2013,
-Turkey,2011,2008,2011,1358,7520,Europe,Antalya Province,CLIA,NA,NA,,,,n,sampling 2008–2011,
-Turkey,1986,NA,NA,133,301,Europe,NA,NA,NA,NA,,,,n,can't access paper,
-Turkey,2015,2012,2014,421,1737,Europe,Istanbul,CLIA,NA,NA,,,,n,sampling 2012–2014,
-Burkina Faso,2012,2006,2009,37,182,Africa,Kadiogo Province,ELISA,NA,NA,,,,n,,
-Burkina Faso,2009,2009,2009,75,276,Africa,Kadiogo Province,ELISA,NA,NA,,,,n,,
-Burkina Faso,2017,2013,2014,98,316,Africa,Houet Province,ELISA,NA,NA,,,,n,,
-Burkina Faso,2006,2004,2005,85,336,Africa,Kadiogo Province,ELISA,NA,NA,,,,n,Corrected k from 35 to 85 ,
-Cameroon,2016,2014,2014,44,100,Africa,Northwest Region,ELISA,NA,NA,,,,n,Corrected n from 90 to 100 ,
-Cameroon,2011,2008,2008,69,110,Africa,Centre Region,ELISA,NA,NA,,,,n,Corrected k from 3 to 69; https://www.researchgate.net/publication/286065837_Seroepidemiology_of_Toxoplasmosis_in_Pregnant_Women_Attending_the_University_Teaching_Hospital_in_Yaounde_Cameroon,
-Cameroon,1992,1989,1995,148,192,Africa,Centre Region,ELISA,NA,NA,,,,n,,
-Cameroon,2011,2009,2009,77,110,Africa,Southwest Region,ELISA,NA,NA,,,,n,Corrected k from 72 to 77,
-Ethiopia,2013,2011,2011,176,213,Africa,Addis Ababa,ELISA,NA,NA,,,,n,,
-Ethiopia,2018,2015,2015,96,401,Africa,Oromia Region,ELISA,NA,NA,,,,n,250km south of Addis Ababa,
-Ethiopia,2014,2010,2011,341,385,Africa,Amhara Region,AA,NA,NA,,,,n,,
-Ethiopia,2015,2013,2014,71,384,Africa,Amhara Region,AA,NA,NA,,,,n,,
-Ethiopia,2016,2014,2015,191,232,Africa,"Southern Nations, Nationalities and Peoples Region",ELISA,NA,NA,,,,n,,
-Ethiopia,2012,2011,2011,163,201,Africa,Oromia Region,ELISA,NA,NA,,,,n,,
-Saudi Arabia,2011,2009,2010,825,2176,Eastern Mediterranean,Riyadh Province,HA,NA,NA,,,,n,,
-Saudi Arabia,2014,2008,2010,189,487,Eastern Mediterranean,Aseer Province,ELISA,NA,NA,,,,n,,
-Saudi Arabia,2014,2013,2013,39,195,Eastern Mediterranean,Jazan Province,ELISA,NA,NA,,,,n,,
-Saudi Arabia,2012,2009,2010,53,137,Eastern Mediterranean,Aseer Province,ELISA,NA,NA,,,,n,,
-Saudi Arabia,2015,2012,2013,104,400,Eastern Mediterranean,Eastern Province,CLIA,NA,NA,,,,n,,
-Saudi Arabia,2016,2015,2015,32,150,Eastern Mediterranean,Medina Province ,ELISA,NA,NA,,,,y,women chosen based on being higher risk — exclude,
-Saudi Arabia,2014,2012,2013,29,96,Eastern Mediterranean,Najran Province,HA,NA,NA,,,,n,"Corrected seroprevalence estimate -- k=28 in systematic review dataset, but k=29 in paper",
-Saudi Arabia,2016,2011,2011,66,203,Eastern Mediterranean,Riyadh Province,ELISA,NA,NA,,,,n,"Corrected seroprevalence estimates. N=203 in paper (but 250 in systematic review dataset), so k also changed from 81 to 66",
-Saudi Arabia,2016,2014,2014,69,326,Eastern Mediterranean,Mecca Province,ELISA,NA,NA,,,,n,,
-Saudi Arabia,2013,2009,2009,285,554,Eastern Mediterranean,NA,NA,NA,NA,,,,n,can't find paper (so no regional data),
-Italy,1995,1987,1991,1687,3602,Europe,Emilia-Romagna Region,ELISA,NA,NA,,,,n,,
-Italy,2008,,,241,496,Europe,,NA,NA,NA,,,,y,"Excluded — study conducted in Albania, not Italy",
-Italy,2014,2012,2012,150,846,Europe,Sicily,NA,NA,NA,,,,n,"Corrected N from 154 to 150 (paper states k=152 then says ""In two cases the results of the tests were dubious or inconsistent"")",
-Italy,2011,,,97,334,Europe,,NA,NA,NA,,,,y,"Excluded — study conducted in Kosovo, not Italy",
-Italy,2008,2004,2005,737,3426,Europe,Lombardy Region,ELISA,NA,NA,,,,n,,
-Italy,2014,2011,2012,2773,10085,Europe,Marche Region,CLIA,NA,NA,,,,n,Corrected k from 2723 to 2773,
-Italy,2014,2009,2011,2308,10347,Europe,Emilia-Romagna Region,ELISA,NA,NA,,,,n,Corrected n from 10867 to 10347,
-Italy,1996,1993,1994,270,1668,Europe,Lazio Region,NA,NA,NA,,,,n,,
-Poland,2017,2015,2016,83,413,Europe,Małopolskie Province,NA,NA,NA,,,,n,"Corrected n from 440 to 413 (authors used denominator from IgM, not IgG)",
-Poland,2008,2000,2007,910,1800,Europe,Łódź Province,ELISA,NA,NA,,,,n,,
-Poland,2013,2004,2012,3364,8281,Europe,Łódź Province,ELFA,NA,NA,,,,n,,
-Poland,2002,2000,2000,722,2016,Europe,Mazowieckie Province,NA,NA,NA,,,,n,,
-Poland,2001,1998,1998,837,1920,Europe,Łódź Province,ELISA,NA,NA,,,,n,Corrected n from 387 to 837,
-Spain,1996,1991,1993,39,299,Europe,Jaén Province,NA,NA,NA,,,,n,,
-Spain,2011,2006,2010,619,1627,Europe,Alicante Province,ELISA,NA,NA,,,,y,"Case control of prevalence difference between migrant and native pregnant women, not representative — exclude",
-Spain,2013,2007,2010,1874,8012,Europe,Madrid Province,NA,NA,NA,,,,n,,
-Spain,1991,NA,NA,475,1221,Europe,NA,NA,NA,NA,,,,n,can't find paper (so no regional data or sampling year),
-Spain,1995,1993,1993,49,191,Europe,Málaga,ELISA,NA,NA,,,,n,,
-United Kingdom,1998,1992,1992,1067,13328,Europe,East of England,ELISA,NA,NA,,,,n,Corrected k from 387 to 1067,
-United Kingdom,1992,1980,1986,1267,6749,Europe,London,ELISA,NA,NA,,,,n,,
-United Kingdom,2013,2006,2008,452,2610,Europe,London,ELISA,NA,NA,,,,n,,
-United Kingdom,2005,1999,2001,172,1897,Europe,South East England,MEIA,NA,NA,,,,n,,
-India,2015,2012,2013,26,103,South-East Asia,Uttar Pradesh,ELISA,NA,NA,,,,n,,
-India,2007,2003,2004,75,180,South-East Asia,Assam,ELISA,NA,NA,,,,n,,
-India,2016,2007,2009,548,1141,South-East Asia,Assam,ELISA,NA,NA,,,,n,,
-India,2010,NA,NA,216,800,South-East Asia,,NA,NA,NA,,,,y,Paper must be mis-cited because refers to study in Kuwait -- exclude,
-India,2010,2005,2006,46,300,South-East Asia,Punjab/Haryana,ELISA,NA,NA,,,,n,,
-India,2012,,,35,94,South-East Asia,,NA,NA,NA,,,,y,Exclude -- includes only pregnant women with Bad Obstetric History,
-India,2017,2015,2017,30,193,South-East Asia,Puducherry (union territory),ELISA,NA,NA,,,,n,https://www.researchgate.net/publication/320459169_Seroprevalence_of_Toxoplasma_gondii_in_healthy_pregnant_women_of_Puducherry,
-India,2016,NA,NA,40,260,South-East Asia,Uttar Pradesh,NA,NA,NA,,,,n,https://www.actamedicainternational.com/article.asp?issn=2349-0578;year=2016;volume=3;issue=1;spage=50;epage=55;aulast=Singh,
-India,2004,2002,2003,120,300,South-East Asia,Delhi,ELISA,NA,NA,,,,n,Corrected k from 78 to 120,
-India,2017,2014,2016,53,251,South-East Asia,Karnataka,ELISA,NA,NA,,,,n,,
-Thailand,2014,2012,2013,190,760,South-East Asia,Songkhla Province,ELISA,NA,NA,,,,n,Corrected k from 167 to 190 (from IgG+ to IgG+ and IgM+/IgG+),
-Thailand,1998,NA,NA,155,1181,South-East Asia,,NA,NA,NA,,,,n,Can't get PDF so no regional or sampling year data,
-Thailand,2011,2009,2010,181,640,South-East Asia,Songkhla Province,ELISA,NA,NA,,,,n,Corrected k from 138  to 181 (from IgG+ to IgG+ and IgM+/IgG+); https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3144820/,
-Thailand,1999,NA,NA,63,300,South-East Asia,Samut Sakhon Province,DT,NA,NA,,,,n,,
-Thailand,2001,1997,1999,494,1669,South-East Asia,,NA,NA,NA,,,,y,Case control study of HIV+ vs. HIV- pregnant women — exclude,
-China,2014,NA,NA,156,2993,Western Pacific,,ELISA,NA,NA,,,,n,Can't access PDF - abstract has no info on sampling year,
-China,2011,NA,NA,20,200,Western Pacific,,ELISA,NA,NA,,,,n,,
-China,2015,2011,2013,147,965,Western Pacific,Shandong Province,ELISA,NA,NA,,,,n,,
-China,2017,NA,NA,37,404,Western Pacific,,NA,NA,NA,,,,y,Study not solely on pregnant women (also cancer & HIV patients) but doesn't report k or n by subpopulation -- exclude ,
-China,2013,NA,NA,43,1081,Western Pacific,Jiangsu Province,ELISA,NA,NA,,,,n,,
-China,2015,2009,2011,8,104,Western Pacific,Taipei,ELISA,NA,NA,,,,n,Corrected k from 7 to 8 (from IgG+ to IgG+ and IgM+/IgG+),
-China,2018,2016,2017,47,313,Western Pacific,Jilin Province,ELISA,NA,NA,,,,n,Corrected k from 43 to 47,
-China,2008,NA,NA,312,426,Western Pacific,,NA,NA,NA,,,,n,,
-China,2009,2006,2006,25,235,Western Pacific,Jilin Province,ELISA,NA,NA,,,,n,,
-China,2014,2010,2013,1218,9139,Western Pacific,Shandong Province,ELISA,NA,NA,,,,n,,
-China,2011,NA,NA,52,1307,Western Pacific,,ELISA,NA,NA,,,,n,,
-China,2011,NA,NA,351,6849,Western Pacific,,ELISA,NA,NA,,,,n,,
-China,2016,2013,2015,32,276,Western Pacific,Hebei Province,ELISA,NA,NA,,,,n,,
-China,2014,2010,2013,151,2740,Western Pacific,Hebei Province,ELISA,NA,NA,,,,n,,
-China,2015,2011,2014,11,3014,Western Pacific,Jiangsu Province,ELISA,NA,NA,,,,n,,
+﻿country,year_published,first_sample,last_sample,k,n,who_region,state,method,method2,method3,prop_method1,prop_method2,prop_method3,exclude,notes
+Brazil,2017,2014,2014,362,712,Americas,Bahia,ELISA,NA,NA,,,,n,https://www.scielo.br/scielo.php?pid=S0036-46652017005000254&script=sci_arttext
+Brazil,2015,NA,NA,240,338,Americas,Tocantins,NA,NA,NA,,,,n,sampling year not noted
+Brazil,2009,NA,NA,38,268,Americas,,NA,NA,NA,,,,y,"Venezula, not Brazil - excluded "
+Brazil,2015,2008,2009,24,148,Americas,Santa Catarina,NA,NA,NA,,,,n,sampling 2008-2009
+Brazil,2011,2005,2007,56,87,Americas,São Paulo,ELISA,IFA,NA,0.5,0.5,,n,https://www.scielo.br/scielo.php?pid=S1516-31802011000400010&script=sci_arttext
+Brazil,2009,2014,2014,242,492,Americas,Paraná,CLIA,NA,NA,,,,n,
+Brazil,2010,2005,2005,661,963,Americas,Ceará,MEIA,NA,NA,,,,n,
+Brazil,2011,2007,2008,170,320,Americas,Paraná,IFA,NA,NA,,,,n,I seperarted into 2 sampling years
+Brazil,2011,2008,2008,158,287,Americas,Paraná,ELISA,NA,NA,,,,n,
+Brazil,2013,2010,2010,883,1534,Americas,Paraná,MEIA,NA,NA,,,,n,
+Brazil,2013,2010,2010,234,400,Americas,Rio de Janeiro,ELISA,IFA,NA,0.5,0.5,,n,
+Brazil,2008,NA,NA,625,832,Americas,Rio de Janeiro,NA,NA,NA,,,,n,sampling year not noted 
+Brazil,2006,2000,2000,6125,10408,Americas,Rio Grande do Sul,MEIA,NA,NA,,,,n,
+Brazil,1995,1990,1990,484,698,Americas,NA,ELISA,NA,NA,,,,n,can't find paper (so no regional data)
+Brazil,2018,2009,2009,525,726,Americas,Bahia,ELISA,NA,NA,,,,n,
+Brazil,2014,2012,2012,335,487,Americas,Tocantins,ELISA,NA,NA,,,,n,
+Brazil,2012,2007,2007,1057,2136,Americas,Minas Gerais,NA,NA,NA,,,,n,
+Brazil,2005,1997,1997,1583,2126,Americas,Rio Grande do Sul,IFA,NA,NA,,,,n,
+Brazil,2010,2003,2003,10812,20389,Americas,Paraná,MEIA,CLIA,NA,0.5,0.5,,n,Corrected seroprevalence estimate -- wrong seroprevalence was inputted  in systematic review dataset! (k corrected from 2638 to 10812)
+Brazil,2013,2007,2007,1151,2226,Americas,Paraná,CLIA,NA,NA,,,,n,Multi-site study
+Brazil,2003,2000,2000,724,1261,Americas,Rio Grande do Sul,MEIA,NA,NA,,,,n,Corrected publication year from 2000 to 2003; paper = https://www.scielo.br/scielo.php?pid=S0021-75572003000100012&script=sci_arttext
+Brazil,2011,2008,2008,6910,10316,Americas,Goiás,WB,NA,NA,,,,n,
+Brazil,2009,1998,1998,241,41112,Americas,Rio Grande do Sul,NA,NA,NA,,,,y,screening based on diagnosis of acute toxoplasmosis -- excluded
+Brazil,2015,2005,2005,120,213,Americas,São Paulo,ELISA,NA,NA,,,,n,
+Brazil,2017,2009,2014,210,356,Americas,Rio Grande do Norte,ELISA,CLIA,ECLIA,0.070175439,0.701754386,0.228070175,n,
+Brazil,2009,2007,2007,126,190,Americas,Rio Grande do Norte,MEIA,NA,NA,,,,n,
+Brazil,1990,1988,1988,67,481,Americas,São Paulo,NA,NA,NA,,,,y,Paper examining active toxoplasmosis (i.e. IgM; no methods looking at IgG) - excluded
+Brazil,2000,1996,1996,1044,1559,Americas,Paraná,IFA,NA,NA,,,,n,
+Brazil,2010,2006,2006,345,556,Americas,São Paulo,NA,NA,NA,,,,n,Corrected n from 574 to 556
+Brazil,2009,2007,2007,6615,9550,Americas,Sergipe,ELISA,NA,NA,,,,n,
+Brazil,2012,NA,NA,2405,4021,Americas,Paraná,NA,NA,NA,,,,n,sampling year not noted 
+Brazil,2015,NA,NA,427,551,Americas,NA,NA,NA,NA,,,,n,can't find paper (so no regional data or sampling year)
+Brazil,2008,2005,2005,183,334,Americas,Paraná,ELISA,IFA,NA,0.5,0.5,,n,
+Brazil,2011,NA,NA,1297,2229,Americas,Bahia,NA,NA,NA,,,,n,sampling year not noted 
+Colombia,2011,2014,2014,52,167,Americas,Norte de Santander Department,AA,NA,NA,,,,n,
+Colombia,2008,2005,2005,437,955,Americas,Valle del Cauca Department,MEIA,NA,NA,,,,n,
+Colombia,2011,2009,2010,637,2258,Americas,Cundinamarca Department,NA,NA,NA,,,,n,"Serology method not given for IgG, only for IgM and IgA"
+Colombia,2002,1998,1998,301,637,Americas,Cundinamarca Department,IFA,NA,NA,,,,n,Corrected n from 301 to 637 and k from 141 to 301 (incorrect data inputting in systematic review)
+Iran (Islamic Republic of),2008,2008,2008,247,533,Eastern Mediterranean,Ilam Province,IFA,NA,NA,,,,n,
+Iran (Islamic Republic of),2011,2008,2010,99,225,Eastern Mediterranean,Tehran Province,ELISA,NA,NA,,,,n,
+Iran (Islamic Republic of),2017,2012,2013,66,264,Eastern Mediterranean,Lorestan Province,ELISA,NA,NA,,,,n,Year of publishing corrected from 2015 to 2017
+Iran (Islamic Republic of),2016,2014,2014,86,468,Eastern Mediterranean,Alborz Province,ELISA,NA,NA,,,,n,
+Iran (Islamic Republic of),2013,2010,2011,144,419,Eastern Mediterranean,Razavi Khorasan Province,ELISA,NA,NA,,,,n,
+Iran (Islamic Republic of),2016,2013,2014,249,786,Eastern Mediterranean,Khorasan Razavi Province,NA,NA,NA,,,,n,http://journal.nums.ac.ir/article-1-203-en.html
+Iran (Islamic Republic of),2017,2014,2014,79,200,Eastern Mediterranean,West Azerbaijan Province,ELISA,NA,NA,,,,n,
+Iran (Islamic Republic of),2012,NA,NA,186,500,Eastern Mediterranean,Zanjan Province,NA,NA,NA,,,,n,sampling year not noted
+Iran (Islamic Republic of),2014,NA,NA,170,289,Eastern Mediterranean,NA,NA,NA,NA,,,,n,sampling year not noted
+Iran (Islamic Republic of),2015,2010,2012,30,80,Eastern Mediterranean,Isfahan Province,ELISA,NA,NA,,,,n,
+Iran (Islamic Republic of),2011,2008,2009,250,721,Eastern Mediterranean,Lorestan Province,ELISA,NA,NA,,,,n,https://d1wqtxts1xzle7.cloudfront.net/24897981/vol05-no2.pdf?1343094092=&response-content-disposition=inline%3B+filename%3DA_comparison_of_HIV_AIDS_related_knowled.pdf&Expires=1620643960&Signature=CV0p-Sr4LAhWl0WbExFKX02lsH5LWMWxlXi3s9NBOGCOvycgVcs12cdMl9gV1B-WSouS8Hx2PBT8sENl7l~clX1Ivo~SPd2Wr9rDhMA6XGva2xl1asZ4svav6BjFQQJLdOCsxnhEvFXeZvEdjEvKPkMSjnMJvZDBfHugCaod7EY8vp7qdBzSkDe4baufvIIe~SJNvgnAXGzwYuXBEmeWRndcalBbgeQjX0OgXVOsvWstD6jAugp0aCnFzYyOrc4pHcityxvszIwhMkCJs~yeHjy1psGsJFeTduTccdzO1LroUWMj3b18xjrSZw9jhL8~KU~R33xU0zrwkx6u2Qb~Vg__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA#page=98
+Iran (Islamic Republic of),2018,2016,2017,28,110,Eastern Mediterranean,,NA,NA,NA,,,,y,"sampling 2016–2017; only 25 pregnant patients, rest were immunocompromised; sample sizes & k & n unclear -- exclude"
+Iran (Islamic Republic of),2017,2010,2013,267,391,Eastern Mediterranean,East Azarbaijan Province,ELISA,NA,NA,,,,n,Chose results that used ELISA (study used multiple serological tests on same samples); corrected k from 202 to 267
+Iran (Islamic Republic of),2016,NA,NA,194,360,Eastern Mediterranean,,NA,NA,NA,,,,y,"case control study of T. gondii & prenatal depression, not general population — exclude"
+Iran (Islamic Republic of),2013,2009,2010,898,1659,Eastern Mediterranean,East Azarbaijan Province,IFA,NA,NA,,,,n,sampling 2009–2010
+Iran (Islamic Republic of),2016,NA,NA,71,220,Eastern Mediterranean,,NA,NA,NA,,,,y,"case control study of T. gondii & diabetes, not general population — exclude"
+Iran (Islamic Republic of),2016,NA,NA,93,150,Eastern Mediterranean,,NA,NA,NA,,,,y,"case control study of premature rupture of membrane, not general population — exclude"
+Iran (Islamic Republic of),2014,2012,2012,221,555,Eastern Mediterranean,Golestan Province,ELISA,NA,NA,,,,n,
+Iran (Islamic Republic of),2017,2015,2015,85,261,Eastern Mediterranean,Markazi Province,ELISA,NA,NA,,,,n,
+Iran (Islamic Republic of),2017,2014,2015,155,440,Eastern Mediterranean,Golestan Province,ELISA,NA,NA,,,,n,sampling 2014–2015
+Iran (Islamic Republic of),2015,2013,2013,58,200,Eastern Mediterranean,Qazvin Province,ELISA,NA,NA,,,,n,
+Iran (Islamic Republic of),2015,2011,2013,485,519,Eastern Mediterranean,,NA,NA,NA,,,,y,sampling 2011–2013; unclear from abstract how many were IgG+ (either 14.8% or 78.6%); exclude
+Iran (Islamic Republic of),2014,2011,2011,137,501,Eastern Mediterranean,Khuzestan Province,ELISA,NA,NA,,,,n,
+Turkey,2017,2006,2006,51,102,Europe,NA,ELISA,NA,NA,,,,n,sampling year taken from systematic review paper
+Turkey,2014,2013,2013,127,419,Europe,NA,CLIA,NA,NA,,,,n,
+Turkey,2014,2012,2013,56,196,Europe,Çanakkale Province,ELISA,NA,NA,,,,n,sampling 2012–2013
+Turkey,2014,2008,2013,528,1682,Europe,Istanbul,ELISA,NA,NA,,,,n,sampling 2008–2013; corrected error in N from N=1709 to N=1682
+Turkey,2011,2008,2009,408,1102,Europe,Denizli Province,ELISA,NA,NA,,,,n,sampling 2008–2009
+Turkey,2015,2012,2014,400,910,Europe,Zonguldak Province ,CLIA,NA,NA,,,,n,sampling 2012–2014
+Turkey,2004,NA,NA,694,1149,Europe,NA,ELISA,NA,NA,,,,n,can't find paper (so no regional data or sampling year)
+Turkey,2009,2005,2006,960,1972,Europe,Kocaeli Province,ELISA,NA,NA,,,,n,sampling 2005–2007
+Turkey,2013,2003,2008,1871,4651,Europe,İzmir Province,ELISA,NA,NA,,,,n,sampling 2003–2008
+Turkey,2013,2007,2012,1910,3340,Europe,Hatay Province,NA,NA,NA,,,,n,sampling 2007–2012
+Turkey,2017,2014,2016,2427,7513,Europe,İzmir Province,CLIA,NA,NA,,,,n,sampling 2014–2016
+Turkey,2005,2004,2004,117,389,Europe,Aydın Province,ELISA,IFA,NA,0.5,0.5,,n,
+Turkey,2005,2002,2003,305,879,Europe,NA,NA,NA,NA,,,,n,sampling 2002–2003; can't access paper for regional and methodological data
+Turkey,2014,2009,2013,291,1258,Europe,NA,ELFA,NA,NA,,,,n,sampling 2009–2013
+Turkey,2017,2009,2016,5631,11564,Europe,Hatay Province,NA,NA,NA,,,,n,sampling 2009–2016
+Turkey,2010,2008,2009,63,205,Europe,Malatya Province,NA,NA,NA,,,,n,sampling 2008–2009
+Turkey,2007,2004,2006,860,1652,Europe,Hatay Province,ELISA,NA,NA,,,,n,sampling 2004–2006
+Turkey,2014,2010,2013,1278,6140,Europe,Ankara Province,NA,NA,NA,,,,n,sampling 2010–2013
+Turkey,2011,2000,2009,426,1646,Europe,Edirne Province,IFA,NA,NA,,,,n,sampling 2000–2009
+Turkey,2013,2010,2011,268,1465,Europe,Uşak Province,ELISA,NA,NA,,,,n,sampling 2010–2011
+Turkey,2015,2012,2013,3688,9809,Europe,Van Province,ELISA,NA,NA,,,,n,sampling 2012–2013
+Turkey,2011,2008,2011,1358,7520,Europe,Antalya Province,CLIA,NA,NA,,,,n,sampling 2008–2011
+Turkey,1986,NA,NA,133,301,Europe,NA,NA,NA,NA,,,,n,can't access paper
+Turkey,2015,2012,2014,421,1737,Europe,Istanbul,CLIA,NA,NA,,,,n,sampling 2012–2014
+Burkina Faso,2012,2006,2009,37,182,Africa,Kadiogo Province,ELISA,NA,NA,,,,n,
+Burkina Faso,2009,2009,2009,75,276,Africa,Kadiogo Province,ELISA,NA,NA,,,,n,
+Burkina Faso,2017,2013,2014,98,316,Africa,Houet Province,ELISA,NA,NA,,,,n,
+Burkina Faso,2006,2004,2005,85,336,Africa,Kadiogo Province,ELISA,NA,NA,,,,n,Corrected k from 35 to 85 
+Cameroon,2016,2014,2014,44,100,Africa,Northwest Region,ELISA,NA,NA,,,,n,Corrected n from 90 to 100 
+Cameroon,2011,2008,2008,69,110,Africa,Centre Region,ELISA,NA,NA,,,,n,Corrected k from 3 to 69; https://www.researchgate.net/publication/286065837_Seroepidemiology_of_Toxoplasmosis_in_Pregnant_Women_Attending_the_University_Teaching_Hospital_in_Yaounde_Cameroon
+Cameroon,1992,1989,1995,148,192,Africa,Centre Region,ELISA,NA,NA,,,,n,
+Cameroon,2011,2009,2009,77,110,Africa,Southwest Region,ELISA,NA,NA,,,,n,Corrected k from 72 to 77
+Ethiopia,2013,2011,2011,176,213,Africa,Addis Ababa,ELISA,NA,NA,,,,n,
+Ethiopia,2018,2015,2015,96,401,Africa,Oromia Region,ELISA,NA,NA,,,,n,250km south of Addis Ababa
+Ethiopia,2014,2010,2011,341,385,Africa,Amhara Region,AA,NA,NA,,,,n,
+Ethiopia,2015,2013,2014,71,384,Africa,Amhara Region,AA,NA,NA,,,,n,
+Ethiopia,2016,2014,2015,191,232,Africa,"Southern Nations, Nationalities and Peoples Region",ELISA,NA,NA,,,,n,
+Ethiopia,2012,2011,2011,163,201,Africa,Oromia Region,ELISA,NA,NA,,,,n,
+Saudi Arabia,2011,2009,2010,825,2176,Eastern Mediterranean,Riyadh Province,HA,NA,NA,,,,n,
+Saudi Arabia,2014,2008,2010,189,487,Eastern Mediterranean,Aseer Province,ELISA,NA,NA,,,,n,
+Saudi Arabia,2014,2013,2013,39,195,Eastern Mediterranean,Jazan Province,ELISA,NA,NA,,,,n,
+Saudi Arabia,2012,2009,2010,53,137,Eastern Mediterranean,Aseer Province,ELISA,NA,NA,,,,n,
+Saudi Arabia,2015,2012,2013,104,400,Eastern Mediterranean,Eastern Province,CLIA,NA,NA,,,,n,
+Saudi Arabia,2016,2015,2015,32,150,Eastern Mediterranean,Medina Province ,ELISA,NA,NA,,,,y,women chosen based on being higher risk — exclude
+Saudi Arabia,2014,2012,2013,29,96,Eastern Mediterranean,Najran Province,HA,NA,NA,,,,n,"Corrected seroprevalence estimate -- k=28 in systematic review dataset, but k=29 in paper"
+Saudi Arabia,2016,2011,2011,66,203,Eastern Mediterranean,Riyadh Province,ELISA,NA,NA,,,,n,"Corrected seroprevalence estimates. N=203 in paper (but 250 in systematic review dataset), so k also changed from 81 to 66"
+Saudi Arabia,2016,2014,2014,69,326,Eastern Mediterranean,Mecca Province,ELISA,NA,NA,,,,n,
+Saudi Arabia,2013,2009,2009,285,554,Eastern Mediterranean,NA,NA,NA,NA,,,,n,can't find paper (so no regional data)
+Italy,1995,1987,1991,1687,3602,Europe,Emilia-Romagna Region,ELISA,NA,NA,,,,n,
+Italy,2008,,,241,496,Europe,,NA,NA,NA,,,,y,"Excluded — study conducted in Albania, not Italy"
+Italy,2014,2012,2012,150,846,Europe,Sicily,NA,NA,NA,,,,n,"Corrected N from 154 to 150 (paper states k=152 then says ""In two cases the results of the tests were dubious or inconsistent"")"
+Italy,2011,,,97,334,Europe,,NA,NA,NA,,,,y,"Excluded — study conducted in Kosovo, not Italy"
+Italy,2008,2004,2005,737,3426,Europe,Lombardy Region,ELISA,NA,NA,,,,n,
+Italy,2014,2011,2012,2773,10085,Europe,Marche Region,CLIA,NA,NA,,,,n,Corrected k from 2723 to 2773
+Italy,2014,2009,2011,2308,10347,Europe,Emilia-Romagna Region,ELISA,NA,NA,,,,n,Corrected n from 10867 to 10347
+Italy,1996,1993,1994,270,1668,Europe,Lazio Region,NA,NA,NA,,,,n,
+Poland,2017,2015,2016,83,413,Europe,Małopolskie Province,NA,NA,NA,,,,n,"Corrected n from 440 to 413 (authors used denominator from IgM, not IgG)"
+Poland,2008,2000,2007,910,1800,Europe,Łódź Province,ELISA,NA,NA,,,,n,
+Poland,2013,2004,2012,3364,8281,Europe,Łódź Province,ELFA,NA,NA,,,,n,
+Poland,2002,2000,2000,722,2016,Europe,Mazowieckie Province,NA,NA,NA,,,,n,
+Poland,2001,1998,1998,837,1920,Europe,Łódź Province,ELISA,NA,NA,,,,n,Corrected n from 387 to 837
+Spain,1996,1991,1993,39,299,Europe,Jaén Province,NA,NA,NA,,,,n,
+Spain,2011,2006,2010,619,1627,Europe,Alicante Province,ELISA,NA,NA,,,,y,"Case control of prevalence difference between migrant and native pregnant women, not representative — exclude"
+Spain,2013,2007,2010,1874,8012,Europe,Madrid Province,NA,NA,NA,,,,n,
+Spain,1991,NA,NA,475,1221,Europe,NA,NA,NA,NA,,,,n,can't find paper (so no regional data or sampling year)
+Spain,1995,1993,1993,49,191,Europe,Málaga,ELISA,NA,NA,,,,n,
+United Kingdom,1998,1992,1992,1067,13328,Europe,East of England,ELISA,NA,NA,,,,n,Corrected k from 387 to 1067
+United Kingdom,1992,1980,1986,1267,6749,Europe,London,ELISA,NA,NA,,,,n,
+United Kingdom,2013,2006,2008,452,2610,Europe,London,ELISA,NA,NA,,,,n,
+United Kingdom,2005,1999,2001,172,1897,Europe,South East England,MEIA,NA,NA,,,,n,
+India,2015,2012,2013,26,103,South-East Asia,Uttar Pradesh,ELISA,NA,NA,,,,n,
+India,2007,2003,2004,75,180,South-East Asia,Assam,ELISA,NA,NA,,,,n,
+India,2016,2007,2009,548,1141,South-East Asia,Assam,ELISA,NA,NA,,,,n,
+India,2010,NA,NA,216,800,South-East Asia,,NA,NA,NA,,,,y,Paper must be mis-cited because refers to study in Kuwait -- exclude
+India,2010,2005,2006,46,300,South-East Asia,Punjab/Haryana,ELISA,NA,NA,,,,n,
+India,2012,,,35,94,South-East Asia,,NA,NA,NA,,,,y,Exclude -- includes only pregnant women with Bad Obstetric History
+India,2017,2015,2017,30,193,South-East Asia,Puducherry (union territory),ELISA,NA,NA,,,,n,https://www.researchgate.net/publication/320459169_Seroprevalence_of_Toxoplasma_gondii_in_healthy_pregnant_women_of_Puducherry
+India,2016,NA,NA,40,260,South-East Asia,Uttar Pradesh,NA,NA,NA,,,,n,https://www.actamedicainternational.com/article.asp?issn=2349-0578;year=2016;volume=3;issue=1;spage=50;epage=55;aulast=Singh
+India,2004,2002,2003,120,300,South-East Asia,Delhi,ELISA,NA,NA,,,,n,Corrected k from 78 to 120
+India,2017,2014,2016,53,251,South-East Asia,Karnataka,ELISA,NA,NA,,,,n,
+Thailand,2014,2012,2013,190,760,South-East Asia,Songkhla Province,ELISA,NA,NA,,,,n,Corrected k from 167 to 190 (from IgG+ to IgG+ and IgM+/IgG+)
+Thailand,1998,NA,NA,155,1181,South-East Asia,,NA,NA,NA,,,,n,Can't get PDF so no regional or sampling year data
+Thailand,2011,2009,2010,181,640,South-East Asia,Songkhla Province,ELISA,NA,NA,,,,n,Corrected k from 138  to 181 (from IgG+ to IgG+ and IgM+/IgG+); https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3144820/
+Thailand,1999,NA,NA,63,300,South-East Asia,Samut Sakhon Province,DT,NA,NA,,,,n,
+Thailand,2001,1997,1999,494,1669,South-East Asia,,NA,NA,NA,,,,y,Case control study of HIV+ vs. HIV- pregnant women — exclude
+China,2014,NA,NA,156,2993,Western Pacific,,ELISA,NA,NA,,,,n,Can't access PDF - abstract has no info on sampling year
+China,2011,NA,NA,20,200,Western Pacific,,ELISA,NA,NA,,,,n,
+China,2015,2011,2013,147,965,Western Pacific,Shandong Province,ELISA,NA,NA,,,,n,
+China,2017,NA,NA,37,404,Western Pacific,,NA,NA,NA,,,,y,Study not solely on pregnant women (also cancer & HIV patients) but doesn't report k or n by subpopulation -- exclude 
+China,2013,NA,NA,43,1081,Western Pacific,Jiangsu Province,ELISA,NA,NA,,,,n,
+China,2015,2009,2011,8,104,Western Pacific,Taipei,ELISA,NA,NA,,,,n,Corrected k from 7 to 8 (from IgG+ to IgG+ and IgM+/IgG+)
+China,2018,2016,2017,47,313,Western Pacific,Jilin Province,ELISA,NA,NA,,,,n,Corrected k from 43 to 47
+China,2008,NA,NA,312,426,Western Pacific,,NA,NA,NA,,,,n,
+China,2009,2006,2006,25,235,Western Pacific,Jilin Province,ELISA,NA,NA,,,,n,
+China,2014,2010,2013,1218,9139,Western Pacific,Shandong Province,ELISA,NA,NA,,,,n,
+China,2011,NA,NA,52,1307,Western Pacific,,ELISA,NA,NA,,,,n,
+China,2011,NA,NA,351,6849,Western Pacific,,ELISA,NA,NA,,,,n,
+China,2016,2013,2015,32,276,Western Pacific,Hebei Province,ELISA,NA,NA,,,,n,
+China,2014,2010,2013,151,2740,Western Pacific,Hebei Province,ELISA,NA,NA,,,,n,
+China,2015,2011,2014,11,3014,Western Pacific,Jiangsu Province,ELISA,NA,NA,,,,n,
