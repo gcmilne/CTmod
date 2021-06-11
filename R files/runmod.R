@@ -96,15 +96,19 @@ getit <- function(time) {
                     matAb1=matAb1, matAb2=matAb2, matAb3=matAb3, 
                     ct1=ct1, ct2=ct2, ct3=ct3, Na=Na)
   ## remove last age category for aesthetics
-  out <- out[-nrow(out),]
+  # out <- out[-nrow(out),]
 }
 
-par(mfrow=c(2,3))
-df <- getit(250)
-plot(df[,"Na"]~df[,"a"], type="l", ylab="pop size", xlab="age")
+par(mfrow=c(1,1))
+df <- getit(150)
+plot(df[,"Na"]~df[,"a"], type="l", ylab="pop size", xlab="age", ylim = c(20000, 70000))
 points(pars$Na~pars$age)
-df <- getit(40)
-plot(df[,"Na"]~df[,"a"], type="l", ylab="pop size", xlab="age", ylim=c(0,250000))
+
+plot(df[,"pI"]~df[,"a"], type="l", ylab="seroprevalence", xlab="age", ylim = c(0, 1))
+
+
+df <- getit(1)
+plot(df[,"Na"]~df[,"a"], type="l", ylab="pop size", xlab="age")
 points(pars$Na~pars$age)
 df <- getit(45)
 plot(df[,"Na"]~df[,"a"], type="l", ylab="pop size", xlab="age", ylim=c(0,250000))
