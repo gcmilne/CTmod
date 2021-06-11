@@ -5,6 +5,7 @@ library(dplyr)
 library(ggplot2)
 library(patchwork)
 library(lme4)
+library(binom)
 
 data <- read.csv("data/seroprev_global.csv")
 min_samples <- 4 #minimum number of longitudinal samples
@@ -32,81 +33,34 @@ data <- data %>%
 countries <- sort(unique(data$country))
 data_list <- vector(mode = "list", length = length(countries))
 
+
+##### 
+## Make data as 1 row per study
+#####
+
 for(i in 1:length(countries)){
   data_list[[i]] <- 
     data %>%
     filter(country==countries[i]) %>% 
     filter(!is.na(year)) %>%
     arrange(year) %>%
-    group_by(year) %>%
-    summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), country=countries[i], 
-              state=state, method=method, method2=method2, method3=method3, prop_method1=prop_method1,
-              prop_method2=prop_method2, prop_method3=prop_method3) %>%
+    # group_by(year) %>%
+    summarise(
+      # w.prev = weighted.mean(prev, n), 
+      prev = k/n,
+      year=year, year_published=year_published, k=k, n=n, country=countries[i],
+      method=method, method2=method2, method3=method3, prop_method1=prop_method1,
+      prop_method2=prop_method2, prop_method3=prop_method3) %>%
     # distinct(k, n, .keep_all = T) %>% #remove duplicate rows (where median sampling years are equal)
     as.data.frame()
 }
-
-## combine methods into one row, for matching median sampling years
-f <- function(x) {
-  x <- na.omit(x)
-  if (length(x) > 0) paste(x,collapse=', ') else NA
-}
-
-res <- vector(mode = "list", length = length(countries))
-
-for(i in 1:length(data_list)){
-  res[[i]] <- data_list[[i]] %>% group_by(year) %>% summarise_all(list(f))
-}
-
-## correct country names to include only one instance in each row
-for(i in 1:length(data_list)){
-  res[[i]]$country <- countries[i]
-}
-
-## correct k to include only one instance in each row
-for(i in 1:length(res)){
-  for(j in 1:nrow(res[[i]])){
-    x <- strsplit(res[[i]]$k, ", ")
-    if(length(x[[j]]) > 1) {
-      res[[i]]$k[j] <- x[[j]][1] #select first mention
-    }
-  }
-}
-
-## correct n to include only one instance in each row
-for(i in 1:length(res)){
-  for(j in 1:nrow(res[[i]])){
-    x <- strsplit(res[[i]]$n, ", ")
-    if(length(x[[j]]) > 1) {
-      res[[i]]$n[j] <- x[[j]][1] #select first mention
-    }
-  }
-}
-
-## correct weighted seroprevalence to include only one instance in each row
-for(i in 1:length(res)){
-  for(j in 1:nrow(res[[i]])){
-    x <- strsplit(res[[i]]$w.prev, ", ")
-    if(length(x[[j]]) > 1) {
-      res[[i]]$w.prev[j] <- x[[j]][1] #select first mention
-    }
-  }
-}
-  
-## make altered columns numeric
-for(i in 1:length(res)){
-  res[[i]]$k <- as.numeric(res[[i]]$k)
-  res[[i]]$n <- as.numeric(res[[i]]$n)
-  res[[i]]$w.prev <- as.numeric(res[[i]]$w.prev)
-}
-  
 
 ## make ggplots for each of the countries
 p <- vector(mode = "list", length = length(countries))
 
 # for(j in 1:length(who_regions)){  ## if you want to order plots by region too
 for(i in 1:length(countries)){
-  p[[i]] <- ggplot(res[[i]], aes(x=year, y=w.prev)) +
+  p[[i]] <- ggplot(data_list[[i]], aes(x=year, y=prev)) +
     geom_point() +
     geom_smooth(method = "lm", formula = 'y~x') +
     xlab("Year") + ylab("Seroprevalence") +
@@ -119,8 +73,15 @@ wrap_plots(p)
 
 
 ## put data list into one dataframe
-df <- do.call(rbind.data.frame, res)
+df <- do.call(rbind.data.frame, data_list)
 df$country <- as.factor(df$country)
+
+## Calculate data 95% CIs (Agresti-Coull method)
+cis<- binom.confint(x=df$k, n=df$n, conf.level=0.95, methods="exact")
+
+# Store lower and upper estimates
+df$ci_lo <-cis$lower
+df$ci_up <-cis$upper
 
 # saveRDS(df, "data/global_data.rds")
 
