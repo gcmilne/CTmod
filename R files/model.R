@@ -176,7 +176,7 @@ age_si = function(time, y, pars) {
   ## total ageing out of max age cat
   byebye <- Na[pars$agrps] * pars$da
   
-  ## births distributed among age groups according to fertility
+  ## births distributed among age groups according to fertility (made equal to deaths + ageing beyond max category)
   births_age <- (deaths + byebye) * pars$propfert
   births     <- sum(births_age)
   
