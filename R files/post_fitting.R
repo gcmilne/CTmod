@@ -5,29 +5,29 @@
 ##################
 ## Load scripts ##
 ##################
-source("R files/seroprev_dat.R")  #local
-source("R files/demogdat.R")      #local
-source("R files/setparms.R")      #local
-source("R files/model.R")         #local (stepwise FoI decrease model)
-source("R files/model_linear.R")  #local  (linear FoI decrease model)
-
-## Data
-niter <- 100  #no. iterations on the cluster
+source("R files/seroprev_dat.R")
+source("R files/demogdat.R")
+source("R files/setparms.R")
+source("R files/model.R")   
 
 ##  Read in parameter sets & likelihood values 
+nsim  <- 10
+niter <- 10
+
 out_likpar <- data.frame(matrix(ncol=npars+1, nrow=niter*nsim))
-names(out_likpar) <- c("log.lambda0", "log.lambda1", "log.gradient", "log.shape", "log.tdecline", "likelihood")
+names(out_likpar) <- c("log.lambda0", "log.shape", "log.tdecline", "likelihood")
 counter <- seq(1, (nsim*niter), by = 1/nsim)  # used in for loop to pick correct parliks_ file
 
 #works for multiples of 10
 i_seq <- seq(1, niter*nsim, by=nsim)
 for(i in i_seq){
   if(i==1){
-    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/linear_mod/parliks5_linear_", i, ".RData", sep = ""))
+    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/", pars$country, "/parliks_", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_", i, ".Rdata", sep = ""))
   } else if (i > 1 & i < (niter*nsim)){
-    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/linear_mod/parliks5_linear_", i-(i-counter[i]), ".RData", sep = ""))
+    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/", pars$country, "/parliks_", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_", i-(i-counter[i]), ".Rdata", sep = ""))
   }
 }
+
 
 ##########################
 ## Exploratory plotting ##
@@ -36,12 +36,6 @@ for(i in i_seq){
 par(mfrow=c(2,2))
 plot(exp(out_likpar$log.lambda0), out_likpar$likelihood)
 abline(lm(out_likpar$likelihood ~ exp(out_likpar$log.lambda0)), col="red")
-
-plot(exp(out_likpar$log.lambda1), out_likpar$likelihood)
-abline(lm(out_likpar$likelihood ~ exp(out_likpar$log.lambda1)), col="red")
-
-plot(exp(out_likpar$log.gradient), out_likpar$likelihood)
-abline(lm(out_likpar$likelihood ~ exp(out_likpar$log.gradient)), col="red")
 
 plot(exp(out_likpar$log.shape), out_likpar$likelihood)
 abline(lm(out_likpar$likelihood ~ exp(out_likpar$log.shape)), col="red")
@@ -83,7 +77,7 @@ abline(lm(top_pars$likelihood ~ exp(top_pars$log.tdecline)), col="red")
 
 
 ## Plot the distribution of 1,000 best-fit par sets (near prior boundaries?)
-top_pars <- head(out_likpar[order(out_likpar$likelihood),], 1000)
+top_pars <- head(out_likpar[order(out_likpar$likelihood),], 10)
 
 par(mfrow=c(3,2))
 hist(exp(top_pars$log.lambda0),  main = "lambda0 (1,000 best fit)", xlab = "", ylab = "")
@@ -97,29 +91,78 @@ hist(exp(top_pars$log.tdecline), main = "tdecline (1,000 best fit)", xlab = "", 
 ## simulate model & show fit to data for a range of parameter sets ##
 #####################################################################
 params <- data.frame(matrix(nrow=3, ncol=npars+1))
-names(params) <- c("log.lambda0", "log.lambda1", "log.gradient", "log.shape", "log.tdecline", "likelihood")
-sorted_lik    <- head(out_likpar[order(out_likpar$likelihood),], 1000) #sort by likelihood value
-params[1:3,]  <- head(sorted_lik, 3)           #best fit
-# params[3,]    <- out_likpar[tail(sorted_lik, 1),]               #worst fit
-# params[4,]    <- out_likpar[sorted_lik[nrow(out_likpar)/2],]    #middling fit
+names(params) <- c("log.lambda0", "log.shape", "log.tdecline", "likelihood")
+sorted_lik    <- head(out_likpar[order(out_likpar$likelihood),], 100) #sort by likelihood value
+params[1,]    <- head(sorted_lik, 1)                #best fit
+params[3,]    <- tail(sorted_lik, 3)[1,]            #worst fit
+params[2,]    <- sorted_lik[nrow(out_likpar)/2,]    #middling fit
 
-prev_list1 <- rep(list(matrix(nrow=length(neth_95$age_mid), ncol=1)), nrow(params)) #for timepoint 1
-prev_list2 <- rep(list(matrix(nrow=length(neth_95$age_mid), ncol=1)), nrow(params)) #for timepoint 2
-
-df  <- rep(list(matrix(nrow=pars$agrps-1, ncol=16)), nrow(params)) #for timepoint 1
-df2 <- rep(list(matrix(nrow=pars$agrps-1, ncol=16)), nrow(params)) #for timepoint 2
+# Create list to store model output for each of the timepoints being fit
+ct_cases          <- vector("list", length = nrow(fitting_data))
+matched_prev      <- vector("list", length = nrow(fitting_data))
+mean_matched_prev <- vector("list", length = nrow(fitting_data))
 
 for(i in 1:nrow(params)){
+  
   pars$log.lambda0  <- params[i, "log.lambda0"]
-  pars$log.lambda1  <- params[i, "log.lambda1"]
-  pars$log.gradient <- params[i, "log.gradient"]
   pars$log.shape    <- params[i, "log.shape"]
   pars$log.tdecline <- params[i, "log.tdecline"]
   sol <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
-  df[[i]]  <- getit(pars$burnin)
-  prev_list1[[i]]  <- df[[i]][,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
-  df2[[i]] <- getit(pars$burnin+11)
-  prev_list2[[i]]  <- df2[[i]][,"obs_pI"][matched_indices]  #select observed prevalence from relevant age categories
+  
+  for(j in 1:nrow(fitting_data)){
+    
+    store_sim          <- getit(year_diff[j])  #store age profile at jth timepoint
+    ct_cases[[i]][j]   <- sum(store_sim[,"ct1"] + store_sim[,"ct2"] + store_sim[,"ct3"])
+    matched_prev[[j]]  <- store_sim[,"pI"][matched_indices]  #select true prevalence from relevant age categories
+    
+    ## Select relevant sensitivity & specificity values ##
+    if (is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  #if timepoint used 1 immunoassay type
+      
+      pars$se <- assays$se [ which(fitting_data$method[j] == assays$method) ]  #se
+      pars$sp <- assays$sp [ which(fitting_data$method[j] == assays$method) ]  #sp
+      
+      
+    } else if (!is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  # if timepoint used 2 immunoassays
+      
+      se_method1 <- assays$se [ which(fitting_data$method [j] == assays$method) ]  #se of first immunoassay
+      se_method2 <- assays$se [ which(fitting_data$method2[j] == assays$method) ]  #se of second immunoassay
+      
+      sp_method1 <- assays$sp [ which(fitting_data$method [j] == assays$method) ]  #sp of first immunoassay
+      sp_method2 <- assays$sp [ which(fitting_data$method2[j] == assays$method) ]  #sp of second immunoassay
+      
+      pars$se <- weighted.mean(x = c(se_method1, se_method2), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j])) #weighted mean se
+      pars$sp <- weighted.mean(x = c(sp_method1, sp_method2), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j])) #weighted mean sp
+      
+      
+    } else if (!is.na(fitting_data$method2[j]) & !is.na(fitting_data$method3[j])) {  # if timepoint used 3 immunoassays
+      
+      se_method1 <- assays$se [ which(fitting_data$method [j] == assays$method) ]  #se of first immunoassay
+      se_method2 <- assays$se [ which(fitting_data$method2[j] == assays$method) ]  #se of second immunoassay
+      se_method3 <- assays$se [ which(fitting_data$method3[j] == assays$method) ]  #se of third immunoassay
+      
+      sp_method1 <- assays$sp [ which(fitting_data$method [j] == assays$method) ]  #sp of first immunoassay
+      sp_method2 <- assays$sp [ which(fitting_data$method2[j] == assays$method) ]  #sp of second immunoassay
+      sp_method3 <- assays$sp [ which(fitting_data$method3[j] == assays$method) ]  #sp of third immunoassay
+      
+      pars$se <- weighted.mean(x = c(se_method1, se_method2, se_method3), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j], fitting_data$prop_method3[j])) #weighted mean se
+      pars$sp <- weighted.mean(x = c(sp_method1, sp_method2, sp_method3), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j], fitting_data$prop_method3[j])) #weighted mean sp
+      
+    }
+    
+    ## Adjust true prevalence by relevant diagnostic se and sp ##
+    matched_prev[[j]] <- matched_prev[[j]] * (pars$se + pars$sp - 1) + (1 - pars$sp)
+    
+    ## Demographically weighted mean of modelled adjusted seroprevalence ##
+    mean_matched_prev[[i]][j] <- weighted.mean(x = matched_prev[[j]], w = pars$propfert[matched_indices] * pars$Na[matched_indices])
+    
+    
+    }
+}
+
+par(mfrow=c(1,1))
+plot(fitting_data$year, fitting_data$prev, ylab = "Seroprevalence", xlab = "Year", ylim = c(0,1))
+for(i in 1:nrow(params)){
+  points(fitting_data$year, mean_matched_prev[[i]], col = myColors[i])
 }
 
 #plot first time point vs. data
