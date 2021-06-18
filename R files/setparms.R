@@ -48,6 +48,9 @@ pars$age_foi      <- "constant"
 # Options: 1 (plots graph of age-foi profile); 0 (model runs without age-foi graph plot)
 pars$troubleshoot <- 0
 
+# For forecasting: if 1, time interval set to be longer
+pars$forecast <- 1
+
 ## Number of years between 1st & last data time points
 pars$tdiff <- max(fitting_data$year) - min(fitting_data$year)
 
@@ -85,5 +88,10 @@ S0 <- I0 <- Im0 <- vector("numeric", length=pars$agrps)
 S0[1:length(S0)] <- pars$Na
 y <- c(S0, I0, Im0)
 
-# set time for model running (burnin period = 850 years)
-time <- seq(1,pars$burnin+pars$tdiff, 1)
+# set time for model running
+if (pars$forecast == 0) {
+  time <- seq(1, pars$burnin + pars$tdiff, 1)
+  
+} else if(pars$forecast == 1){
+  time <- seq(1, pars$burnin + pars$tdiff + 50, 1)
+}
