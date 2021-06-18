@@ -13,7 +13,7 @@ df <- readRDS("data/global_data.rds")
 df$prev <- df$k/df$n
 
 # standardise year
-df$yrstd <- (df$year-mean(df$year))/sd(df$year)
+df$yrstd <- (df$year-mean(df$year))/sd(df$year)  #intercept where year is avg year rather than =0
 
 ## over-fitted model
 m0 <- lmer(prev~yrstd+(yrstd|country), data=df)
@@ -29,7 +29,11 @@ p0 <- ggplot(data=df, aes(y=yfit0, x=year, group=country, col=country)) +
   theme_light()
 
 ## simpler model
-m1<-lmer(prev~yrstd+(1|country), data=df)
+# m1<-lmer(prev~yrstd+(1|country), data=df)
+
+
+m1<-lmer(prev~year+(1|country), data=df)
+
 df$yfit1 <- fitted(m1)
 
 #CIs around estimate
