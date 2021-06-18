@@ -4,7 +4,7 @@ age_si = function(time, y, pars) {
   # Back-transform parameters
   lambda0  <- exp(pars$log.lambda0)
   shape    <- exp(pars$log.shape)
-  tdecline <- exp(pars$log.tdecline)
+  tdecline <- round(exp(pars$log.tdecline), 0)
   
   ## set up state variables from input
   S <- y[ 1:pars$agrps ]
@@ -39,8 +39,13 @@ age_si = function(time, y, pars) {
         
       } else if (time >= threshold) {
         yr_rate <- (1 - shape) / ((pars$burnin + pars$tdiff) - threshold)  #define yearly rate of decline
-        t_current <- time - (pars$burnin - pars$tdiff - 1)  #time difference
+        t_current <- time - threshold  #time difference
         foi <- lambda0 * (1-(yr_rate * t_current)) 
+        
+        if(foi <= 0){ # to avoid foi < 0 when forecasting
+          foi <- 0
+        }
+        
       }
       
       
@@ -87,7 +92,7 @@ age_si = function(time, y, pars) {
       } else if (time >= threshold) {
         
         yr_rate <- (1-shape)/((pars$burnin + pars$tdiff) - threshold)  #define yearly rate of decline
-        t_current <- time - (pars$burnin - pars$tdiff - 1)  #time difference
+        t_current <- time - threshold  #time difference
         foi <- lambda_double * (1-(yr_rate * t_current))
       }
       
@@ -133,7 +138,7 @@ age_si = function(time, y, pars) {
       } else if (time >= threshold) {
         
         yr_rate <- (1 - shape) / ((pars$burnin + pars$tdiff) - threshold)  #define yearly rate of decline
-        t_current <- time - (pars$burnin - pars$tdiff - 1)  #time difference
+        t_current <- time - threshold  #time difference
         foi <- lambda_half * (1-(yr_rate * t_current))
       }
       
