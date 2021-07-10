@@ -6,17 +6,32 @@ rm(list = ls()) # clear working environment
 #######################
 #### Set directory ####
 #######################
-setwd("/storage/users/gmilne/test")  #cluster
-# setwd("~/Desktop/R Projects/stan")  #local
+# Sets working directory based on environment (Cluster (RVC or UCL), or local). 
+# Options: "RVC", "UCL", "none"
+cluster <- "UCL"
+
+if (cluster == "RVC") {
+  setwd("/storage/users/gmilne/test")  #cluster (RVC)
+  
+} else if (cluster == "UCL") { 
+  setwd("/lustre/scratch/scratch/ucbtgmi")        #cluster (UCL)
+  
+} else if (cluster == "none") { 
+  setwd("~/Desktop/R Projects/stan")  #local
+  
+}
+
 
 ############
 # Set seed #
 ############
-if(getwd()=="/Users/gregorymilne/Desktop/R Projects/stan"){ #local
+if(cluster == "none"){ #local
   SEED = 1
   
-} else if (getwd()=="/storage/users/gmilne/test"){ #cluster
+} else if (cluster == "RVC" | cluster == "UCL"){ #cluster
   SEED = as.numeric(Sys.getenv("SEED"))
+  # SEED = 1
+  
 }
 
 set.seed(SEED)
@@ -24,12 +39,12 @@ set.seed(SEED)
 ##################
 ## Load scripts ##
 ##################
-if (getwd()=="/Users/gregorymilne/Desktop/R Projects/stan"){ #local
+if (cluster == "none") { #local
   source("R files/setparms.R")
   source("R files/diagnostics.R")
   source("R files/model.R")
   
-} else if (getwd()=="/storage/users/gmilne/test"){ #cluster
+} else if (cluster == "RVC" | cluster == "UCL"){ #cluster
   source("setparms.R")
   source("diagnostics.R")
   source("model.R")
@@ -45,8 +60,12 @@ library(dplyr)
 ###################
 # Additional data #
 ###################
-## no. iterations on each for loop
-nsim  <- 600
+
+niter <- 1000                      # no. jobs to submit
+tot_iter <- 60000                 # total number of samples to run
+# nsim <- ceiling(tot_iter / niter) # no. iterations on each for loop
+
+nsim <- 1
 
 ## no. parameters to fit
 npars <- 3
