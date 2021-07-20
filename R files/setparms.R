@@ -6,33 +6,42 @@ pars  <- list(amax=55,
               log.lambda0 = log(0.02),
               log.shape= log(0.60),
               log.tdecline = log(20))
-
-pars$agrps    <- pars$amax*4
+pars$agrps    <- pars$amax*4  # no. age groups
 pars$la       <- (pars$amax/pars$agrps)  # no. years in each age group
 pars$da       <-  1/pars$la  # ageing rate
 pars$age      <- seq(0+pars$la/2, pars$amax-pars$la/2, length.out=pars$agrps) # age at midpoints of age groups
+
+
 pars$r        <- 1/(21/365)  # maternally-derived IgG half life of 3 weeks (Villard et al., 2016. Diagnostic microbiology and infectious disease;84(1):22-33)
 pars$mctr     <- c(0.15, 0.44, 0.71)  # SYROCOT 2007. The Lancet 369
-pars$burnin   <- 750
+pars$post_pred <- 1 #posterior predictions (1) or not? (0)
+
+if (pars$post_pred == 0) {
+  pars$burnin   <- 750
+  
+} else if (pars$post_pred == 1) {
+  pars$burnin   <- 2000
+}
+
 
 # Seroprevalence data
-if (getwd()=="/Users/gregorymilne/Desktop/R Projects/stan"){ #local
+if (cluster == "none"){ #local
   df <- readRDS("data/global_data.rds")
   
-} else if (getwd()=="/storage/users/gmilne/test"){ #cluster
+} else if (cluster == "RVC" | cluster == "UCL"){ #cluster
   df <- readRDS("global_data.rds")
 }
 
 countries <- sort(unique(df$country)) #countries in the dataset
 
-pars$country <- "Brazil"
+pars$country <- "Saudi Arabia"
 fitting_data <- subset(df, df$country == pars$country)
 
 # Load demographic data
-if (getwd()=="/Users/gregorymilne/Desktop/R Projects/stan"){ #local
+if (cluster == "none"){ #local
   source("R files/demogdat.R")
   
-} else if (getwd()=="/storage/users/gmilne/test"){ #cluster
+} else if (cluster == "RVC" | cluster == "UCL"){ #cluster
   source("demogdat.R")
 }
 
@@ -49,7 +58,15 @@ pars$age_foi      <- "constant"
 pars$troubleshoot <- 0
 
 # For forecasting: if 1, time interval set to be longer
-pars$forecast <- 1
+if (pars$post_pred == 0) {
+  pars$forecast <- 0
+  
+} else if (pars$post_pred == 1) {
+  pars$forecast <- 1
+}
+
+# No. of years to forecast after the final data sampling year
+pars$years_forecast <- 50
 
 ## Number of years between 1st & last data time points
 pars$tdiff <- max(fitting_data$year) - min(fitting_data$year)
@@ -93,5 +110,5 @@ if (pars$forecast == 0) {
   time <- seq(1, pars$burnin + pars$tdiff, 1)
   
 } else if(pars$forecast == 1){
-  time <- seq(1, pars$burnin + pars$tdiff + 50, 1)
+  time <- seq(1, pars$burnin + pars$tdiff + pars$years_forecast, 1)
 }
