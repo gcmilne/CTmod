@@ -8,7 +8,7 @@ rm(list = ls()) # clear working environment
 #######################
 # Sets working directory based on environment (Cluster (RVC or UCL), or local). 
 # Options: "RVC", "UCL", "none"
-cluster <- "UCL"
+cluster <- "RVC"
 
 if (cluster == "RVC") {
   setwd("/storage/users/gmilne/test")  #cluster (RVC)
@@ -30,8 +30,7 @@ if(cluster == "none"){ #local
   
 } else if (cluster == "RVC" | cluster == "UCL"){ #cluster
   SEED = as.numeric(Sys.getenv("SEED"))
-  # SEED = 1
-  
+
 }
 
 set.seed(SEED)
@@ -61,11 +60,17 @@ library(dplyr)
 # Additional data #
 ###################
 
-niter <- 1000                      # no. jobs to submit
-tot_iter <- 60000                 # total number of samples to run
-# nsim <- ceiling(tot_iter / niter) # no. iterations on each for loop
+if (cluster == "UCL") {
+  niter <- 1000                      # no. jobs to submit
+  tot_iter <- 60000                 # total number of samples to run
+  
+} else if (cluster == "RVC") {
+  niter <- 68                      # no. jobs to submit
+  tot_iter <- 60000                 # total number of samples to run
+  
+}
 
-nsim <- 1
+nsim <- ceiling(tot_iter / niter) # no. iterations on each for loop
 
 ## no. parameters to fit
 npars <- 3
