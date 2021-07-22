@@ -193,7 +193,6 @@ age_si = function(time, y, pars) {
   births     <- sum(births_age)
   
   ## Calculate conception distribution for 3 trimesters
-  # for (i in ((which(births_age !=0)[1])-1):(pars$agrps-3)) {
   for (i in 1:(pars$agrps-3)) {
     
     c1[i] <- births_age[i+1] 
@@ -209,11 +208,8 @@ age_si = function(time, y, pars) {
   obs_pI <- pI * (pars$se + pars$sp - 1) + (1 - pars$sp)
   
   # Calculating seroconversions in pregnancy and cases of congenital disease
-  # for (i in ((which(births_age !=0)[1])-1):(pars$agrps - 3)) {
   for (i in 1:(pars$agrps - 3)) {
     
-    
-    # if (i==(which(births_age !=0)[1])-1) {
     if (i==1) {
       
       dprev[i]     <- 0
@@ -259,15 +255,12 @@ age_si = function(time, y, pars) {
       if (i==1) {
         
         # susceptible - born seronegative or having lost maternal antibodies, no previous exposure
-        # dS[i]  <-  (births - matAbt - ctt) + pars$r*Im[i] - foi*S[i] - pars$d[i]*S[i] - pars$da[1]*S[i]
         dS[i]  <-  (births - matAbt - ctt) + pars$r*Im[i] - foi*S[i] - pars$d[i]*S[i] - pars$da*S[i]
         
         # infected - either congenitally or by foi
-        # dI[i]  <- (ctt + foi*(Na[i]-I[i]) - pars$d[i]*I[i] - pars$da[1]*I[i])
         dI[i]  <- (ctt + foi*(Na[i]-I[i]) - pars$d[i]*I[i] - pars$da*I[i])
         
         # maternal antibody positive 
-        # dIm[i] <- matAbt - (foi+ pars$r+ pars$d[i] + pars$da[1])*Im[i]
         dIm[i] <- matAbt - (foi+ pars$r+ pars$d[i] + pars$da)*Im[i]
         
 
@@ -279,33 +272,6 @@ age_si = function(time, y, pars) {
 
       }
 
-      
-      # } else if (i > 1 & i < 10) {
-      # 
-      #   dS[i]  <- pars$da[1]*S[i-1]  + pars$r*Im[i] - foi*S[i] - pars$d[i]*S[i] - pars$da[1]*S[i]
-      #   dI[i]  <- pars$da[1]*I[i-1]  + foi*(Na[i] - I[i]) - pars$d[i] * I[i] - pars$da[1]*I[i]
-      #   dIm[i] <- pars$da[1]*Im[i-1] - (foi + pars$r + pars$d[i] + pars$da[1]) * Im[i]
-      # 
-      # } else if (i == 10) {
-      # 
-      #   dS[i]  <- pars$da[1]*S[i-1]  + pars$r*Im[i] - foi*S[i] - pars$d[i]*S[i] - pars$da[2]*S[i]
-      #   dI[i]  <- pars$da[1]*I[i-1]  + foi*(Na[i] - I[i]) - pars$d[i] * I[i] - pars$da[2]*I[i]
-      #   dIm[i] <- pars$da[1]*Im[i-1] - (foi + pars$r + pars$d[i] + pars$da[2]) * Im[i]
-
-
-      # } else if (i == 11) {
-      # 
-      #   dS[i]  <- pars$da[2]*S[i-1]  + pars$r*Im[i] - foi*S[i] - pars$d[i]*S[i] - pars$da[3]*S[i]
-      #   dI[i]  <- pars$da[2]*I[i-1]  + foi*(Na[i] - I[i]) - pars$d[i] * I[i] - pars$da[3]*I[i]
-      #   dIm[i] <- pars$da[2]*Im[i-1] - (foi + pars$r + pars$d[i] + pars$da[3]) * Im[i]
-
-      # } else if (i > 11 & i <= pars$agrps) {
-      # 
-      #   dS[i]  <- pars$da[length(pars$da)]*S[i-1]  + pars$r*Im[i] - foi*S[i] - pars$d[i]*S[i] - pars$da[length(pars$da)]*S[i]
-      #   dI[i]  <- pars$da[length(pars$da)]*I[i-1]  + foi*(Na[i] - I[i]) - pars$d[i] * I[i] - pars$da[length(pars$da)]*I[i]
-      #   dIm[i] <- pars$da[length(pars$da)]*Im[i-1] - (foi + pars$r + pars$d[i] + pars$da[length(pars$da)]) * Im[i]
-      # 
-      # }
     }
     
     
