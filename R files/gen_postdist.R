@@ -122,10 +122,6 @@ post.lambda   <- sorted_lik$log.lambda0
 post.shape    <- sorted_lik$log.shape
 post.tdecline <- sorted_lik$log.tdecline
 
-# SAVE the posterior distribution
-post <- data.frame(post.lambda, post.shape, post.tdecline)
-saveRDS(post, file = paste("posteriors/", pars$country, "/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
-
 ## Medians & 95% CIs
 # lambda0
 x<-describe_posterior(post.lambda, centrality = "median")
@@ -235,3 +231,6 @@ posteriors <- data.frame(par = c("lambda0", "shape", "tdecline"),
 )
 
 
+# SAVE the posterior distribution
+post <- data.frame(post.lambda, post.shape, post.tdecline)
+saveRDS(post, file = paste("posteriors/", pars$country, "/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
