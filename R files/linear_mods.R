@@ -31,15 +31,6 @@ p0 <- ggplot(data=df, aes(y=yfit0, x=year, group=country, col=country)) +
 ## simpler model
 # m1<-lmer(prev~yrstd+(1|country), data=df)
 
-
-m1<-lmer(prev~year+(1|country), data=df)
-
-df$yfit1 <- fitted(m1)
-
-#CIs around estimate
-confint(m1)
-
-
 ## estimate annual declines in seroprevalence
 # model with un-standardised year
 m1<-lmer(prev~year+(1|country), data=df)
@@ -49,14 +40,18 @@ df$yfit1 <- fitted(m1)
 confint(m1)
 
 
-
 # rename Iran to have shorter name for plotting
 df$country <- factor(df$country, labels= c(levels(df$country)[1:6], "Iran", levels(df$country)[8:11]))
 
 #create custom color scale
 library(RColorBrewer)
-myColors <- brewer.pal(11,"PuOr")
-myColors[6] <- brewer.pal(11,"PRGn")[5]   #make pale colours bolder
+# myColors <- brewer.pal(11,"PuOr")
+# myColors[6] <- brewer.pal(11,"PRGn")[5]   #make pale colours bolder
+
+display.brewer.all(n=11,type="div",exact.n=TRUE)
+myColors <- brewer.pal(11,"Spectral")
+
+
 names(myColors) <- levels(df$country)
 colScale <- scale_colour_manual(name = "plotcols",values = myColors)
 
@@ -65,20 +60,23 @@ colScale <- scale_colour_manual(name = "plotcols",values = myColors)
 p1 <- ggplot(data=df, aes(y=yfit1, x=year, colour = country)) +
   geom_line() +
   geom_point(data=df, aes(y=prev, x=year)) +
-  facet_wrap(~country) +
+  facet_wrap(~country, ncol=3) +
+  scale_x_continuous(limits=c(1980, 2020), breaks=seq(1983, 2016, 11)) + 
   ylab("Seroprevalence") +
-  xlab("Median sampling year (standardised)") +
+  xlab("Median sampling year") +
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") +
-  theme(strip.background = element_rect(fill=myColors[9])) +
-  # theme(strip.text = element_text(colour = 'black')) +
-  theme(legend.position = "none", panel.grid = element_blank(), axis.ticks = element_blank())
+  theme(strip.background = element_rect(fill="white")) +
+  theme(strip.text = element_text(colour = 'black')) +
+  theme(legend.position = "none", panel.grid = element_blank(), axis.ticks = element_blank()#, 
+        # strip.background = element_blank()
+        )
 
 #add colours
 p1 + colScale
 
-# save plot
-ggsave(filename = "plots/lm-global-seroprev.png", width = 6, height = 6,
-       units = "in", family = "Times")
+#Save
+ggsave(filename = "plots/lm-global-seroprev.pdf",
+       device = cairo_pdf, height = 6, width = 6, units = "in")
 
 ## no evidence to support the more complex model
 anova(m0, m1)
