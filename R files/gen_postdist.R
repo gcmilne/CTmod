@@ -53,35 +53,39 @@ getit <- function(time) {
 ################################################
 ## Read in parameter sets & likelihood values ##
 ################################################
-# niter <- 120                      # no. jobs to submit
-# tot_iter <- 60000                 # total number of samples to run
-# nsim <- ceiling(tot_iter / niter) # no. iterations on each for loop
+new_fit <- 1 #fitting with shape prior 0-2 (1) or 0-0.8 (0)
 
-
-if (pars$country == "Brazil" | pars$country == "Burkina Faso" | pars$country == "Cameroon") {
-  niter <- 100
+if (new_fit == 0) {
   
-} else if (pars$country == "Iran (Islamic Republic of)") {
-  niter <- 999
+  if (pars$country == "Brazil" | pars$country == "Burkina Faso" | pars$country == "Cameroon") {
+    niter <- 100
+    
+  } else if (pars$country == "Iran (Islamic Republic of)") {
+    niter <- 999
+    
+    # } else if (pars$country == "India") {
+    #   niter <- 989
+    
+  } else if (pars$country == "China" | pars$country == "Ethiopia" | pars$country == "Italy" | 
+             pars$country == "India" | pars$country == "Saudi Arabia" | pars$country == "Turkey" | 
+             pars$country == "United Kingdom") {
+    niter <- 1000  # no. jobs to submit
+  }
   
-} else if (pars$country == "India") {
-  niter <- 998
   
-} else if (pars$country == "China" | pars$country == "Ethiopia" | pars$country == "Italy" | 
-           pars$country == "Saudi Arabia" | pars$country == "Turkey" | pars$country == "United Kingdom") {
-  niter <- 1000  # no. jobs to submit
-}
-
-
-if (pars$country == "Brazil" | pars$country == "Burkina Faso" | pars$country == "Cameroon") {
-  nsim  <- 600
-
-} else if (pars$country == "China" | pars$country == "Ethiopia" | pars$country == "Italy" | 
-           pars$country == "Iran (Islamic Republic of)" | pars$country == "India" |
-           pars$country == "Saudi Arabia" | pars$country == "Turkey" | pars$country == "United Kingdom") {
-  nsim  <- 60
+  if (pars$country == "Brazil" | pars$country == "Burkina Faso" | pars$country == "Cameroon") {
+    nsim  <- 600
+    
+  } else if (pars$country != "Brazil" | pars$country != "Burkina Faso" | pars$country != "Cameroon") {
+    nsim  <- 60
+    
+  }
   
-}
+} else if (new_fit == 1) { 
+  
+  niter <- 1000
+  nsim <- 60
+  }
 
 npars <- 3
 
@@ -90,21 +94,33 @@ names(out_likpar) <- c("log.lambda0", "log.shape", "log.tdecline", "likelihood")
 counter <- seq(1, (nsim*niter), by = 1/nsim)  # used in for loop to pick correct parliks_ file
 
 #works for multiples of 10
-
-## To do: read in differently for countries with missing iterations in the middle (e.g. India) ##
 i_seq <- seq(1, niter*nsim, by=nsim)
-for(i in i_seq){
-  if(i==1){
-    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/", pars$country, "/parliks_", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_", i, ".Rdata", sep = ""))
-  } else if (i > 1 & i < (niter*nsim)){
-    out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/", pars$country, "/parliks_", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_", i-(i-counter[i]), ".Rdata", sep = ""))
+
+if (new_fit == 0) { # with shape prior 0 - 0.8
+  
+  for(i in i_seq){
+    if(i==1){
+      out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/", pars$country, "/parliks_", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_", i, ".Rdata", sep = ""))
+    } else if (i > 1 & i < (niter*nsim)){
+      out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/", pars$country, "/parliks_", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_", i-(i-counter[i]), ".Rdata", sep = ""))
+    }
   }
+  
+} else if (new_fit == 1) { # with shape prior 0 - 2
+  
+  for(i in i_seq){
+    if(i==1){
+      out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/", pars$country, "/new_fit", "/parliks_", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_", i, ".Rdata", sep = ""))
+    } else if (i > 1 & i < (niter*nsim)){
+      out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/", pars$country,  "/new_fit", "/parliks_", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_", i-(i-counter[i]), ".Rdata", sep = ""))
+    }
+  }
+  
 }
 
 colnames(out_likpar) <- c("log.lambda0", "log.shape",  "log.tdecline", "likelihood")
 
-
-sum(is.na(out_likpar$likelihood))
+# sum(is.na(out_likpar$likelihood))  #check if NAs in likelihood
 
 
 ###########################################
@@ -149,13 +165,20 @@ ci.high.tdecline   <- exp(x$CI_high)
 ## Lambda0
 
 #dataframe
-dat <- data.frame(dens = c(prior.lambda, post.lambda), 
-                  ci_low = ci.low.lambda,
-                  ci_high = ci.high.lambda,
-                  lines = c(rep("a", length(prior.lambda)), rep("b", length(post.lambda))))
+dat <- data.frame(
+  dens = c(prior.lambda, post.lambda), 
+  ci_low = ci.low.lambda,
+  ci_high = ci.high.lambda,
+  lines = c(rep("a", length(prior.lambda)), rep("b", length(post.lambda)))
+  )
 
 #plot
-lambda0 <- ggplot(dat, aes(x = exp(dens), fill = lines)) + 
+if (which(countries == pars$country) == 1) {
+  lambda0 <- vector("list", length=length(countries))
+}
+
+lambda0[[which(pars$country == countries)]] <- ggplot(
+  dat, aes(x = exp(dens), fill = lines)) + 
   geom_density(alpha = 0.5) +
   geom_vline(xintercept = post.median.lambda) +                   # mode
   geom_vline(xintercept = ci.low.lambda, linetype='dotted') +   # lower ci
@@ -178,7 +201,12 @@ dat <- data.frame(dens = c(prior.shape, post.shape),
 
 
 #plot
-shape <- ggplot(dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 0.5) + 
+if (which(countries == pars$country) == 1) {
+  shape <- vector("list", length=length(countries))
+}
+
+shape[[which(pars$country == countries)]] <- ggplot(
+  dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 0.5) + 
   geom_vline(xintercept = post.median.shape) +                   # mode
   geom_vline(xintercept = ci.low.shape, linetype='dotted') +   # lower ci
   geom_vline(xintercept = ci.high.shape, linetype='dotted') +  # upper ci
@@ -202,7 +230,12 @@ dat <- data.frame(dens = c(prior.tdecline, post.tdecline),
                   lines = c(rep("a", length(prior.tdecline)), rep("b", length(post.tdecline))))
 
 #plot
-tdecline <-ggplot(dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 0.5) + 
+if (which(countries == pars$country) == 1) {
+  tdecline <- vector("list", length=length(countries))
+}
+
+tdecline[[which(pars$country == countries)]] <- ggplot(
+  dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 0.5) + 
   geom_vline(xintercept = post.median.tdecline) +                   # mode
   geom_vline(xintercept = ci.low.tdecline, linetype='dotted') +   # lower ci
   geom_vline(xintercept = ci.high.tdecline, linetype='dotted') +  # upper ci 
@@ -213,12 +246,42 @@ tdecline <-ggplot(dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 
   ylab("Density") + 
   theme(plot.margin=unit(c(rep(1,4)),"cm"))
 
-## Multipanel plot of priors vs. posteriors
-ggarrange(lambda0, shape, tdecline, ncol=2, nrow=2, 
+## Multipanel plot of priors vs. posteriors (for one country)
+ggarrange(lambda0[[which(pars$country == countries)]], 
+          shape[[which(pars$country == countries)]], 
+          tdecline[[which(pars$country == countries)]], 
+          ncol=2, nrow=2, 
           labels=c("(a)", "(b)", "(c)"), font.label=list(size=12, family="Times"), hjust = -2)
 
-ggsave(filename = paste("plots/", pars$country, "/", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_posteriors.pdf", sep=""), width = 6, height = 6,
-units = "in", family = "Times")
+# ggsave(filename = paste("plots/", pars$country, "/", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_posteriors.pdf", sep=""), width = 6, height = 6,
+# units = "in", family = "Times")
+
+
+# ## Multipanel plot of priors vs. posteriors (one parameter, all countries)
+# #lambda
+# multipanel_lambda   <- wrap_plots(lambda0) + 
+#   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) & 
+#   theme(plot.margin=unit(c(rep(0.2,4)),"cm")) 
+# 
+# #shape
+# multipanel_shape    <- wrap_plots(shape) + 
+#   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) & 
+#   theme(plot.margin=unit(c(rep(0.2,4)),"cm"))
+# 
+# #tdecline
+# multipanel_tdecline    <- wrap_plots(tdecline) + 
+#   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) & 
+#   theme(plot.margin=unit(c(rep(0.2,4)),"cm"))
+# 
+# #Save
+# ggsave(multipanel_lambda, filename = "plots/lambda_multipanel.pdf",
+#        device = cairo_pdf, height = 8, width = 8, units = "in")
+# 
+# ggsave(multipanel_shape, filename = "plots/shape_multipanel.pdf",
+#        device = cairo_pdf, height = 8, width = 8, units = "in")
+# 
+# ggsave(multipanel_tdecline, filename = "plots/tdecline_multipanel.pdf",
+#        device = cairo_pdf, height = 8, width = 8, units = "in")
 
 
 ####################################
@@ -233,4 +296,9 @@ posteriors <- data.frame(par = c("lambda0", "shape", "tdecline"),
 
 # SAVE the posterior distribution
 post <- data.frame(post.lambda, post.shape, post.tdecline)
-saveRDS(post, file = paste("posteriors/", pars$country, "/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
+
+if (new_fit == 0) {
+  saveRDS(post, file = paste("posteriors/", pars$country, "/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
+} else if (new_fit == 1) {
+  saveRDS(post, file = paste("posteriors/", pars$country, "/", "new_fit/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
+}
