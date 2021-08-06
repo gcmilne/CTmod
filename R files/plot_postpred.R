@@ -2,6 +2,13 @@
 ## Script to plot posterior predictions from each country ##
 ############################################################
 
+#################
+# Load packages #
+#################
+library(binom)
+library(patchwork)
+library(RColorBrewer)
+
 # READ IN the posterior distribution
 rm(post.lambda, post.shape, post.tdecline)
 post <- readRDS(file = paste("posteriors/", pars$country, "/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
@@ -10,15 +17,30 @@ attach(post)
 ###################################
 ## Load in posterior predictions ##
 ###################################
-n_samples  <- 6    #no. parameter sets run on each cluster job
-niter      <- 100  #overall no. cluster jobs
+
+if (pars$country == "Brazil" | pars$country == "Burkina Faso") {
+  
+  n_samples  <- 6    #no. parameter sets run on each cluster job
+  niter      <- 100  #overall no. cluster jobs
+  
+} else if (pars$country == "Iran (Islamic Republic of)") {
+  
+  n_samples  <- 1    #no. parameter sets run on each cluster job
+  niter      <- 599  #overall no. cluster jobs
+  
+} else if(pars$country != "Brazil" | pars$country != "Burkina Faso" | pars$country != "Iran (Islamic Republic of)" )  { #for the rest of the countries 
+  
+  n_samples  <- 1    #no. parameter sets run on each cluster job
+  niter      <- 600  #overall no. cluster jobs
+  
+}
 
 prev_list <- ct_list <- vector("list", length=niter)
 
 for(i in 1:niter){
   
-  prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/", "prev_predictions/", "prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
-                                         pars$age_foi, "_", i, ".Rdata", sep = ""))
+  prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/", "prev_predictions/", "prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a",
+  pars$age_foi, "_", i, ".Rdata", sep = ""))
   
   ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/", "ct_predictions/", "ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
                                        pars$age_foi, "_", i, ".Rdata", sep = ""))
@@ -26,8 +48,8 @@ for(i in 1:niter){
 
 
 ## put data lists into dataframes
-prev_mat <- do.call(cbind.data.frame, prev_list)
-ct_mat <- do.call(cbind.data.frame, ct_list)
+prev_mat <- do.call(rbind.data.frame, prev_list)
+ct_mat <- do.call(rbind.data.frame, ct_list)
 
 ## Calculate median, upper & lower percentiles of model estimates
 ct_med <- ct_lower <- ct_upper <- prev_med <- prev_lower <- prev_upper <- vector("numeric", length=max(time))
@@ -123,6 +145,15 @@ for(i in 1:nrow(fitting_data)){
 new_tp <- (fitting_data$k + k_tp) / fitting_data$n
 true_prev <- data.frame(prev = new_tp, k = fitting_data$k + k_tp, n = fitting_data$n)
 
+## make sure can't get true prevalence < 0 
+for(i in 1:length(true_prev$k)){
+  if(true_prev$k[i]   < 0){
+    true_prev$k[i]    <- 0
+    true_prev$prev[i] <- true_prev$k[i]/true_prev$n[i]
+    
+  }
+}
+
 # Check concordance
 # plot(true_prev$prev, tp)
 
@@ -133,18 +164,21 @@ cis <- binom.confint(x=true_prev$k, n=true_prev$n, conf.level=0.95, methods="exa
 true_prev$ci_lo <- cis$lower
 true_prev$ci_up <- cis$upper
 
-#####################################
-## Plot modelled estimates vs data ##
-#####################################
+#####################
+## Create datasets ##
+#####################
 
 ################
 ## Prevalence ##
 ################
 
 ## Prevalence across years with data ##
+if (exists("prev_fit") == F) {  #only create if list not in existence
+  prev_fit <- vector("list", length=length(countries))
+}
 
-# Create df
-dat <- data.frame(
+prev_fit[[which(countries == pars$country)]] <- 
+  data.frame(
   time = fitting_data$year,             #sampling year
   dat_prev = true_prev$prev,            #data adjusted to true prevalence
   dat_low = true_prev$ci_lo,            #data lower interval
@@ -154,114 +188,36 @@ dat <- data.frame(
   mod_prev_up = prev_upper[year_diff]   #modelled prevalence upper interval
 )
 
-# Plot
-# make list to store all plots from different countries
-if (which(countries == pars$country) == 1) {
-  prev_fittingyears <- vector("list", length=length(countries))
+
+## Prevalence, past & forecasting ##
+# time points across which foi is declining
+timepoints <- (pars$burnin - (round(max(exp(post$post.tdecline)), 0))-10) : max(time)
+
+# equivalent years
+years <- (min(fitting_data$year) - (round(max(exp(post$post.tdecline)), 0))-10) : (max(fitting_data$year)+pars$years_forecast)
+
+# period from beginning of foi decrease to final data timepoint
+sampling_period <- (min(fitting_data$year) - round(exp(pars$log.tdecline), 0)) : max(fitting_data$year)
+
+## Create df for model estimates
+# make list to store model output from different countries
+if (exists("prev_all") == F) {  #only create if list not in existence
+  prev_all <- vector("list", length=length(countries))
 }
 
-prev_fittingyears[[which(countries == pars$country)]] <- ggplot(data=dat, aes(x=time, y=mod_prev)) + 
-  geom_line(size=0.3) + 
-  geom_ribbon(aes(ymin = mod_prev_low, ymax = mod_prev_up), alpha=0.2) +
-  geom_point(aes(y=dat_prev), col="grey", size=.3) + 
-  geom_errorbar(aes(width=.3, ymin = dat_low, ymax = dat_up),  col="grey", size=.25) + 
-  xlab("Year") + 
-  ylab("Seroprevalence") + 
-  scale_x_continuous(expand = c(0,0)) + 
-  # scale_y_continuous(limits=c(0.45, 0.85), expand = c(0,0)) +
-  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
-  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none")
+prev_all[[which(countries == pars$country)]] <- data.frame(
+  time         = years,                  #years of foi decrease
+  mod_prev     = prev_med[timepoints],   #modelled median prevalence
+  mod_prev_low = prev_lower[timepoints], #modelled prevalence lower interval
+  mod_prev_up  = prev_upper[timepoints]  #modelled prevalence upper interval
+)
 
-# Save
-# ggsave(filename = paste("plots/", pars$country, "/", pars$temporal_foi, "_prev_fittingyears", ".pdf", sep=""),
-# device = cairo_pdf, height = 6, width = 6, units = "in")
-
-
-## Prevalence across years of foi decrease ##
-if (pars$forecast == 0) { #without forecasting
-  
-  # time points across which foi is declining
-  timepoints <- (pars$burnin - round(exp(pars$log.tdecline), 0)) : max(time)
-  
-  # equivalent years
-  years <- (min(fitting_data$year) - round(exp(pars$log.tdecline), 0)) : (max(fitting_data$year))
-  
-  
-  # Create df for model estimates
-  mod <- data.frame(
-    time = years,  #years of foi decrease
-    mod_prev     = prev_med[timepoints],   #modelled median prevalence
-    mod_prev_low = prev_lower[timepoints], #modelled prevalence lower interval
-    mod_prev_up = prev_upper[timepoints]   #modelled prevalence upper interval
-  )
-  
-  # Create df for data
-  dat <- data.frame(
-    years = fitting_data$year, 
-    dat_prev = true_prev$prev,
-    dat_low = true_prev$ci_lo,
-    dat_up = true_prev$ci_up
-  )
-  
-  
-} else if (pars$forecast == 1){  #with forecasting
-  
-  # time points across which foi is declining
-  timepoints <- (pars$burnin - (round(max(exp(post$post.tdecline)), 0))-10) : max(time)
-  
-  # equivalent years
-  years <- (min(fitting_data$year) - (round(max(exp(post$post.tdecline)), 0))-10) : (max(fitting_data$year)+pars$years_forecast)
-  
-  # period from beginning of foi decrease to final data timepoint
-  sampling_period <- (min(fitting_data$year) - round(exp(pars$log.tdecline), 0)) : max(fitting_data$year)
-  
-  # Create df for model estimates
-  mod <- data.frame(
-    time = years,  #years of foi decrease
-    mod_prev     = prev_med[timepoints],   #modelled median prevalence
-    mod_prev_low = prev_lower[timepoints], #modelled prevalence lower interval
-    mod_prev_up = prev_upper[timepoints]   #modelled prevalence upper interval
-  )
-  
-  # Create df for data
-  dat <- data.frame(
-    years = fitting_data$year, 
-    dat_prev = true_prev$prev,
-    dat_low = true_prev$ci_lo,
-    dat_up = true_prev$ci_up
-  )
-  
-  
-}
-# plot the two datasets [note the empty call to ggplot()]
-# make list to store all plots from different countries
-if (which(countries == pars$country) == 1) {
-  prev_allyears <- vector("list", length=length(countries))
-}
-
-prev_allyears[[which(countries == pars$country)]] <- ggplot() + 
-  geom_line(data = mod, aes(x=years, y=mod_prev), size=0.3) + 
-  geom_ribbon(data = mod, aes(x=years, ymin = mod_prev_low, ymax = mod_prev_up), alpha=0.2) +
-  # geom_point(data = dat, aes(x=years, y=dat_prev), col="grey", size=.6) +
-  # geom_errorbar(data = dat, aes(width=.1, x=years, ymin = dat_low, ymax = dat_up),  col="grey", size=.6) +
-  xlab("Year") + 
-  ylab("Seroprevalence") + 
-  scale_x_continuous(expand = c(0,0)) + 
-  # scale_y_continuous(limits=c(0.45, 0.85), expand = c(0,0)) +
-  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
-  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none")
-
-# Save
-# ggsave(filename = paste("plots/", pars$country, "/", pars$temporal_foi, "_prev_allyears", ".pdf", sep=""),
-# device = cairo_pdf, height = 6, width = 6, units = "in")
 
 ##################
 ## CT incidence ##
 ##################
 
-## CT incidence across years with data ##
+## CT incidence, past & forecasting ##
 
 # Make CT incidence relative to no. births
 fitting_timepoints <- pars$burnin : (pars$burnin + pars$tdiff)
@@ -272,50 +228,7 @@ ct_rel     <- ct_med   / (births / 10000)  #CT incidence per 10,000 live births
 ct_rel_low <- ct_lower / (births / 10000)
 ct_rel_up  <- ct_upper / (births / 10000)
 
-# Create df
-dat <- data.frame(
-  time = fitting_years,                         #sampling year
-  ct_rel = ct_rel[fitting_timepoints],          #modelled ct incidence
-  ct_rel_low = ct_rel_low[fitting_timepoints],  #modelled ct incidence lower interval
-  ct_rel_up = ct_rel_up[fitting_timepoints]     #modelled ct incidence upper interval
-)
-
-# Plot
-# make list to store all plots from different countries
-if (which(countries == pars$country) == 1) {
-  ct_fittingyears <- vector("list", length=length(countries))
-}
-
-ct_fittingyears[[which(countries == pars$country)]] <- ggplot(data=dat, aes(x=time, y=ct_rel)) + 
-  geom_line(size=.3) + 
-  geom_ribbon(aes(ymin = ct_rel_low, ymax = ct_rel_up), alpha=0.2) + 
-  xlab("Year") + 
-  ylab("Incidence per 10 000 live births") + 
-  scale_x_continuous(expand = c(0,0)) + 
-  scale_y_continuous(expand = c(0,0)) + 
-  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
-  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none")
-
-# Save
-# ggsave(filename = paste("plots/", pars$country, "/", pars$temporal_foi, "_CT_fittingyears", ".pdf", sep=""),
-# device = cairo_pdf, height = 6, width = 6, units = "in")
-
-
-## CT incidence across years with foi decline (& forecasting) ##
-
-if (pars$forecast == 0){
-  
-  # Create df
-  dat <- data.frame(
-    time = years,                    #sampling year
-    ct_rel = ct_rel[timepoints],          #modelled ct incidence
-    ct_rel_low = ct_rel_low[timepoints],  #modelled ct incidence lower interval
-    ct_rel_up = ct_rel_up[timepoints]     #modelled ct incidence upper interval
-  )
-  
-  
-} else if (pars$forecast == 1){
+if (pars$forecast == 1){
   
   # time points across which foi is declining
   timepoints <- (pars$burnin - (round(max(exp(post$post.tdecline)), 0))-10) : max(time)
@@ -323,31 +236,169 @@ if (pars$forecast == 0){
   # equivalent years
   years <- (min(fitting_data$year) - (round(max(exp(post$post.tdecline)), 0))-10) : (max(fitting_data$year)+pars$years_forecast)
   
-  # Create df for model estimates
-  dat <- data.frame(
-    time = years,  #years of foi decrease
+  # Create df
+  if (exists("ct_all") == F) {  #only create if list not in existence
+    ct_all <- vector("list", length=length(countries))
+  }
+  
+  ct_all[[which(countries == pars$country)]] <- data.frame(
+    time = years,                         #years of foi decrease
     ct_rel = ct_rel[timepoints],          #modelled ct incidence
     ct_rel_low = ct_rel_low[timepoints],  #modelled ct incidence lower interval
     ct_rel_up = ct_rel_up[timepoints]     #modelled ct incidence upper interval
   )
   
+  # add sequelae (Torgerson et al., 2013. Bull WHO, 91, pp. 501-508)
+  ct_all[[which(countries == pars$country)]]$foetal_loss                 <- 0.024 * ct_all[[which(countries == pars$country)]]$ct_rel
+  ct_all[[which(countries == pars$country)]]$neonatal_death              <- 0.007 * ct_all[[which(countries == pars$country)]]$ct_rel
+  ct_all[[which(countries == pars$country)]]$intracranial_calcifications <- 0.11  * ct_all[[which(countries == pars$country)]]$ct_rel
+  ct_all[[which(countries == pars$country)]]$hydrocephalus               <- 0.02  * ct_all[[which(countries == pars$country)]]$ct_rel
+  ct_all[[which(countries == pars$country)]]$cns_abnormalities           <- 0.029 * ct_all[[which(countries == pars$country)]]$ct_rel
+  
+  if (pars$country != "Brazil") {
+    ct_all[[which(countries == pars$country)]]$chorioretinitis_first     <- 0.13  * ct_all[[which(countries == pars$country)]]$ct_rel
+    ct_all[[which(countries == pars$country)]]$chorioretinitis_later     <- 0.16  * ct_all[[which(countries == pars$country)]]$ct_rel
+  
+    }  else if (pars$country == "Brazil") {
+      residual = (1 - (0.024 + 0.007  + 0.02 + 0.029)) #to avoid incidence > total cases, apply to residual incidence after sequelae with higher disability weights extracted
+      
+      ct_all[[which(countries == pars$country)]]$chorioretinitis_first   <- (0.80  * residual) * ct_all[[which(countries == pars$country)]]$ct_rel
+      ct_all[[which(countries == pars$country)]]$chorioretinitis_later   <- (0.10  * residual) * ct_all[[which(countries == pars$country)]]$ct_rel
+      
+    }
   
 }
 
 
-# Plot
+## (2) Prevalence, with past & forecasting ##
+
 # make list to store all plots from different countries
-if (which(countries == pars$country) == 1) {
+if (exists("prev_allyears") == F) {  #only create if list not in existence
+  prev_allyears <- vector("list", length=length(countries))
+}
+
+#Colour for geom_ribbon
+# display.brewer.pal(8, "Pastel1")
+ribbonColour <- brewer.pal(8, "Pastel2")[c(3, 7)]
+
+prev_allyears[[which(countries == pars$country)]] <- ggplot(
+  data=prev_all[[which(countries == pars$country)]]) + 
+  geom_line(aes(x=time, y=mod_prev), size=0.3) + 
+  geom_ribbon(aes(x=time, ymin = mod_prev_low, ymax = mod_prev_up), alpha=0.5, fill=ribbonColour[2]) +
+  annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
+           ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
+  xlab("Year") + 
+  ylab("Seroprevalence") + 
+  scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks = 3) + 
+  scale_y_continuous(expand = c(0,0)) +
+  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+  theme(legend.position = "none")
+
+## Calculate where to place inset within main plot area
+space_below_plot <- min(prev_all[[which(countries == pars$country)]]$mod_prev_low[which(years == 1900):which(years == 1975)])
+space_above_plot <- 1 - (max(prev_all[[which(countries == pars$country)]]$mod_prev_up[which(years == 1900):which(years == 1975)]))
+
+if (space_below_plot > space_above_plot) { 
+  
+  ymin_val <- 0
+  ymax_val <- space_below_plot
+  xmin_val <- 1900
+  xmax_val <- min(fitting_data$year) - 10
+  
+  # make arrow
+  arrow_vec <- data.frame(
+    x1 = min(fitting_data$year),
+    x2 = xmax_val, 
+    y1 = prev_all[[which(countries == pars$country)]]$mod_prev_low[which(prev_all[[which(countries == pars$country)]]$time == min(fitting_data$year))], #find intersection
+    y2 = ymax_val
+  )
+  
+} else if (space_below_plot < space_above_plot) { 
+  
+  ymin_val <- 1 - space_above_plot
+  ymax_val <- 1
+  xmin_val <- 1900
+  xmax_val <- min(fitting_data$year) - 10
+  
+  # make arrow
+  arrow_vec <- data.frame(
+    x1 = min(fitting_data$year),
+    x2 = xmax_val, 
+    y1 = prev_all[[which(countries == pars$country)]]$mod_prev_up[which(prev_all[[which(countries == pars$country)]]$time == min(fitting_data$year))], #find intersection
+    y2 = ymin_val
+  )
+  
+  prev_allyears[[which(countries == pars$country)]] <- prev_allyears[[which(countries == pars$country)]] +
+    scale_y_continuous(expand = c(0,0), limits=c(0,1))  # change main plot limits to allow inset to fit
+  
+}
+
+## Inset graph
+if (exists("prev_inset") == F) {  #only create if list not in existence
+  prev_inset <- vector("list", length=length(countries))
+}
+
+# Calculate no. breaks for y axis
+if (ymax_val - ymin_val > 0.4) {
+  num_breaks <- 3
+} else if (ymax_val - ymin_val < 0.4) { 
+  num_breaks <- 2
+}
+
+prev_inset[[which(countries == pars$country)]] <- ggplot(
+  data=prev_fit[[which(countries == pars$country)]], aes(x=time, y=mod_prev)) + 
+  geom_line(size=0.2) + 
+  geom_ribbon(aes(ymin = mod_prev_low, ymax = mod_prev_up), alpha=0.5, fill = ribbonColour[2]) +
+  geom_point(aes(y=dat_prev), col="grey", size=0.2) +
+  geom_errorbar(aes(width=.3, ymin = dat_low, ymax = dat_up),  col="grey", size=0.2) +
+  scale_x_continuous(breaks=c(min(fitting_data$year), max(fitting_data$year))) +
+  coord_cartesian(xlim=c(min(fitting_data$year), max(fitting_data$year, 
+                                                     ylim=c(min(prev_fit[[which(countries == pars$country)]]$dat_low), 
+                                                            max(prev_fit[[which(countries == pars$country)]]$dat_up))))) + #avoids error bars getting clipped
+  scale_y_continuous(n.breaks=num_breaks) +
+  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+  theme_light(base_size = 10, base_line_size = 0, base_family = "Times") + 
+  theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank())
+
+  
+## Combined main plot with inset
+if (exists("prev_combo") == F) {  #only create if list not in existence
+  prev_combo <- vector("list", length=length(countries))
+}
+
+prev_combo[[which(countries == pars$country)]] <- prev_allyears[[which(countries == pars$country)]] + 
+  annotation_custom(
+    ggplotGrob(prev_inset[[which(countries == pars$country)]]), 
+    xmin = xmin_val, xmax = xmax_val, ymin = ymin_val, ymax = ymax_val
+  ) + 
+  geom_segment(data = arrow_vec, aes(x = x1, y = y1,       #add arrow
+                                     xend = x2, yend = y2),
+               lineend = "round", 
+               linejoin = "round",
+               size = 0.3, 
+               arrow = arrow(length = unit(0.04, "inches")),
+               colour = "grey")
+
+
+## (3) CT incidence, with past & forecasting ##
+
+# make list to store all plots from different countries
+if (exists("ct_allyears") == F) {  #only create if list not in existence
   ct_allyears <- vector("list", length=length(countries))
 }
 
-ct_allyears[[which(countries == pars$country)]] <- ggplot(data=dat, aes(x=time, y=ct_rel)) + 
-  geom_line(size=.3) + 
-  geom_ribbon(aes(ymin = ct_rel_low, ymax = ct_rel_up), alpha=0.2) + 
+# Main plot
+ct_allyears[[which(countries == pars$country)]] <- ggplot(
+  data=ct_all[[which(countries == pars$country)]], aes(x=time, y=ct_rel)) + 
+  geom_line(aes(y=ct_rel), size=.3) +                        # Overall CT cases
+  geom_ribbon(aes(ymin = ct_rel_low, ymax = ct_rel_up), alpha=0.5, fill = ribbonColour[2]) +
+  annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
+           ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
   xlab("Year") + 
   ylab("Incidence per 10 000 live births") + 
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) + 
+  scale_x_continuous(expand = c(0,0), limits = c(1900, 2030)) + 
+  scale_y_continuous(expand = c(0,0), n.breaks = 5) + 
   theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
   theme(legend.position = "none")
@@ -357,34 +408,104 @@ ct_allyears[[which(countries == pars$country)]] <- ggplot(data=dat, aes(x=time, 
 # device = cairo_pdf, height = 6, width = 6, units = "in")
 
 
-######################################################
-## Multipanel plot for all results from one country ##
-######################################################
-country_index <- which(countries == pars$country)
-ggarrange(prev_fittingyears[[country_index]], prev_allyears[[country_index]], 
-          ct_fittingyears[[country_index]], ct_allyears[[country_index]], ncol=2, nrow=2,
-          labels=c("(a)", "(b)", "(c)", "(d)"), font.label=list(size=12, family="Times"),
-          hjust = -.2)
+# Inset plot
+# make list to store all plots from different countries
+if (exists("ct_inset") == F) {  #only create if list not in existence
+  ct_inset <- vector("list", length=length(countries))
+}
+
+# colours
+library(RColorBrewer)
+# display.brewer.pal(8, "Pastel2") # choose colours
+
+myColors <- brewer.pal(7,"Set2") #set colours to use
+
+inset_line_size = 0.4
+
+ct_inset[[which(countries == pars$country)]] <- ggplot(
+  data=ct_all[[which(countries == pars$country)]], aes(x=time, y=ct_rel)) + 
+  geom_line(aes(y=chorioretinitis_first), size=inset_line_size, col = myColors[1]) +         # Chorioretinitis in first year
+  geom_line(aes(y=chorioretinitis_later), size=inset_line_size, col = myColors[2]) +         # Chorioretinitis in later life
+  geom_line(aes(y=intracranial_calcifications), size=inset_line_size, col = myColors[3]) +   # Intracranial calcifications
+  geom_line(aes(y=cns_abnormalities), size=inset_line_size, col = myColors[4]) +             # CNS abnormalities
+  geom_line(aes(y=foetal_loss), size=inset_line_size, col = myColors[5]) +                   # Foetal loss
+  geom_line(aes(y=hydrocephalus), size=inset_line_size, col = myColors[6]) +                 # Hydrocephalus
+  geom_line(aes(y=neonatal_death), size=inset_line_size, col = myColors[7]) +                # Neonatal death
+  annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
+           # ymin=min(ct_all[[which(countries == pars$country)]]$ct_rel_low), 
+           ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
+  scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks=2) + 
+  scale_y_continuous(expand = c(0,0), n.breaks=3) + 
+  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+  theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank()
+)
+
+# ct_inset[[which(countries == pars$country)]]
 
 
-# Save
-# ggsave(filename = paste("plots/", pars$country, "/", pars$temporal_foi, "_multipanel", ".pdf", sep=""),
-# device = cairo_pdf, height = 6, width = 6, units = "in")
+# Combine main plot with inset plot
+# make list to store all plots from different countries
+if (exists("ct_combo") == F) {  #only create if list not in existence
+  ct_combo <- vector("list", length=length(countries))
+}
+
+if (pars$country == "Cameroon" | pars$country == "Ethiopia") {
+  ymin_val <-  max(ct_all[[which(countries == pars$country)]]$ct_rel_up[which(years == 1900):which(years == 1975)]) * 1.1
+  ymax_val <-  max(ct_all[[which(countries == pars$country)]]$ct_rel_up[which(years == 1900):which(years == 2025)])
+  xmin_val <- 1900
+  xmax_val <- 1975
+  
+} else if (pars$country == "Iran (Islamic Republic of)") { 
+  ymin_val <- 0
+  ymax_val <- min(ct_all[[which(countries == pars$country)]]$ct_rel_low[which(years == 1915):which(years == 2000)]) * 0.92
+  xmin_val <- 1932
+  xmax_val <- 2007
+  
+} else if (pars$country != "Cameroon" | pars$country != "Ethiopia" | pars$country != "Iran (Islamic Republic of)") { 
+  ymin_val <- 0
+  ymax_val <- min(ct_all[[which(countries == pars$country)]]$ct_rel_low[which(years == 1900):which(years == 1975)]) * 0.90
+  xmin_val <- 1900
+  xmax_val <- 1975
+  
+}
+
+ct_combo[[which(countries == pars$country)]] <- ct_allyears[[which(countries == pars$country)]] + 
+  annotation_custom(
+    ggplotGrob(ct_inset[[which(countries == pars$country)]]), 
+    xmin = xmin_val, xmax = xmax_val, ymin = ymin_val, ymax = ymax_val
+  )
 
 
-### Multipanel with each modelled result for all countries
-## (1) Prevalence (fitting years)
-wrap_plots(prev_fittingyears[[1]], prev_fittingyears[[2]])
-ggarrange(prev_fittingyears, prev_fittingyears[[2]], prev_fittingyears[[3]], ncol=3, nrow=4, 
-          labels=c("(a)", "(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)", "(i)", "(j)", "(k)"),
-          font.label=list(size=12, family="Times"), hjust = -.2)
+###################### 
+## Multipanel plots ##
+######################
 
-## (2) Prevalence (all years)
-wrap_plots(prev_allyears[[1]], prev_allyears[[2]])
+## Prevalence, with inset
+wrap_plots(prev_combo, nrow=4, ncol=3) + 
+  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(h)')))
 
-## (3) CT incidence (fitting years)
-wrap_plots(ct_fittingyears[[1]], ct_fittingyears[[2]])
+# letters[which(pars$country == countries)]  #which letter corresponds to which country?
 
-## (4) CT incidence (all years)
-wrap_plots(ct_allyears[[1]], ct_allyears[[2]])
+ggsave(filename = "plots/prev_inset_multipanel.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
 
+## CT, with inset
+wrap_plots(ct_combo[[1]], ct_combo[[2]], ct_combo[[3]], ct_combo[[4]], 
+           ct_combo[[5]], ct_combo[[7]], ct_combo[[8]], ct_combo[[9]], 
+           ct_combo[[10]], ct_combo[[11]], ncol = 3) + 
+  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)'))) &
+  ylab("CT incidence")
+
+
+
+# wrap_plots(ct_combo[[1]], ct_combo[[2]], ct_combo[[3]], 
+#            ct_combo[[4]], ct_combo[[5]], ct_combo[[7]], 
+#            ct_combo[[8]], ct_combo[[9]], ct_combo[[10]], 
+#            ct_combo[[11]], ncol=3) + 
+#   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)')))
+#   
+
+#Save
+ggsave(filename = "plots/ct_sequelae_multipanel.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
