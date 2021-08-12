@@ -5,19 +5,38 @@
 #################
 # Load packages #
 #################
+library(ggplot2)
 library(binom)
 library(patchwork)
 library(RColorBrewer)
 
-# READ IN the posterior distribution
+################
+# Load scripts #
+################
+source("R files/diagnostics.R")
+source("R files/setparms.R")
+
+#####################################
+## Read in  posterior distribution ##
+#####################################
+new_fit <- 1 #fitting with shape prior 0-2 (1) or 0-0.8 (0)
+
 rm(post.lambda, post.shape, post.tdecline)
-post <- readRDS(file = paste("posteriors/", pars$country, "/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
+
+if (new_fit == 0) {
+  post <- readRDS(file = paste("posteriors/", pars$country, "/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
+} else if (new_fit == 1){
+  post <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
+}
+
 attach(post)
 
 ###################################
-## Load in posterior predictions ##
+## Read in posterior predictions ##
 ###################################
 
+if (new_fit == 0) {
+  
 if (pars$country == "Brazil" | pars$country == "Burkina Faso") {
   
   n_samples  <- 6    #no. parameter sets run on each cluster job
@@ -28,32 +47,55 @@ if (pars$country == "Brazil" | pars$country == "Burkina Faso") {
   n_samples  <- 1    #no. parameter sets run on each cluster job
   niter      <- 599  #overall no. cluster jobs
   
-} else if(pars$country != "Brazil" | pars$country != "Burkina Faso" | pars$country != "Iran (Islamic Republic of)" )  { #for the rest of the countries 
+} else if (pars$country != "Brazil" | pars$country != "Burkina Faso" | pars$country != "Iran (Islamic Republic of)" )  { #for the rest of the countries 
   
   n_samples  <- 1    #no. parameter sets run on each cluster job
   niter      <- 600  #overall no. cluster jobs
   
 }
 
-prev_list <- ct_list <- vector("list", length=niter)
-
-for(i in 1:niter){
-  
-  prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/", "prev_predictions/", "prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a",
-  pars$age_foi, "_", i, ".Rdata", sep = ""))
-  
-  ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/", "ct_predictions/", "ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
-                                       pars$age_foi, "_", i, ".Rdata", sep = ""))
+} else if (new_fit == 1) {
+  n_samples <- 1
+  niter     <- 600
 }
 
 
-## put data lists into dataframes
+prev_list <- ct_list <- vector("list", length=niter)
+
+if (new_fit == 0) {
+  
+  for(i in 1:niter){
+    
+    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/", "prev_predictions/", "prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a",
+                                           pars$age_foi, "_", i, ".Rdata", sep = ""))
+    
+    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/", "ct_predictions/", "ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
+                                         pars$age_foi, "_", i, ".Rdata", sep = ""))
+  }
+  
+} else if (new_fit == 1) {
+  
+  for(i in 1:niter){
+    
+    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", "prev_predictions/", "prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a",
+                                           pars$age_foi, "_", i, ".Rdata", sep = ""))
+    
+    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", "ct_predictions/", "ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
+                                         pars$age_foi, "_", i, ".Rdata", sep = ""))
+    
+  }
+}
+
+####################################################################
+## Calculate median, upper & lower percentiles of model estimates ##
+####################################################################
+
+# put data lists into dataframes
 prev_mat <- do.call(rbind.data.frame, prev_list)
 ct_mat <- do.call(rbind.data.frame, ct_list)
-
-## Calculate median, upper & lower percentiles of model estimates
 ct_med <- ct_lower <- ct_upper <- prev_med <- prev_lower <- prev_upper <- vector("numeric", length=max(time))
 
+# calculate percentiles
 for(i in 1:max(time)){
   
   ct_med[i]   <- median(ct_mat[,i])
@@ -154,8 +196,7 @@ for(i in 1:length(true_prev$k)){
   }
 }
 
-# Check concordance
-# plot(true_prev$prev, tp)
+# plot(true_prev$prev, tp)  #check concordance
 
 ## Calculate data 95% CIs
 cis <- binom.confint(x=true_prev$k, n=true_prev$n, conf.level=0.95, methods="exact")
@@ -270,7 +311,11 @@ if (pars$forecast == 1){
 }
 
 
-## (2) Prevalence, with past & forecasting ##
+################
+## Make plots ##
+################
+
+## Prevalence ##
 
 # make list to store all plots from different countries
 if (exists("prev_allyears") == F) {  #only create if list not in existence
@@ -334,7 +379,7 @@ if (space_below_plot > space_above_plot) {
   
 }
 
-## Inset graph
+## Prevalence inset graph
 if (exists("prev_inset") == F) {  #only create if list not in existence
   prev_inset <- vector("list", length=length(countries))
 }
@@ -362,7 +407,7 @@ prev_inset[[which(countries == pars$country)]] <- ggplot(
   theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank())
 
   
-## Combined main plot with inset
+## Combined main prevalence plot with inset
 if (exists("prev_combo") == F) {  #only create if list not in existence
   prev_combo <- vector("list", length=length(countries))
 }
@@ -381,14 +426,14 @@ prev_combo[[which(countries == pars$country)]] <- prev_allyears[[which(countries
                colour = "grey")
 
 
-## (3) CT incidence, with past & forecasting ##
+## CT incidence ##
 
 # make list to store all plots from different countries
 if (exists("ct_allyears") == F) {  #only create if list not in existence
   ct_allyears <- vector("list", length=length(countries))
 }
 
-# Main plot
+# Main CT incidence plot
 ct_allyears[[which(countries == pars$country)]] <- ggplot(
   data=ct_all[[which(countries == pars$country)]], aes(x=time, y=ct_rel)) + 
   geom_line(aes(y=ct_rel), size=.3) +                        # Overall CT cases
@@ -408,7 +453,7 @@ ct_allyears[[which(countries == pars$country)]] <- ggplot(
 # device = cairo_pdf, height = 6, width = 6, units = "in")
 
 
-# Inset plot
+# CT sequelae incidence inset plot
 # make list to store all plots from different countries
 if (exists("ct_inset") == F) {  #only create if list not in existence
   ct_inset <- vector("list", length=length(countries))
@@ -470,6 +515,7 @@ if (pars$country == "Cameroon" | pars$country == "Ethiopia") {
   
 }
 
+## Combined CT incidence plot with sequelae inset plot
 ct_combo[[which(countries == pars$country)]] <- ct_allyears[[which(countries == pars$country)]] + 
   annotation_custom(
     ggplotGrob(ct_inset[[which(countries == pars$country)]]), 
@@ -497,15 +543,5 @@ wrap_plots(ct_combo[[1]], ct_combo[[2]], ct_combo[[3]], ct_combo[[4]],
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)'))) &
   ylab("CT incidence")
 
-
-
-# wrap_plots(ct_combo[[1]], ct_combo[[2]], ct_combo[[3]], 
-#            ct_combo[[4]], ct_combo[[5]], ct_combo[[7]], 
-#            ct_combo[[8]], ct_combo[[9]], ct_combo[[10]], 
-#            ct_combo[[11]], ncol=3) + 
-#   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)')))
-#   
-
-#Save
 ggsave(filename = "plots/ct_sequelae_multipanel.pdf",
        device = cairo_pdf, height = 8, width = 8, units = "in")
