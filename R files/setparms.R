@@ -34,7 +34,7 @@ if (cluster == "none"){ #local
 
 countries <- sort(unique(df$country)) #countries in the dataset
 
-pars$country <- "Burkina Faso"
+pars$country <- countries[1]
 fitting_data <- subset(df, df$country == pars$country)
 
 # Load demographic data
@@ -66,7 +66,7 @@ if (pars$post_pred == 0) {
 }
 
 # No. of years to forecast after the final data sampling year
-pars$years_forecast <- 50
+pars$years_forecast <- 30
 
 ## Number of years between 1st & last data time points
 pars$tdiff <- max(fitting_data$year) - min(fitting_data$year)
@@ -112,3 +112,5 @@ if (pars$forecast == 0) {
 } else if(pars$forecast == 1){
   time <- seq(1, pars$burnin + pars$tdiff + pars$years_forecast, 1)
 }
+
+
