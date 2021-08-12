@@ -8,7 +8,7 @@ rm(list = ls()) # clear working environment
 #######################
 # Sets working directory based on environment (Cluster (RVC or UCL), or local). 
 # Options: "RVC", "UCL", "none"
-cluster <- "RVC"
+cluster <- "UCL"
 
 if (cluster == "RVC") {
   setwd("/storage/users/gmilne/test")  #cluster (RVC)
@@ -27,10 +27,9 @@ if (cluster == "RVC") {
 ############
 if(cluster == "none"){ #local
   SEED = 1
-  
+
 } else if (cluster == "RVC" | cluster == "UCL"){ #cluster
   SEED = as.numeric(Sys.getenv("SEED"))
-
 }
 
 set.seed(SEED)
@@ -63,11 +62,11 @@ library(dplyr)
 if (cluster == "UCL") {
   niter <- 1000                      # no. jobs to submit
   tot_iter <- 60000                 # total number of samples to run
-  
+
 } else if (cluster == "RVC") {
   niter <- 68                      # no. jobs to submit
   tot_iter <- 60000                 # total number of samples to run
-  
+
 }
 
 nsim <- ceiling(tot_iter / niter) # no. iterations on each for loop
@@ -123,7 +122,7 @@ logliks <- vector("numeric", length=nrow(fitting_data))  #initialise log likelih
 
 par_arr <- randomLHS(nsim, npars) #create parameter array
 par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
-par_arr[,2] <- log(qunif(par_arr[,2], min=0, max=0.8))        #log shape
+par_arr[,2] <- log(qunif(par_arr[,2], min=0, max=2))        #log shape
 par_arr[,3] <- log(qunif(par_arr[,3], min=0, max=100))        #log tdecline
 
 colnames(par_arr) <- c("log.lambda0", "log.shape", "log.tdecline")
