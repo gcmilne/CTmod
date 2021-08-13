@@ -17,7 +17,7 @@ if (cluster == "RVC") {
   setwd("/lustre/scratch/scratch/ucbtgmi")        #cluster (UCL)
   
 } else if (cluster == "none") { 
-  setwd("~/Desktop/R Projects/stan")  #local
+  setwd("~/GitHub/stan")  #local
   
 }
 
