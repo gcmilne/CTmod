@@ -34,7 +34,7 @@ if (cluster == "none"){ #local
 
 countries <- sort(unique(df$country)) #countries in the dataset
 
-pars$country <- countries[1]
+pars$country <- countries[2]
 fitting_data <- subset(df, df$country == pars$country)
 
 # Load demographic data
