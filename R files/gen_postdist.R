@@ -268,17 +268,20 @@ ggarrange(lambda0[[which(pars$country == countries)]],
 # #lambda
 multipanel_lambda   <- wrap_plots(lambda0) +
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
-  theme(plot.margin=unit(c(rep(0.2,4)),"cm"))
+  theme(plot.margin=unit(c(rep(0.2,4)),"cm"))& 
+  scale_y_continuous(n.breaks = 4)
 
 # #shape
 multipanel_shape    <- wrap_plots(shape) +
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
-  theme(plot.margin=unit(c(rep(0.2,4)),"cm"))
+  theme(plot.margin=unit(c(rep(0.2,4)),"cm"))& 
+  scale_y_continuous(n.breaks = 4)
 
 #tdecline
 multipanel_tdecline    <- wrap_plots(tdecline) +
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
-  theme(plot.margin=unit(c(rep(0.2,4)),"cm"))
+  theme(plot.margin=unit(c(rep(0.2,4)),"cm")) & 
+  scale_y_continuous(n.breaks = 4)
 
 # #Save
 # ggsave(multipanel_lambda, filename = "plots/lambda_multipanel.pdf",
