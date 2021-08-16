@@ -161,6 +161,12 @@ ci.high.tdecline   <- exp(x$CI_high)
 ############################################
 ## Plot prior and posterior distributions ##
 ############################################
+if(.Platform$OS.type == "windows") { # set Times New Roman font on Windows
+  # library(extrafont)
+  # font_import()
+  # loadfonts(device = "win")
+  windowsFonts(Times=windowsFont("TT Times New Roman")) 
+}
 
 ## Lambda0
 
@@ -173,7 +179,7 @@ dat <- data.frame(
   )
 
 #plot
-if (which(countries == pars$country) == 1) {
+if (exists("lambda0") == F) {  #only create if list not in existence
   lambda0 <- vector("list", length=length(countries))
 }
 
@@ -201,7 +207,7 @@ dat <- data.frame(dens = c(prior.shape, post.shape),
 
 
 #plot
-if (which(countries == pars$country) == 1) {
+if (exists("shape") == F) {  #only create if list not in existence
   shape <- vector("list", length=length(countries))
 }
 
@@ -230,7 +236,7 @@ dat <- data.frame(dens = c(prior.tdecline, post.tdecline),
                   lines = c(rep("a", length(prior.tdecline)), rep("b", length(post.tdecline))))
 
 #plot
-if (which(countries == pars$country) == 1) {
+if (exists("tdecline") == F) {  #only create if list not in existence
   tdecline <- vector("list", length=length(countries))
 }
 
