@@ -18,6 +18,7 @@ library(ggplot2)
 library(bayestestR)
 library(ggpubr)
 library(Cairo)
+library(patchwork)
 
 ###############################
 ## Load age profile function ##
@@ -265,20 +266,20 @@ ggarrange(lambda0[[which(pars$country == countries)]],
 
 # ## Multipanel plot of priors vs. posteriors (one parameter, all countries)
 # #lambda
-# multipanel_lambda   <- wrap_plots(lambda0) + 
-#   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) & 
-#   theme(plot.margin=unit(c(rep(0.2,4)),"cm")) 
-# 
+multipanel_lambda   <- wrap_plots(lambda0) +
+  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
+  theme(plot.margin=unit(c(rep(0.2,4)),"cm"))
+
 # #shape
-# multipanel_shape    <- wrap_plots(shape) + 
-#   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) & 
-#   theme(plot.margin=unit(c(rep(0.2,4)),"cm"))
-# 
-# #tdecline
-# multipanel_tdecline    <- wrap_plots(tdecline) + 
-#   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) & 
-#   theme(plot.margin=unit(c(rep(0.2,4)),"cm"))
-# 
+multipanel_shape    <- wrap_plots(shape) +
+  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
+  theme(plot.margin=unit(c(rep(0.2,4)),"cm"))
+
+#tdecline
+multipanel_tdecline    <- wrap_plots(tdecline) +
+  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
+  theme(plot.margin=unit(c(rep(0.2,4)),"cm"))
+
 # #Save
 # ggsave(multipanel_lambda, filename = "plots/lambda_multipanel.pdf",
 #        device = cairo_pdf, height = 8, width = 8, units = "in")
@@ -293,11 +294,16 @@ ggarrange(lambda0[[which(pars$country == countries)]],
 ####################################
 #### Summary of the posteriors #####
 ####################################
-posteriors <- data.frame(par = c("lambda0", "shape", "tdecline"), 
-                         med = c(round(post.median.lambda, 3), round(post.median.shape, 3), round(post.median.tdecline, 0)),
-                         lower_ci = c(round(ci.low.lambda, 3), round(ci.low.shape, 3), round(ci.low.tdecline, 0)), 
-                         upper_ci = c(round(ci.high.lambda, 3), round(ci.high.shape, 3), round(ci.high.tdecline, 0))
-)
+if (exists("posteriors") == F) {  #only create if list not in existence
+  posteriors <- vector("list", length=length(countries))
+}
+
+posteriors[[which(pars$country == countries)]] <- 
+  data.frame(par = c("lambda0", "shape", "tdecline"), 
+             med = c(round(post.median.lambda, 3), round(post.median.shape, 3), round(post.median.tdecline, 0)),
+             lower_ci = c(round(ci.low.lambda, 3), round(ci.low.shape, 3), round(ci.low.tdecline, 0)), 
+             upper_ci = c(round(ci.high.lambda, 3), round(ci.high.shape, 3), round(ci.high.tdecline, 0))
+  )
 
 
 # SAVE the posterior distribution
