@@ -437,20 +437,38 @@ if (!exists("ct_allyears")) {  #only create if list not in existence
 }
 
 # Main CT incidence plot
-ct_allyears[[which(countries == pars$country)]] <- ggplot(
-  data=ct_all[[which(countries == pars$country)]], aes(x=time, y=ct_rel)) + 
-  geom_line(aes(y=ct_rel), size=.3) +                        # Overall CT cases
-  geom_ribbon(aes(ymin = ct_rel_low, ymax = ct_rel_up), alpha=0.5, fill = ribbonColour[2]) +
-  annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
-           ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
-  xlab("Year") + 
-  ylab("Incidence per 10 000 live births") + 
-  scale_x_continuous(expand = c(0,0), limits = c(1900, 2030)) + 
-  scale_y_continuous(expand = c(0,0), n.breaks = 5) + 
-  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
-  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none") + 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+if(pars$country != "China"){
+  ct_allyears[[which(countries == pars$country)]] <- ggplot(
+    data=ct_all[[which(countries == pars$country)]], aes(x=time, y=ct_rel)) + 
+    geom_line(aes(y=ct_rel), size=.3) +                        # Overall CT cases
+    geom_ribbon(aes(ymin = ct_rel_low, ymax = ct_rel_up), alpha=0.5, fill = ribbonColour[2]) +
+    annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
+             ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
+    xlab("Year") + 
+    ylab("Incidence per 10 000 live births") + 
+    scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks = 3) + 
+    scale_y_continuous(expand = c(0,0), n.breaks = 5) + 
+    theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+    theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+    theme(legend.position = "none") + 
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  
+} else if(pars$country == "China"){
+  ct_allyears[[which(countries == pars$country)]] <- ggplot(
+    data=ct_all[[which(countries == pars$country)]], aes(x=time, y=ct_rel)) + 
+    geom_line(aes(y=ct_rel), size=.3) +                        # Overall CT cases
+    geom_ribbon(aes(ymin = ct_rel_low, ymax = ct_rel_up), alpha=0.5, fill = ribbonColour[2]) +
+    annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
+             ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
+    xlab("Year") + 
+    ylab("Incidence per 10 000 live births") + 
+    scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks = 3) + 
+    scale_y_continuous(limits=c(0, 200), expand = c(0,0), n.breaks = 5) + 
+    theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+    theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+    theme(legend.position = "none") + 
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+}
 
 # Save
 # ggsave(filename = paste("plots/", pars$country, "/", pars$temporal_foi, "_CT_allyears", ".pdf", sep=""),
@@ -471,6 +489,8 @@ myColors <- brewer.pal(7,"Set2") #set colours to use
 
 inset_line_size = 0.4
 
+max_incidence <- max(map_dbl(ct_all[[which(countries == pars$country)]][,-(1:4)], max)) # find max sequelae incidence
+
 ct_inset[[which(countries == pars$country)]] <- ggplot(
   data=ct_all[[which(countries == pars$country)]], aes(x=time, y=ct_rel)) + 
   geom_line(aes(y=chorioretinitis_first), size=inset_line_size, col = myColors[1]) +         # Chorioretinitis in first year
@@ -484,7 +504,7 @@ ct_inset[[which(countries == pars$country)]] <- ggplot(
            # ymin=min(ct_all[[which(countries == pars$country)]]$ct_rel_low), 
            ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
   scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks=2) + 
-  scale_y_continuous(expand = c(0,0), n.breaks=3) + 
+  scale_y_continuous(limits=c(0, max_incidence+0.05*max_incidence), expand = c(0,0), n.breaks=3) + 
   theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
   theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank(),
@@ -511,7 +531,14 @@ if (pars$country == "Cameroon" | pars$country == "Ethiopia") {
   xmin_val <- 1932
   xmax_val <- 2007
   
-} else if (pars$country != "Cameroon" | pars$country != "Ethiopia" | pars$country != "Iran (Islamic Republic of)") { 
+} else if (pars$country == "China") {
+  ymin_val <- 120
+  ymax_val <- 200
+  xmin_val <- 1900
+  xmax_val <- 1975
+  
+  } else if (pars$country != "Cameroon" | pars$country != "Ethiopia" | 
+             pars$country != "Iran (Islamic Republic of)" | pars$country != "China") { 
   ymin_val <- 0
   ymax_val <- min(ct_all[[which(countries == pars$country)]]$ct_rel_low[which(years == 1900):which(years == 1975)]) * 0.90
   xmin_val <- 1900
@@ -530,6 +557,20 @@ ct_combo[[which(countries == pars$country)]] <- ct_allyears[[which(countries == 
 ###################### 
 ## Multipanel plots ##
 ######################
+
+wrap_plots(prev_combo[[1]], prev_combo[[2]], prev_combo[[3]], prev_combo[[4]],
+           nrow=4, ncol=3)
+
+ggsave(filename = "plots/prev_test_multipanel.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
+
+wrap_plots(ct_combo[[1]], ct_combo[[2]], ct_combo[[3]], ct_combo[[4]],
+           nrow=4, ncol=3) &
+  scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks = 3) & 
+  ylab("Incidence")
+
+ggsave(filename = "plots/ct_test_multipanel.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
 
 ## Prevalence, with inset
 wrap_plots(prev_combo, nrow=4, ncol=3) + 
