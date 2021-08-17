@@ -214,7 +214,7 @@ true_prev$ci_up <- cis$upper
 ################
 
 ## Prevalence across years with data ##
-if (exists("prev_fit") == F) {  #only create if list not in existence
+if (!exists("prev_fit")) {  #only create if list not in existence
   prev_fit <- vector("list", length=length(countries))
 }
 
@@ -242,7 +242,7 @@ sampling_period <- (min(fitting_data$year) - round(exp(pars$log.tdecline), 0)) :
 
 ## Create df for model estimates
 # make list to store model output from different countries
-if (exists("prev_all") == F) {  #only create if list not in existence
+if (!exists("prev_all")) {  #only create if list not in existence
   prev_all <- vector("list", length=length(countries))
 }
 
@@ -278,7 +278,7 @@ if (pars$forecast == 1){
   years <- (min(fitting_data$year) - (round(max(exp(post$post.tdecline)), 0))-10) : (max(fitting_data$year)+pars$years_forecast)
   
   # Create df
-  if (exists("ct_all") == F) {  #only create if list not in existence
+  if (!exists("ct_all")) {  #only create if list not in existence
     ct_all <- vector("list", length=length(countries))
   }
   
@@ -318,7 +318,7 @@ if (pars$forecast == 1){
 ## Prevalence ##
 
 # make list to store all plots from different countries
-if (exists("prev_allyears") == F) {  #only create if list not in existence
+if (!exists("prev_allyears")) {  #only create if list not in existence
   prev_allyears <- vector("list", length=length(countries))
 }
 
@@ -381,7 +381,7 @@ if (space_below_plot > space_above_plot) {
 }
 
 ## Prevalence inset graph
-if (exists("prev_inset") == F) {  #only create if list not in existence
+if (!exists("prev_inset")) {  #only create if list not in existence
   prev_inset <- vector("list", length=length(countries))
 }
 
@@ -409,7 +409,7 @@ prev_inset[[which(countries == pars$country)]] <- ggplot(
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
   
 ## Combined main prevalence plot with inset
-if (exists("prev_combo") == F) {  #only create if list not in existence
+if (!exists("prev_combo")) {  #only create if list not in existence
   prev_combo <- vector("list", length=length(countries))
 }
 
@@ -432,7 +432,7 @@ prev_combo[[which(countries == pars$country)]] <- prev_allyears[[which(countries
 ## CT incidence ##
 
 # make list to store all plots from different countries
-if (exists("ct_allyears") == F) {  #only create if list not in existence
+if (!exists("ct_allyears")) {  #only create if list not in existence
   ct_allyears <- vector("list", length=length(countries))
 }
 
@@ -459,7 +459,7 @@ ct_allyears[[which(countries == pars$country)]] <- ggplot(
 
 # CT sequelae incidence inset plot
 # make list to store all plots from different countries
-if (exists("ct_inset") == F) {  #only create if list not in existence
+if (!exists("ct_inset")) {  #only create if list not in existence
   ct_inset <- vector("list", length=length(countries))
 }
 
@@ -495,7 +495,7 @@ ct_inset[[which(countries == pars$country)]] <- ggplot(
 
 # Combine main plot with inset plot
 # make list to store all plots from different countries
-if (exists("ct_combo") == F) {  #only create if list not in existence
+if (!exists("ct_combo")) {  #only create if list not in existence
   ct_combo <- vector("list", length=length(countries))
 }
 
