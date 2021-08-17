@@ -338,7 +338,8 @@ prev_allyears[[which(countries == pars$country)]] <- ggplot(
   scale_y_continuous(expand = c(0,0)) +
   theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none")
+  theme(legend.position = "none") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 ## Calculate where to place inset within main plot area
 space_below_plot <- min(prev_all[[which(countries == pars$country)]]$mod_prev_low[which(years == 1900):which(years == 1975)])
@@ -404,8 +405,8 @@ prev_inset[[which(countries == pars$country)]] <- ggplot(
   scale_y_continuous(n.breaks=num_breaks) +
   theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
   theme_light(base_size = 10, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank())
-
+  theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank()) + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
   
 ## Combined main prevalence plot with inset
 if (exists("prev_combo") == F) {  #only create if list not in existence
@@ -423,7 +424,9 @@ prev_combo[[which(countries == pars$country)]] <- prev_allyears[[which(countries
                linejoin = "round",
                size = 0.3, 
                arrow = arrow(length = unit(0.04, "inches")),
-               colour = "grey")
+               colour = "grey") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
 
 
 ## CT incidence ##
@@ -446,7 +449,8 @@ ct_allyears[[which(countries == pars$country)]] <- ggplot(
   scale_y_continuous(expand = c(0,0), n.breaks = 5) + 
   theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none")
+  theme(legend.position = "none") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 # Save
 # ggsave(filename = paste("plots/", pars$country, "/", pars$temporal_foi, "_CT_allyears", ".pdf", sep=""),
@@ -483,8 +487,8 @@ ct_inset[[which(countries == pars$country)]] <- ggplot(
   scale_y_continuous(expand = c(0,0), n.breaks=3) + 
   theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank()
-)
+  theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 # ct_inset[[which(countries == pars$country)]]
 
@@ -520,8 +524,8 @@ ct_combo[[which(countries == pars$country)]] <- ct_allyears[[which(countries == 
   annotation_custom(
     ggplotGrob(ct_inset[[which(countries == pars$country)]]), 
     xmin = xmin_val, xmax = xmax_val, ymin = ymin_val, ymax = ymax_val
-  )
-
+  ) + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 ###################### 
 ## Multipanel plots ##
