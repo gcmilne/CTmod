@@ -347,9 +347,9 @@ space_above_plot <- 1 - (max(prev_all[[which(countries == pars$country)]]$mod_pr
 
 if (space_below_plot > space_above_plot) { 
   
-  ymin_val <- 0
-  ymax_val <- space_below_plot
-  xmin_val <- 1900
+  ymin_val <- 0.05
+  ymax_val <- space_below_plot * 0.92
+  xmin_val <- 1900 + 10
   xmax_val <- min(fitting_data$year) - 10
   
   # make arrow
@@ -357,14 +357,14 @@ if (space_below_plot > space_above_plot) {
     x1 = min(fitting_data$year),
     x2 = xmax_val, 
     y1 = prev_all[[which(countries == pars$country)]]$mod_prev_low[which(prev_all[[which(countries == pars$country)]]$time == min(fitting_data$year))], #find intersection
-    y2 = ymax_val
+    y2 = ymax_val * 0.95
   )
   
 } else if (space_below_plot < space_above_plot) { 
   
-  ymin_val <- 1 - space_above_plot
-  ymax_val <- 1
-  xmin_val <- 1900
+  ymin_val <- 1 - space_above_plot + (0.02 * space_above_plot)
+  ymax_val <- 0.98
+  xmin_val <- 1900 + 10
   xmax_val <- min(fitting_data$year) - 10
   
   # make arrow
@@ -387,14 +387,18 @@ if (!exists("prev_inset")) {  #only create if list not in existence
 
 # Calculate no. breaks for y axis
 if (ymax_val - ymin_val > 0.4) {
-  num_breaks <- 3
+  num_breaks <- 4
 } else if (ymax_val - ymin_val < 0.4) { 
+  num_breaks <- 3
+} 
+
+if (pars$country == "Italy" | pars$country == "Turkey"){
   num_breaks <- 2
 }
 
 prev_inset[[which(countries == pars$country)]] <- ggplot(
   data=prev_fit[[which(countries == pars$country)]], aes(x=time, y=mod_prev)) + 
-  geom_line(size=0.2) + 
+  geom_line(size=0.3) + 
   geom_ribbon(aes(ymin = mod_prev_low, ymax = mod_prev_up), alpha=0.5, fill = ribbonColour[2]) +
   geom_point(aes(y=dat_prev), col="grey", size=0.2) +
   geom_errorbar(aes(width=.3, ymin = dat_low, ymax = dat_up),  col="grey", size=0.2) +
@@ -403,10 +407,11 @@ prev_inset[[which(countries == pars$country)]] <- ggplot(
                                                      ylim=c(min(prev_fit[[which(countries == pars$country)]]$dat_low), 
                                                             max(prev_fit[[which(countries == pars$country)]]$dat_up))))) + #avoids error bars getting clipped
   scale_y_continuous(n.breaks=num_breaks) +
-  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
-  theme_light(base_size = 10, base_line_size = 0, base_family = "Times") + 
+  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
   theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank()) + 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  theme(plot.margin=grid::unit(c(rep(0.1,4)),"cm"))
+
   
 ## Combined main prevalence plot with inset
 if (!exists("prev_combo")) {  #only create if list not in existence
@@ -463,7 +468,7 @@ if(pars$country != "China"){
     xlab("Year") + 
     ylab("Incidence per 10 000 live births") + 
     scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks = 3) + 
-    scale_y_continuous(limits=c(0, 200), expand = c(0,0), n.breaks = 5) + 
+    scale_y_continuous(limits=c(0, 300), expand = c(0,0), n.breaks = 5) + 
     theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
     theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
     theme(legend.position = "none") + 
@@ -487,7 +492,7 @@ library(RColorBrewer)
 
 myColors <- brewer.pal(7,"Set2") #set colours to use
 
-inset_line_size = 0.4
+inset_line_size = 0.3
 
 max_incidence <- max(map_dbl(ct_all[[which(countries == pars$country)]][,-(1:4)], max)) # find max sequelae incidence
 
@@ -508,7 +513,9 @@ ct_inset[[which(countries == pars$country)]] <- ggplot(
   theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
   theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank(),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  theme(plot.margin=grid::unit(c(0,0,0,0),"cm"))
+
 
 # ct_inset[[which(countries == pars$country)]]
 
@@ -521,28 +528,28 @@ if (!exists("ct_combo")) {  #only create if list not in existence
 
 if (pars$country == "Cameroon" | pars$country == "Ethiopia") {
   ymin_val <-  max(ct_all[[which(countries == pars$country)]]$ct_rel_up[which(years == 1900):which(years == 1975)]) * 1.1
-  ymax_val <-  max(ct_all[[which(countries == pars$country)]]$ct_rel_up[which(years == 1900):which(years == 2025)])
-  xmin_val <- 1900
-  xmax_val <- 1975
+  ymax_val <-  max(ct_all[[which(countries == pars$country)]]$ct_rel_up[which(years == 1900):which(years == 2025)]) * 0.90
+  xmin_val <- 1910
+  xmax_val <- 1985
   
 } else if (pars$country == "Iran (Islamic Republic of)") { 
   ymin_val <- 0
-  ymax_val <- min(ct_all[[which(countries == pars$country)]]$ct_rel_low[which(years == 1915):which(years == 2000)]) * 0.92
-  xmin_val <- 1932
-  xmax_val <- 2007
+  ymax_val <- min(ct_all[[which(countries == pars$country)]]$ct_rel_low[which(years == 1940):which(years == 2000)]) * 0.91
+  xmin_val <- 1940
+  xmax_val <- 2000
   
 } else if (pars$country == "China") {
-  ymin_val <- 120
-  ymax_val <- 200
-  xmin_val <- 1900
-  xmax_val <- 1975
+  ymin_val <- 150
+  ymax_val <- 300 * 0.91
+  xmin_val <- 1910
+  xmax_val <- 1985
   
   } else if (pars$country != "Cameroon" | pars$country != "Ethiopia" | 
              pars$country != "Iran (Islamic Republic of)" | pars$country != "China") { 
   ymin_val <- 0
   ymax_val <- min(ct_all[[which(countries == pars$country)]]$ct_rel_low[which(years == 1900):which(years == 1975)]) * 0.90
-  xmin_val <- 1900
-  xmax_val <- 1975
+  xmin_val <- 1910
+  xmax_val <- 1985
   
 }
 
@@ -558,23 +565,10 @@ ct_combo[[which(countries == pars$country)]] <- ct_allyears[[which(countries == 
 ## Multipanel plots ##
 ######################
 
-wrap_plots(prev_combo[[1]], prev_combo[[2]], prev_combo[[3]], prev_combo[[4]],
-           nrow=4, ncol=3)
-
-ggsave(filename = "plots/prev_test_multipanel.pdf",
-       device = cairo_pdf, height = 8, width = 8, units = "in")
-
-wrap_plots(ct_combo[[1]], ct_combo[[2]], ct_combo[[3]], ct_combo[[4]],
-           nrow=4, ncol=3) &
-  scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks = 3) & 
-  ylab("Incidence")
-
-ggsave(filename = "plots/ct_test_multipanel.pdf",
-       device = cairo_pdf, height = 8, width = 8, units = "in")
-
 ## Prevalence, with inset
 wrap_plots(prev_combo, nrow=4, ncol=3) + 
-  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(h)')))
+  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
+                                      '(g)', '(h)', '(i)', '(j)', '(h)')))
 
 # letters[which(pars$country == countries)]  #which letter corresponds to which country?
 
@@ -582,11 +576,11 @@ ggsave(filename = "plots/prev_inset_multipanel.pdf",
        device = cairo_pdf, height = 8, width = 8, units = "in")
 
 ## CT, with inset
-wrap_plots(ct_combo[[1]], ct_combo[[2]], ct_combo[[3]], ct_combo[[4]], 
-           ct_combo[[5]], ct_combo[[7]], ct_combo[[8]], ct_combo[[9]], 
-           ct_combo[[10]], ct_combo[[11]], ncol = 3) + 
-  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)'))) &
-  ylab("CT incidence")
+wrap_plots(ct_combo, nrow=4, ncol=3) & 
+  scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks = 3) & 
+  ylab("Incidence") &  
+  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
+                                      '(g)', '(h)', '(i)', '(j)', '(h)')))
 
 ggsave(filename = "plots/ct_sequelae_multipanel.pdf",
        device = cairo_pdf, height = 8, width = 8, units = "in")
