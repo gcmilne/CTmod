@@ -235,32 +235,32 @@ ggarrange(lambda0[[which(pars$country == countries)]],
 
 # ## Multipanel plot of priors vs. posteriors (one parameter, all countries)
 # #lambda
-multipanel_lambda   <- wrap_plots(lambda0) +
+multipanel_lambda   <- wrap_plots(lambda0, nrow=4, ncol=3) +
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
   theme(plot.margin=unit(c(rep(0.2,4)),"cm"))& 
   scale_y_continuous(n.breaks = 4)
 
 # #shape
-multipanel_shape    <- wrap_plots(shape) +
+multipanel_shape    <- wrap_plots(shape, nrow=4, ncol=3) +
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
   theme(plot.margin=unit(c(rep(0.2,4)),"cm"))& 
   scale_y_continuous(n.breaks = 4)
 
 #tdecline
-multipanel_tdecline    <- wrap_plots(tdecline) +
+multipanel_tdecline    <- wrap_plots(tdecline, nrow=4, ncol=3) +
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
   theme(plot.margin=unit(c(rep(0.2,4)),"cm")) & 
   scale_y_continuous(n.breaks = 4)
 
 # #Save
-# ggsave(multipanel_lambda, filename = "plots/lambda_multipanel.pdf",
-#        device = cairo_pdf, height = 8, width = 8, units = "in")
-# 
-# ggsave(multipanel_shape, filename = "plots/shape_multipanel.pdf",
-#        device = cairo_pdf, height = 8, width = 8, units = "in")
-# 
-# ggsave(multipanel_tdecline, filename = "plots/tdecline_multipanel.pdf",
-#        device = cairo_pdf, height = 8, width = 8, units = "in")
+ggsave(multipanel_lambda, filename = "plots/lambda_multipanel.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
+
+ggsave(multipanel_shape, filename = "plots/shape_multipanel.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
+
+ggsave(multipanel_tdecline, filename = "plots/tdecline_multipanel.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
 
 
 ####################################
