@@ -28,6 +28,7 @@ if(cluster == "none"){ #local
   SEED = as.numeric(Sys.getenv("SEED"))
   
 }
+SEED <- 600
 
 set.seed(SEED)
 
@@ -47,12 +48,12 @@ if (cluster == "none") { #local
   source("funcs.R")
 }
 
-  #################
-  # Load packages #
-  #################
-  library(deSolve)
-  library(lhs)
-  library(dplyr)
+#################
+# Load packages #
+#################
+library(deSolve)
+library(lhs)
+library(dplyr)
 
 ###############
 ## Load data ##
@@ -140,6 +141,14 @@ if (cluster == "RVC") {
                                  pars$age_foi, "_", SEED, ".Rdata", sep = ""))
   
   saveRDS(ct_mat, file = paste("ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
+                               pars$age_foi, "_", SEED, ".Rdata", sep = ""))
+  
+} else if (cluster == "none") {
+  
+  saveRDS(prev_mat, file = paste("posteriors/", pars$country, "/new_fit/", "prev_predictions/", "prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
+                                 pars$age_foi, "_", SEED, ".Rdata", sep = ""))
+  
+  saveRDS(ct_mat, file = paste("posteriors/", pars$country, "/new_fit/", "ct_predictions/", "ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
                                pars$age_foi, "_", SEED, ".Rdata", sep = ""))
   
 }
