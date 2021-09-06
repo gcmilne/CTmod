@@ -166,18 +166,27 @@ age_si = function(time, y, pars) {
   
   # calculate change in seroprev and no. seroconversions in pregnancy
   dprev     <- vector("numeric", length=pars$agrps)
-  seroconv1 <- vector("numeric", length=pars$agrps)
-  seroconv2 <- vector("numeric", length=pars$agrps)
-  seroconv3 <- vector("numeric", length=pars$agrps)
-  matAb1    <- vector("numeric", length=pars$agrps)
-  matAb2    <- vector("numeric", length=pars$agrps)
-  matAb3    <- vector("numeric", length=pars$agrps)
-  c1        <- vector("numeric", length=pars$agrps)
-  c2        <- vector("numeric", length=pars$agrps)
-  c3        <- vector("numeric", length=pars$agrps)
-  ct1       <- vector("numeric", length=pars$agrps)
-  ct2       <- vector("numeric", length=pars$agrps)
-  ct3       <- vector("numeric", length=pars$agrps)
+  
+  if(pars$grps_per_year == 4) {
+    seroconv1 <- vector("numeric", length=pars$agrps)
+    seroconv2 <- vector("numeric", length=pars$agrps)
+    seroconv3 <- vector("numeric", length=pars$agrps)
+    matAb1    <- vector("numeric", length=pars$agrps)
+    matAb2    <- vector("numeric", length=pars$agrps)
+    matAb3    <- vector("numeric", length=pars$agrps)
+    c1        <- vector("numeric", length=pars$agrps)
+    c2        <- vector("numeric", length=pars$agrps)
+    c3        <- vector("numeric", length=pars$agrps)
+    ct1       <- vector("numeric", length=pars$agrps)
+    ct2       <- vector("numeric", length=pars$agrps)
+    ct3       <- vector("numeric", length=pars$agrps)
+    
+  } else if (pars$grps_per_year == 12/9) {
+    seroconv <- vector("numeric", length=pars$agrps)
+    matAb    <- vector("numeric", length=pars$agrps)
+    c_dist   <- vector("numeric", length=pars$agrps)
+    ct       <- vector("numeric", length=pars$agrps)
+  }
   
   # modelled population size
   Na <- S + I + Im
@@ -186,19 +195,28 @@ age_si = function(time, y, pars) {
   deaths <- sum((pars$d) * Na)
   
   ## total ageing out of max age cat
-  byebye <- Na[pars$agrps] * pars$da[length(pars$da)]
+  byebye <- Na[pars$agrps] * pars$da
   
   ## births distributed among age groups according to fertility (made equal to deaths + ageing beyond max category)
   births_age <- (deaths + byebye) * pars$propfert
   births     <- sum(births_age)
   
-  ## Calculate conception distribution for 3 trimesters
+  ## Calculate conception distributions 
+  if (pars$grps_per_year == 4) { #for 3 trimesters (when age groups = 3 months)
   for (i in 1:(pars$agrps-3)) {
     
     c1[i] <- births_age[i+1] 
     c2[i] <- births_age[i+2] 
     c3[i] <- births_age[i+3]
     
+  }
+    
+  } else if (pars$grps_per_year == 12/9) { #Overall (when age groups = 9 months)
+    for (i in 1:(pars$agrps-1)) {
+      
+      c_dist[i] <- births_age[i+1] 
+      
+    }
   }
   
   # prevalence by age (before update)
@@ -208,41 +226,76 @@ age_si = function(time, y, pars) {
   obs_pI <- pI * (pars$se + pars$sp - 1) + (1 - pars$sp)
   
   # Calculating seroconversions in pregnancy and cases of congenital disease
-  for (i in 1:(pars$agrps - 3)) {
+  if (pars$grps_per_year == 4) { # when age groups = 3 months
     
-    if (i==1) {
+    for (i in 1:(pars$agrps - 3)) {
       
-      dprev[i]     <- 0
-      seroconv1[i] <- 0
-      seroconv2[i] <- 0
-      seroconv3[i] <- 0
-      ct1[i]       <- 0
-      ct2[i]       <- 0
-      ct3[i]       <- 0
-      matAb1[i]    <- 0
-      matAb2[i]    <- 0
-      matAb3[i]    <- 0
-      
-    } else {
-      
-      dprev[i]     <- pI[i] - pI[i-1]                  # change in prevalence (must be positive)
-      seroconv1[i] <- dprev[i] * c1[i]                 # pregnant women seroconverting in trimester 1
-      seroconv2[i] <- dprev[i] * c2[i]                 # pregnant women seroconverting in trimester 2
-      seroconv3[i] <- dprev[i] * c3[i]                 # pregnant women seroconverting in trimester 3
-      ct1[i+3]     <- seroconv1[i] * pars$mctr[1]      # likelihood of transmission trimester 1
-      ct2[i+2]     <- seroconv2[i] * pars$mctr[2]      # likelihood of transmission trimester 2
-      ct3[i+1]     <- seroconv3[i] * pars$mctr[3]      # likelihood of transmission trimester 3
-      matAb1[i+3]  <- seroconv1[i] * (1-pars$mctr[1])  # maternal Ab trimester 1
-      matAb2[i+2]  <- seroconv2[i] * (1-pars$mctr[2])  # maternal Ab trimester 2
-      matAb3[i+1]  <- seroconv3[i] * (1-pars$mctr[3])  # maternal Ab trimester 3
+      if (i==1) {
+        
+        dprev[i]     <- 0
+        seroconv1[i] <- 0
+        seroconv2[i] <- 0
+        seroconv3[i] <- 0
+        ct1[i]       <- 0
+        ct2[i]       <- 0
+        ct3[i]       <- 0
+        matAb1[i]    <- 0
+        matAb2[i]    <- 0
+        matAb3[i]    <- 0
+        
+      } else {
+        
+        dprev[i]     <- pI[i] - pI[i-1]                  # change in prevalence (must be positive)
+        seroconv1[i] <- dprev[i] * c1[i]                 # pregnant women seroconverting in trimester 1
+        seroconv2[i] <- dprev[i] * c2[i]                 # pregnant women seroconverting in trimester 2
+        seroconv3[i] <- dprev[i] * c3[i]                 # pregnant women seroconverting in trimester 3
+        ct1[i+3]     <- seroconv1[i] * pars$mctr[1]      # likelihood of transmission trimester 1
+        ct2[i+2]     <- seroconv2[i] * pars$mctr[2]      # likelihood of transmission trimester 2
+        ct3[i+1]     <- seroconv3[i] * pars$mctr[3]      # likelihood of transmission trimester 3
+        matAb1[i+3]  <- seroconv1[i] * (1-pars$mctr[1])  # maternal Ab trimester 1
+        matAb2[i+2]  <- seroconv2[i] * (1-pars$mctr[2])  # maternal Ab trimester 2
+        matAb3[i+1]  <- seroconv3[i] * (1-pars$mctr[3])  # maternal Ab trimester 3
+        
+      }
       
     }
     
+  }  else if (pars$grps_per_year == 12/9) { # when age groups = 9 months
+    
+    for (i in 1:(pars$agrps - 1)) {
+      
+      if (i==1) {
+        
+        dprev[i]     <- 0
+        seroconv1[i] <- 0
+        c_dist[i]    <- 0
+        matAb[i]     <- 0
+        
+      } else {
+        
+        dprev[i]     <- pI[i] - pI[i-1]              # change in prevalence (must be positive)
+        seroconv1[i] <- dprev[i] * c_dist[i]         # pregnant women seroconverting
+        ct[i+1]     <- seroconv1[i] * pars$mctr      # likelihood of transmission
+        matAb[i+1]  <- seroconv1[i] * (1-pars$mctr)  # maternal Ab
+        
+      }
+      
+    }
+    
+    
   }
+
   
   # total number of antibody positive and congenitally diseased births
-  matAbt <- sum(matAb1) + sum(matAb2) + sum(matAb3)
-  ctt    <- sum(ct1) + sum(ct2) + sum(ct3)
+  if (pars$grps_per_year == 4) {
+    matAbt <- sum(matAb1) + sum(matAb2) + sum(matAb3)
+    ctt    <- sum(ct1) + sum(ct2) + sum(ct3)
+    
+  } else if (pars$grps_per_year == 12/9) {
+    matAbt <- sum(matAb)
+    ctt    <- sum(ct)
+  }
+
   
   
   ## ODEs ##
@@ -353,11 +406,23 @@ age_si = function(time, y, pars) {
     
   }
   
-  return(list(y=c(dS, dI, dIm), pI=pI, obs_pI=obs_pI, dprev=dprev, 
-              seroconv1=seroconv1, seroconv2=seroconv2, seroconv3=seroconv3, 
-              matAb1=matAb1, matAb2=matAb2, matAb2=matAb2, 
-              ct1=ct1, ct2=ct2, ct3=ct3, Na=Na, 
-              Nt=Nt, St=St, It=It, Imt=Imt, pIt=pIt, matAbt=matAbt, ctt=ctt, 
-              foi=foi))
+  if (pars$grps_per_year == 4) {
+    
+    return(list(y=c(dS, dI, dIm), pI=pI, obs_pI=obs_pI, dprev=dprev, 
+                seroconv1=seroconv1, seroconv2=seroconv2, seroconv3=seroconv3, 
+                matAb1=matAb1, matAb2=matAb2, matAb2=matAb2, 
+                ct1=ct1, ct2=ct2, ct3=ct3, Na=Na, 
+                Nt=Nt, St=St, It=It, Imt=Imt, pIt=pIt, matAbt=matAbt, ctt=ctt, 
+                foi=foi))
+    
+  } else if (pars$grps_per_year == 12/9) {
+    
+    return(list(y=c(dS, dI, dIm), pI=pI, obs_pI=obs_pI, dprev=dprev, 
+                seroconv=seroconv, matAb=matAb, ct=ct, Na=Na, 
+                Nt=Nt, St=St, It=It, Imt=Imt, pIt=pIt, matAbt=matAbt, ctt=ctt, 
+                foi=foi))
+    
+  }
+
   
 }
