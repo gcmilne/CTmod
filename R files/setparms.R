@@ -2,18 +2,30 @@
 ## SET PARAMETERS & INITIAL VALUES ##
 #####################################
 
-pars  <- list(amax=55, 
-              log.lambda0 = log(0.02),
+pars  <- list(log.lambda0 = log(0.02),
               log.shape= log(0.60),
               log.tdecline = log(20))
-pars$agrps    <- pars$amax*4  # no. age groups
+
+pars$grps_per_year <- 4 # no. age groups per year of life (4 or 12/9)
+
+if (pars$grps_per_year == 4) {
+  amax <- 55
+  pars$mctr     <- c(0.15, 0.44, 0.71)  # Mother-child transmission rate. SYROCOT 2007. The Lancet 369
+  
+} else if(pars$grps_per_year == 12/9) {
+  amax <- 60
+  pars$mctr     <- mean(c(0.15, 0.44, 0.71))  # SYROCOT 2007. The Lancet 369
+  
+}
+  
+pars$amax     <- amax 
+pars$agrps    <- pars$amax*pars$grps_per_year  # no. age groups
 pars$la       <- (pars$amax/pars$agrps)  # no. years in each age group
 pars$da       <-  1/pars$la  # ageing rate
 pars$age      <- seq(0+pars$la/2, pars$amax-pars$la/2, length.out=pars$agrps) # age at midpoints of age groups
 
-
 pars$r        <- 1/(21/365)  # maternally-derived IgG half life of 3 weeks (Villard et al., 2016. Diagnostic microbiology and infectious disease;84(1):22-33)
-pars$mctr     <- c(0.15, 0.44, 0.71)  # SYROCOT 2007. The Lancet 369
+# pars$mctr     <- c(0.15, 0.44, 0.71)  # SYROCOT 2007. The Lancet 369
 pars$post_pred <- 1 #posterior predictions (1) or not? (0)
 
 if (pars$post_pred == 0) {
@@ -22,7 +34,6 @@ if (pars$post_pred == 0) {
 } else if (pars$post_pred == 1) {
   pars$burnin   <- 2000
 }
-
 
 # Seroprevalence data
 if (cluster == "none"){ #local
@@ -34,7 +45,7 @@ if (cluster == "none"){ #local
 
 countries <- sort(unique(df$country)) #countries in the dataset
 
-pars$country <- countries[2]
+pars$country <- countries[11]
 fitting_data <- subset(df, df$country == pars$country)
 
 # Load demographic data
@@ -112,5 +123,3 @@ if (pars$forecast == 0) {
 } else if(pars$forecast == 1){
   time <- seq(1, pars$burnin + pars$tdiff + pars$years_forecast, 1)
 }
-
-
