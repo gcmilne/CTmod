@@ -1,0 +1,271 @@
+﻿Country,year1,year2,Stray /pet,Age groups,Test,Cut-off,n,k,Author and publication date,Continent
+Egypt (Giza),1975,,Stray,ns,DT,ns,376,149,Rifaat et al. 1976e,Africa
+Nigeria (Niger Delta),1983,,Pet†,>1y; <1y,DT,01:10,200,188,Arene 1984,Africa
+Lebanon (Beirut),1980,1983,Stray & pet,ns,IFA,ns,324,253,Deeb et al. 1985,Africa
+Egypt (Cairo),1987,,Stray,ns,IFAT,0.086111111,177,104,Aboul-Magd et al. 1988a,Africa
+Egypt (Gharbia),1988,,Stray & pet,ns,IHA,0.086111111,114,21,Abu-Zakham et al. 1989a,Africa
+Guatemala (Peten),2004,,ns,ns,MAT,01:32,30,16,Lickey et al. 2005,Africa
+Egypt (Giza),2008,2009,Stray,ns,MAT,≥1:25,158,154,Al-Kappany et al. 2010,Africa
+Nigeria (Maiduguri),2009,,Stray,≤1; 1-5; >5y,LAT,≥1:64,105,38,Kamani et al. 2010,Africa
+Egypt (Cairo),2010,,ns,ns,MAT,≥1:5,180,172,Al-Kappany et al. 2011,Africa
+New Caledonia,2009,,ns,Juveniles; adults,ELISA,ns,8,4,Roqueplo et al. 2011,Africa
+South Africa (Johannesburg),2013,,Pete,5-216 m,ELISA,ns,102,18,Lobetti and Lappin 2012,Africa
+Ethiopia (Addis Ababa),2011,,Stray,ns,MAT,01:25,36,33,Dubey et al. 2013,Africa
+Ethiopia (Addis-Ababa),2011,,Stray,≥6m,MAT,≥1:25,48,41,Tiao et al. 2013,Africa
+Angola (Luanda),2014,2016,Pet,2.5-143 m,MAT,≥1:20,102,4,Lopes et al. 2017,Africa
+Nigeria (Ibadan),2014,,Pet,1-36 m,MAT,01:20,226,10,"Ayinmode et al., 2017",Africa
+Algeria (Algiers),2016,,Stray,ns,MAT,01:06,96,48,Yekkour et al. 2017,Africa
+Japan (Kanto),1971,,Stray,ns,IFAT,ns,90,40,Werner and Walton 1973,Asia
+Thailand (Bangkok),1980,,ns,ns,ns,0.219444444,40,23,Sriwaranard et al. 1981a,Asia
+Japan (Kanto),1973,1981,Stray,ns,IHA,0.086111111,171,81,Fujinami et al. 1983a,Asia
+Japan (various areas),1988,1990,Stray,ns,IFAT,01:04,335,86,Oikawa et al. 1990a,Asia
+Taiwan,1989,,Stray & petb,ns,KELA,ns,117,9,Lin et al. 1990,Asia
+China (Guangdong),1988,,Stray,ns,IHA,0.086111111,47,1,Lin et al. 1990,Asia
+China (Guangdong),1989,,ns,ns,IHA,0.086111111,47,1,Shen et al. 1990,Asia
+Japan (Saitama),1992,,ns,ns,LAT,01:32,726,76,Furuya et al. 1993a,Asia
+Singapore,NA,,Stray,ns,LAT,0.086111111,706,217,Chong et al. 1993a,Asia
+China (Shandong),1994,,ns,ns,IHA,0.086111111,200,92,Fu et al. 1995a,Asia
+Turkey (Ankara),1995,,ns,ns,DA,01:16,65,28,Inci et al. 1996a,Asia
+Japan (Hyogo),1990,1991,Stray,ns,LAT,0.086111111,231,44,Khin-Sane-Win et al. 1997a,Asia
+Bangladesh (Mymensingh),1995,,Stray,ns,LAT,0.086111111,24,8,Samad et al. 1997,Asia
+China (Shanghai),1996,,ns,ns,IHA,0.086111111,142,131,Lu et al. 1997a,Asia
+Taiwan,1996,,ns,ns,LAT,01:32,202,11,Tsai et al. 1997a,Asia
+Japan (various areas),1994,1995,Petb,ns,LAT,0.086111111,471,41,Maruyama et al. 1998,Asia
+Japan (various areas),1997,,Petb,ns,LAT,01:32,800,48,Nogami et al. 1998,Asia
+South Korea (Chinju),1996,1998,Stray,ns,WB,0.180555556,198,26,Sohn and Nam 1999,Asia
+Japan (Chiba),1998,1999,Stray,ns,LAT,01:34,97,13,Hata et al. 2000,Asia
+China (Hubei),2000,,ns,ns,ELISA,ns,105,33,Chen 2001a,Asia
+"Japan (Saporo, Tokyo)",2000,,ns,ns,ELISA,ns,193,40,Kimbita et al. 2001,Asia
+Japan (Saitama),2001,,ns,ns,ELISA,0.086111111,192,42,Huang et al. 2002,Asia
+"Japan (Horraido, Okinawa)",1994,1999,Petb,2m -15y,LAT,0.086111111,1447,78,Maruyama et al. 2003,Asia
+Thailand (Bangkok),2002,,Pet,ns,DA,01:16,315,23,Sukthana et al. 2003,Asia
+Turkey (Van),2002,,Pet,ns,IHA,0.086111111,62,57,Tutuncu et al. 2003,Asia
+China (Hebei),2004,,ns,ns,ELISA,ns,75,43,Yuan et al. 2004a,Asia
+Israel (Jerusalem),1999,2000,Stray,>5 y,ELISA,0.097222222,1062,178,Salant and Spira 2004,Asia
+Japan (Saitama),2003,,ns,ns,LAT,0.086111111,179,33,Huang et al. 2004,Asia
+Mongolia,2000,2001,Stray,ns,ELISA,0.086111111,15,0,Brown et al. 2005,Asia
+China (Guangzhou),2004,,ns,ns,ELISA,ns,114,27,Chen et al. 2005a,Asia
+Iran (Tehran),2002,,Stray & pet,<1; 2; 3; >3y,IFAT,01:32,100,63,Haddadzadeh et al. 2006,Asia
+China (Beijing),2005,,ns,≤1; 1-3; 3-6; >6y,ELISA,ns,128,18,Yu et al. 2006a,Asia
+Pakistan (Lahore),2005,,Stray & pet,≤0.6; 0.7-1; 1-6; ≥7y,LAT,01:16,50,28,Shahzad et al. 2006,Asia
+Thailand (Bangkok),2001,2002,Stray,ns,LAT,0.086111111,592,65,Jittapalapong et al. 2007,Asia
+Iran (Kashan),2004,2005,Stray,ns,IFAT,01:20,50,43,Hooshyar et al. 2007,Asia
+Iran (Tehran),2005,,Stray,ns,LAT,01:08,4,2,Zia-Ali et al. 2007,Asia
+China (Guangzhou),2006,,Petf,ns,MAT,01:20,34,27,Dubey et al. 2007,Asia
+China (Beijing),1999,2005,Pet,<1; 1-8y,ELISA,ns,335,50,Yu et al. 2008,Asia
+Turkey (Nigde),2003,,Stray,ns,DT,≥1:16,72,55,Karatepe et al. 2008,Asia
+South Korea (various areas),2005,2006,Stray,Unknown,PCR,-,106,50,Lee et al. 2008,Asia
+Malaysia (Perak),2007,,Petb,ns,IFAT,0.180555556,55,8,Chandrawathani et al. 2008,Asia
+South Korea (various areas),2007,,Stray,ns,LAT,01:32,174,14,Kim et al. 2008,Asia
+Turkey (Ankara),2007,,Petb,<2; 1-2; >2y,DT,01:04,99,40,Ozkan et al. 2008,Asia
+China (Guangzhou),2007,,Stray & pet,ns,ELISA,ns,206,52,Zhang et al. 2009,Asia
+Iran (Sari),2004,,Stray,ns,LAT,≥1:64,100,40,Sharif et al. 2009,Asia
+Vietnam (Thua Thien Hue),2007,,Stray,ns,LAT,0.086111111,155,112,Hosono et al. 2009,Asia
+Iran (Kerman),2008,,Stray,ns,MAT,≥1:25,70,31,Akhtardanesh et al. 2010,Asia
+Iran (Kerman),2008,,Pet,ns,MAT,≥1:25,70,24,Akhtardanesh et al. 2010,Asia
+Thailand (Bangkok),2006,,Stray,<3; 3-5; >5y,DT,≥1:16,1490,72,Jittapalapong et al. 2010,Asia
+South Korea (Seoul),2008,,Stray & pet,ns,ELISA,ns,152,11,Lee et al. 2010,Asia
+United Arab Emirates (Sharjah),2009,,Stray,ns,MAT,01:25,4,1,Dubey et al. 2010,Asia
+South Korea (Seoul),2008,,Stray,ns,ELISA ,ns,456,69,Lee et al. 2011,Asia
+Iran (Urmia),2008,2010,Stray & pet,ns,MAT,≥1:20,130,46,Raeghi et al. 2011,Asia
+Iiran (Ahvaz),2006,2009,Pet†,<6m; 6m-3y; >3y,TT,ns,198,49,Mosallanejad et al. 2011,Asia
+Iran (Ahvaz),2009,,Stray,ns,MAT,≥1:25,100,54,Hamidinejat et al. 2011,Asia
+Sri Lanka (Colombo),2010,,Stray & pet,<1; 1-2; 2-4; >16y,MAT,≥1:25,86,26,Kulasena et al. 2011,Asia
+China (Lanzhou),2010,2011,Stray & pet,<1; 2-3; ≥3 y,MAT,01:25,221,47,Wu et al. 2011,Asia
+Thailand (Bangkok),2009,,Pet,ns,MAT,≥1:25,348,35,Sukhumavasi et al. 2012,Asia
+China (Beijing),2009,2010,Stray,ns,MAT,≥1:20,60,37,Qian et al. 2012,Asia
+China (Shanghai),2010,2011,Stray,≤1; >1y,ELISA,ns,145,17,Wang et al. 2012,Asia
+Iran (Garmsar),2007,2008,Stray,ns,ELISA,ns,107,69,Tehrani-Sharif et al. 2013,Asia
+Iraq (various areas),2008,,Stray,ns,LAT,≥1:16,207,63,Switzer et al. 2013,Asia
+South Korea (Seoul),2009,2011,Pet,<6m; 6m-5y; >5y,ELISA,ns,437,10,Hong et al. 2013,Asia
+Kuwait,2012,,Stray,<6; ≥6m,IHA,ns,240,47,Abdou et al. 2013a,Asia
+Taiwan (Taipei),2008,2010,Pet†,ns,ELISA,ns,100,10,Fuh et al. 2013,Asia
+Thailand,2007,2008,Stray,ns,LAT,0.219444444,36,3,Arunvipas et al. 2013,Asia
+Korea (Daejeon),2012,,Stray,ns,ELISA,01:50,118,7,Park et al. 2014,Asia
+Turkey (Izmir),2010,,Pet,ns,IFAT,≥1:16,1121,384,Can et al. 2014,Asia
+Pakistan (various areas),2012,,Pet,<1; >1y,ELISA,ns,420,111,Ahmad et al. 2014,Asia
+China (Zhenjiang),2013,,Stray & pet,>6y; <6y,ELISA,,116,24,Liu et al. 2014,Asia
+China (Guizhou),2011,2012,Stray,ns,ELISA,ns,19,16,Li et al. 2015,Asia
+China (Henan),2013,2014,Pet,ns,MAT,≥1:25,42,21,Yang et al. 2015,Asia
+Japan (Tokyo),1999,2011,Pet,ns,LAT,0.086111111,337,20,Oi et al. 2015,Asia
+China (various areas),2012,2015,Stray & pet,<1; 1-3; >3y,IHA,≥1:64,1141,176,Kang et al. 2016,Asia
+China (Gansu),2014,2015,Stray & pet,ns,MAT,≥1:25,362,70,Cong et al. 2016,Asia
+India (Various area),2012,,Pet,0-1y; 1-2y; 2-10y,ELISA,ns,24,11,Shah et al. 2016,Asia
+Japan (Amami Oshima),2013,2017,Stray,ns,GLIPS,-,1363,123,Matsuu et al. 2017,Asia
+China (Henan),2015,2016,Pet,≤1; 1-6; ≥6y,ELISA,ns,843,178,Wang et al. 2017,Asia
+China (Henan),2015,2017,Pet,ns,MAT,01:25,28,2,"Yang et al., 2017",Asia
+Korea (nine major cities),2016,,Stray & pet,1-12 y,ELISA,ns,150,6,Kim et al. 2017,Asia
+Korea (Various areas),2013,2015,Feral,ns,ELISA,ns,112,56,Hwang et al. 2017,Asia
+Qatar,2014,2015,Stray,ns,MAT,≥1:25,495,406,Boughattas et al. 2017,Asia
+Iran (Ahvaz),2013,,Stray,<1y; 1-6y; >6y,MAT,01:25,100,39,Mosallanejad et al. 2017,Asia
+China (Jiangsu),2011,2016,Stray,ns,ELISA,≥1:5,64,16,Hou et al. 2018,Asia
+Iran (Shiraz),2017,,Stray,ns,MAT,01:20,29,24,Asgari et al. 2018,Asia
+Japan (Tokachi),2013,2014,Pet,<1; 1-2; 2-3; >3 y,ELISA,≥1:32,353,57,Salman et al. 2018,Asia
+Thailand (Bangkok),2015,,Stray,≤1; 1-5; >5y,IFAT,ns,458,41,Kengradomkij et al. 2018,Asia
+China (Shandong),2016,2017,Pet,≤1; 2; 3; >3y,IHA,≥1:64,180,39,Cong et al. 2018,Asia
+Iran (Khorasan Razavi),2016,,Stray,<6m; 6m-3y; >3y,ELISA,ns,159,94,Khodaverdi and Razmi 2019,Asia
+Saudi Arabia (Riyadh),2017,,Stray & pet,ns,ELISA,01:40,200,52,Mohammed et al. 2019,Asia
+Australia (Tasmania),1974,,Stray,ns,ns,ns,53,51,Gregory and Munday 1976,Australasia
+Australia (South-eastern),1980,,Feral,Adults,IHA,ns,75,19,Coman et al. 1981,Australasia
+Australia (Sydney),1980,,Petb,Kittens; adults,IHA,0.086111111,80,42,Watson et al. 1982,Australasia
+Australia (Tasmania),1996,,Feral,ns,LAT,0.086111111,18,9,Milstein and Goldsmid 1997a,Australasia
+Australia (Melbourne),1998,,Stray,ns,ELISA,ns,103,40,Sumner and Ackland 1999a,Australasia
+Australia (Tasmania),2012,,Stray,ns,MAT,ns,266,224,Fancourt and Jackson 2014,Australasia
+Germany (South),1978,1979,ns,ns,IFAT,ns,694,516,Boch and Walter 1979,Europe
+Scotland,1878,,Stray & Pet,ns,DT,ns,136,35,McColm et al. 1981,Europe
+Belgium (Antwerp),1984,,Pet,1m-14y,DT,ns,150,70,Beeck et al. 1985,Europe
+Scotland (Glasgow),1986,,Stray & Pet,<6m; >6m,DT,ns,158,30,Jackson et al. 1987,Europe
+UK (South-west),1986,,ns,ns,ns,ns,51,24,Gethings et al. 1987,Europe
+Czech Republic,1987,,ns,ns,DT,01:04,620,302,Svoboda et al. 1988a,Europe
+Germany,1988,,ns,ns,DT,01:16,267,160,Knaus and Fehler 1989a,Europe
+Sweden,1989,,ns,ns,ELISA,ns,244,102,Uggla et al. 1990a,Europe
+Germany (Lubeck),1989,,ns,ns,IFAT,ns,318,158,Unbehauen 1991,Europe
+Sweden,1993,,ns,ns,IFAT,01:25,60,28,Ljungstrom et al. 1994,Europe
+Germany (Lubeck),1991,,ns,ns,ELISA,ns,306,137,Tenter et al. 1994,Europe
+Austria,1995,,ns,ns,IFA,01:40,456,220,Edelhofer and Aspock 1996,Europe
+UK (Oxfordshire),1994,,FRFC,Adults,ELISA,01:16,45,28,Yamaguchi et al. 1996,Europe
+Italy (Verona),1996,,Stray,1<; 1-4; 5-8; >8y,MAT,0.086111111,490,163,D’Amore et al. 1997,Europe
+Czech Republic (Brno),1995,1997,Petb,3m-16y,IFAT,≥1:10,390,240,Svobodova et al. 1998,Europe
+Germany,2000,,ns,ns,ELISA,ns,300,197,Hecking-Veltman et al. 2001a,Europe
+Belgium (Ghent),1998,2000,Stray,ns,MAT,01:40,346,243,Dorny et al. 2002a,Europe
+Poland (South-western),2001,,Stray & pet,ns,LAT,0.086111111,200,105,Smielewska-Los and Pacon 2002a,Europe
+Spain (Barcelona),2002,,Stray & pet,<1; ≥1y,MAT,01:25,220,99,Gauss et al. 2003,Europe
+Poland (Olsztyn),2003,,Petb,ns,MAT,01:20,17,12,Michalski and Platt-Samoraj 2004a,Europe
+Spain (various areas),2003,,Stray & pet,>6m; <6m,IFAT,≥1:80,585,189,Miro et al. 2004,Europe
+France,2005,,ns,ns,DAT,0.086111111,50,20,Meunier et al. 2006,Europe
+France (Lyon),1993,2004,Strayc,ns,MAT,01:40,301,56,Afonso et al. 2006,Europe
+Italy (Tuscany),2003,2004,Stray,6 m to 10 y,DAT,01:04,573,233,Papini et al. 2006,Europe
+Czech Republic (Bohemia),2002,2006,Pete,ns,IFAT,≥1:40,286,126,Sedlak and Bartova 2006,Europe
+Slovak Republic,2006,,ns,ns,ELISA,ns,164,31,Ondrejka et al. 2007,Europe
+Italy (Veneto),2005,2006,Stray,ns,IHA,0.180555556,189,131,Natale et al. 2007,Europe
+Portugal (northeastern),2004,2005,Pet,2-11; 12-35; 36-180m,MAT,01:20,204,73,Lopes et al. 2008,Europe
+Belgium (Brussels),2004,2006,Pet,3m-7y,IFAT,01:50,567,141,de Craeye et al. 2008,Europe
+Belgium (Brussels),2004,2007,Pet,3m-8y,IFAT,01:50,410,110,de Craeye et al. 2008,Europe
+Hungary (various areas),2007,,Stray,2 - 13y,IFAT,01:20,330,157,Hornok et al. 2008,Europe
+Spain (various areas),2007,,Stray & pet,ns,IFAT,0.097222222,592,103,Montoya et al. 2008,Europe
+Spain (Andalusia),2004,2006,Stray,ns,MAT,01:25,25,13,Millan et al. 2009,Europe
+Italy (Florence),2009,,Pet,6-24 m,MAT,≥1:20,50,22,Mancianti et al. 2010,Europe
+Ireland,2009,,Stray & pet,ns,ELISA,ns,83,28,Juvet et al. 2010,Europe
+Poland (Olsztyn),2009,,Petb,ns,DAT,01:40,135,89,Michalski et al. 2010a,Europe
+Romania (Cluj-Napoca),2007,2010,Pet,1m-17y,ELISA,ns,236,111,Gyorke et al. 2011,Europe
+Romania (Arad),2010,,ns,ns,ELISA,ns,36,29,Hotea et al. 2011,Europe
+Romania (Timişoara Zoo),2009,2010,Captive,ns,ELISA,ns,1,1,Darabus et al. 2011,Europe
+Saudi Arabia (Al-Ahsa),2010,,Stray & pet,ns,ELISA,ns,156,98,Al-Mohammed 2011,Europe
+Scotland (Edinburg),2009,,Petb,<1; 1-12; ≥13y,ELISA,≥1:64,52,10,Bennett et al. 2011,Europe
+Italy (Lombardy),2008,2010,Stray,ns,IFAT,ns,203,62,Spada et al. 2012,Europe
+Netherland,2005,2010,Petb,≤1.5; 1.5-10; >10y,ELISA,ns,450,91,Opsteegh et al. 2012,Europe
+Finland (Helsinki),2008,2009,Pet,ns,DAT,≥1:40,490,237,Jokelainen et al. 2012,Europe
+Portugal (Lisbon),2009,2010,Stray,ns,DAT,≥1:20,423,187,Waap et al. 2012,Europe
+Italy (Milan),2011,,Stray,ns,IFAT,ns,139,70,"Spada et al., 2013",Europe
+Romania (Western),2009,,Stray & pet,ns,ELISA,ns,605,361,Hotea et al. 2013,Europe
+Lativa (various areas),2011,2012,Petb,<1; 1-6; >7y,ELISA,ns,242,125,Deksne et al. 2013,Europe
+Albania (Tirana),2008,2010,Pet,ns,ELISA,≥1:100,146,91,Silaghi et al. 2014,Europe
+Portugal (Lisbon),2007,2008,Pet,6-12; 12-24m,MAT,≥1:40,215,44,Esteves et al. 2014,Europe
+Albania (Southwest),2012,2014,Pet†,ns,MAT,01:25,138,58,Lamaj et al. 2015,Europe
+Estonia,2013,,Pet,<1; ≥1,DAT,01:40,306,193,Must et al. 2015,Europe
+Estonia,2013,,Shelter,<1; ≥1,DAT,01:40,184,105,Must et al. 2015,Europe
+Portugal (Southern),2014,,Stray,ns,MAT,01:20,79,31,Waap et al. 2016,Europe
+Italy (Perugia),2014,2015,Pet,ns,IFAT,0.086111111,78,33,Veronesi et al. 2017,Europe
+Finland,2015,,Pet ,Adult; kitten,DAT,≥1:40,1121,461,Must et al. 2017,Europe
+Romania (Timis),2015,,Pet,ns,ELISA,ns,144,106,Hotea et al. 2017,Europe
+Russia (Kazan),2013,,Petb,ns,ELISA,≥1:16,99,39,Shuralev et al. 2018,Europe
+Spain (Central),2014,2017,Stray,≤1; >1y,DAT,≥1:80,356,86,Montoya et al. 2018,Europe
+France (North eastern),2014,2016,Stray,ns,MAT,≥1:25,130,38,Simon et al. 2018,Europe
+Poland (Silesian),2017,,ns,0.5-12y,IFAT,0.130555556,208,143,Sroka et al. 2018,Europe
+USA (New Mexico),1975,,Pet,ns,DT,≥1:32,91,7,Marchiondo et al. 1976,North America
+USA (California),1975,,Pet,ns,IHA,ns,47,18,Franti et al. 1976,North America
+USA (Ohio),1975,,Stray,ns,IFAT,ns,1000,390,Claus et al. 1977a,North America
+Canada (Ontario),1976,,Pet,ns,DT,ns,152,30,Tizard et al. 1978,North America
+USA (California),1973,,Pet,ns,IHA,0.086111111,86,17,Riemann et al. 1978,North America
+USA (Washington),1981,,Stray & pet,ns,ELISA,ns,87,27,Ladiges et al. 1982a,North America
+USA (Maryland),1984,,Stray,ns,IFAT,ns,650,109,Childs and Seegar 1986,North America
+USA (Maryland),1980,1981,ns,ns,IFAT,01:32,585,89,Witt et al. 1989a,North America
+USA (Georgia),1988,,Petc,ns,ELISA,≥1:64,188,114,Lappin et al. 1989,North America
+USA (Oklahoma),1987,1988,Pete,<1; 1-5; ≥6y,LAT,01:16,618,136,Rodgers and Baldwin 1990,North America
+"USA (Florida, Georgia, Ohio)",1991,,ns,ns,ELISA,ns,124,92,Lappin et al. 1992a,North America
+USA (Iowa),1991,,Stray,ns,MAT,01:32,74,31,Smith et al. 1992,North America
+USA (Illinois),1992,1993,Stray,ns,MAT,≥1:25,391,267,Dubey et al. 1995,North America
+Canada (Ontario),1991,1993,Petb,ns,IHA,0.086111111,25,3,Quesnel et al. 1997a,North America
+USA (Iowa),1984,1988,Stray,ns,MAT,01:32,20,16,Hill et al. 1998,North America
+Canada (Victoria),1997,,Pet†,~ 8.7 y,MAT,01:25,73,16,"Aramini et al., 1999",North America
+USA (Colorado),1993,1995,Pet,<1; 1-10; >10y,ELISA,0.086111111,206,49,Hill et al. 2000,North America
+USA (Rhode Island),2001,,Stray,ns,MAT,01:25,200,84,DeFeo et al. 2002a,North America
+USA (Ohio),2001,,Stray,ns,MAT,≥1:25,275,133,Dubey et al. 2002,North America
+USA (Florida),1999,2000,Stray,ns,ELISA,ns,553,60,Luria et al. 2004,North America
+USA (North Carolina),2003,,Stray & pet,3m-19y,MAT,01:25,176,89,Nutter et al. 2004,North America
+USA (Nationwide),2004,,Petb,ns,ELISA,ns,12628,3991,Vollaire et al. 2005a,North America
+USA (Hawaii),2002,2004,Stray,ns,ELISA,0.086111111,67,25,Danner et al. 2007,North America
+USA (California),2003,2005,Pet,<6; 6-12; >12m,ELISA,≥1:64,194,47,Dabritz et al. 2007,North America
+USA (California),2003,2005,Pet,<6; 6-12; >12m,IFA,01:16,194,70,Dabritz et al. 2007,North America
+USA (California),2000,2005,ns,ns,IFA,0.263888889,5,3,Miller et al. 2008,North America
+USA (Midwestern zoos),2003,2005,Stray,ns,MAT,01:25,34,10,de Camps et al. 2008,North America
+USA (Pennsylvania),2008,,Stray,3w-8y,MAT,≥1:25,210,41,Dubey et al. 2009,North America
+Canada (Prince Edward),2009,,Stray,Juveniles; adults,ELISA,0.219444444,94,28,Stojanovic and Foley 2011,North America
+USA (Ilinois),2008,2009,Feral,ns,IFAT,01:25,18,6,Fredebaugh et al. 2011,North America
+USA (Virginia),2007,,ns,ns,IFAT,ns,232,63,Hsu et al. 2011,North America
+"USA (California, Colorado)",2000,2010,Stray,ns,ELISA,01:52,272,27,Bevins et al. 2012,North America
+USA (California),2006,2009,Feral,Juvenile vs. adults,IFAT,ns,736,137,VanWormer et al. 2013,North America
+USA (Ohio),2010,,Stray,ns,MAT,01:25,200,103,Ballash et al. 2014,North America
+USA (Minnesota),2014,2015,Stray,Juveniles; adults,MAT,01:25,20,9,Verna et al. 2016,North America
+USA (South Dakota),2015,,ns,ns,ELISA,ns,32,2,Scorza and Lappin 2017 ,North America
+USA (Iowa),2015,2016,Stray,<6; 7-72; >72 m,ELISA,ns,140,42,Palerme et al. 2018,North America
+Hawaii,1972,,Stray,ns,ns,≥1:4,1568,220,Wallace 1973e,Central/South America
+Costa Rica (various areas),1979,,ns,ns,ns,ns,237,109,Ruiz and Frenkel 1980e,Central/South America
+Brazil (São Paulo),1984,,Stray,ns,IFA,≥1:8,9,0,Salata et al. 1985 ,Central/South America
+Chile,1988,,ns,ns,IHA,01:16,27,23,Stutzin et al. 1989,Central/South America
+Argentina (Buenos Aires),1994,,Pet,14 - 126 m,IHA,01:32,169,33,Fernandez et al. 1995,Central/South America
+Argentina,1994,,ns,ns,IFA,01:08,68,17,Venturini et al. 1995a,Central/South America
+Panama (Panama City),1994,,ns,ns,MAT,01:01,241,110,Frenkel et al. 1995a,Central/South America
+Argentina,1996,,ns,ns,IFA,01:08,100,27,Venturini et al. 1997a,Central/South America
+Colombia,1997,,ns,ns,IFA,ns,28,25,Londono et al. 1998,Central/South America
+Brazil (Rio de Janeiro),1996,1997,Petb,<6m; 7m-12y; >12y,IFAT,01:16,248,44,Lucas et al. 1999,Central/South America
+Brazil (Amazon),1998,,ns,ns,IFAT,01:16,163,119,Garcia et al. 1999a,Central/South America
+Mexico (Guadalajara),1998,,Pet,ns,ELISA,ns,24,17,Galvan Ramirez et al. 1999,Central/South America
+Chile (Valdivia),1999,,Stray,ns,IFA,>1:4,97,32,Ovalle et al. 2000a,Central/South America
+Brazil (São Paulo),2000,,Stray,ns,IFAT,≥1:16,191,37,Langoni et al. 2001,Central/South America
+Brazil (São Paulo),2000,,ns,ns,MAT,01:20,502,132,da Silva et al. 2002,Central/South America
+Brazil (São Paulo),2001,,ns,ns,MAT,01:16,100,19,da Silva et al. 2002,Central/South America
+Brazil (Parana),2002,,ns,ns,IHA,ns,41,10,Netto et al. 2003,Central/South America
+Brazil (Parana),2003,,ns,ns,MAT,01:20,58,49,Dubey et al. 2004,Central/South America
+Brazil (São Paulo),2003,,ns,ns,ELISA,ns,100,40,Meireles et al. 2004,Central/South America
+Brazil (São Paulo),2004,,Stray,ns,IFAT,ns,28,15,Ortolani et al. 2005,Central/South America
+Mexico (Mexico city),1996,1997,Feral,ns,ns,ns,6,4,Suzan and Ceballos 2005,Central/South America
+Brazil (São Paulo),2005,,ns,ns,MAT,01:25,237,85,Pena et al. 2006,Central/South America
+Colombia,2005,,Stray,ns,MAT,≥1:5,170,77,Dubey et al. 2006,Central/South America
+Brazil (Rondônia),2005,,Stray,ns,MAT,01:25,63,55,Cavalcante et al. 2006a,Central/South America
+Grenada,2005,,Pet,ns,MAT,01:25,40,16,Asthana et al. 2006,Central/South America
+Kerguelen Islands,2005,,ns,ns,MAT,01:40,276,141,Afonso et al. 2007,Central/South America
+Puerto Rico (Mona Island),2004,2005,Stray,Adult; kitten,MAT,≥1:10,19,16,Dubey et al. 2007,Central/South America
+Mexico (Colima),2006,,Pet,ns,ELISA,ns,80,23,Garcia-Marquez et al. 2007,Central/South America
+Mexico (Durango),2006,,Stray,<0.5; 0.5-1; >1y,MAT,01:25,105,22,Alvarado-Esquivel et al. 2007,Central/South America
+West Indies (St. Kitts),2006,,Pet,ns,MAT,≥1:25,106,90,Moura et al. 2007a,Central/South America
+Brazil (Rio de Janeiro),2002,2004,Stray,ns,IHA,01:16,118,85,Mendes-de-Almeida et al. 2007,Central/South America
+Galapagos (Isabela Island),2004,,Stray & pet,>12w,ELISA,0.086111111,52,33,Levy et al. 2008,Central/South America
+Mexico (Mexico City),2007,,Pet,<1; 1-9; >9y,ELISA,ns,169,37,Besne-Merida et al. 2008,Central/South America
+West Indies (Grenada),2004,2007,Stray & pet,ns,MAT,≥1:25,176,51,Dubey et al. 2009,Central/South America
+Mexico (Durango),2007,,Stray & pet,0.3-10 y,MAT,01:25,150,14,Dubey et al. 2009,Central/South America
+West Indies (St. Kitts),2008,,Stray,<6 m; adults,MAT,≥1:10,96,71,Dubey et al. 2009,Central/South America
+Brazil (Santa Catarina),2008,2009,Pet,ns,IFAT,≥1:64,300,43,Rosa et al. 2010,Central/South America
+Brazil (Curitiba),2007,,Petb,Young; adult; old,IFAT,≥1:16,282,46,Cruz et al. 2011,Central/South America
+Brazil (São Paulo),2010,,ns,Young; adult,IFAT,≥1:64,70,11,Coelho et al. 2011,Central/South America
+USA (Various area),2005,,ns,<7m;  ≥7m,ns,ns,55,13,Levy et al. 2011,Central/South America
+Brazil (Maranhão),2008,2009,Stray,ns,IFAT,≥1:40,200,101,Braga et al. 2012,Central/South America
+Brazil (São Paulo),2011,,Stray,ns,IFAT,01:16,251,51,Sobrinho et al. 2012,Central/South America
+Mexico (Yucatan),2011,,Pet,≤1y; 1-7y,ELISA,ns,220,202,Castillo-Morales et al. 2012,Central/South America
+Mexico (Yucatan),2011,,Stray,ns,ELISA,0.752777778,50,50,Jimenez-Coello et al. 2013,Central/South America
+Brazil (São Paulo),2010,,Stray,1m-1y,IFAT,≥1:64,386,63,Cardia et al. 2013,Central/South America
+Brazil (Mato Grosso do Sul),2007,,ns,ns,IFAT,≥1:16,50,2,Braga et al. 2014,Central/South America
+Brazil (Mato Grosso do Sul),2013,,Stray & pet,ns,IFAT,≥1:40,151,49,Sousa et al. 2014,Central/South America
+Brazil (Patos),2011,,Stray & pet,ns,IFAT,01:16,201,88,Feitosa et al. 2014,Central/South America
+Peru (Lima),2013,,Pet,<1; 1-7; >7y,IHA,ns,154,17,Cerro et al. 2014,Central/South America
+Mexico (various areas),2008,,Stray & pet,ns,ELISA,ns,48,14,Rico-Torres et al. 2015,Central/South America
+Brazil (various areas),2008,2010,Pet,ns,IFAT,≥1:25,29,24,Furtado et al. 2015,Central/South America
+Brazil (Parana),2013,,ns b,ns,IFAT,ns,171,47,Andrade et al. 2015a,Central/South America
+Brazil (Parana),2004,2012,ns,ns,IFAT,≥1:100,415,87,Caldart et al. 2015,Central/South America
+Brazil (Acre),2014,,ns,ns,IIF,ns,89,22,Souza et al. 2015a,Central/South America
+Brazil (Northeastern),2015,2017,Stray,6-12m; 1-3y; >3y,IFAT,0.086111111,35,9,Arraes-Santos et al. 2016,Central/South America
+Brazil (Fernando de Noronha),2015,,Stray & pet,ns,IFAT,01:16,595,398,Magalhaes et al. 2017,Central/South America
+Brazil (Rio de Janeiro),2014,2015,Stray & pet,Adult; juvenile,MAT,≥1:20,372,36,Bolais et al. 2017,Central/South America
+Brazil (Parana),2016,,Pet,ns,IIF,ns,100,29,Souza et al. 2017a,Central/South America
+Panama (Panama city),2015,2016,Pet,ns,ELISA,ns,120,30,Rengifo-Herrera et al. 2017,Central/South America
+Chile (Southern),2009,2013,Stray,ns,MAT,≥1:25,65,44,Barros et al. 2018,Central/South America
