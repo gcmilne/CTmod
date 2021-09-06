@@ -28,7 +28,6 @@ if(cluster == "none"){ #local
   SEED = as.numeric(Sys.getenv("SEED"))
   
 }
-SEED <- 600
 
 set.seed(SEED)
 
