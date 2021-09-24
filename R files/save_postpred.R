@@ -291,4 +291,4 @@ if (pars$forecast == 1){
 ## Save model estimates & data for plotting
 saveRDS(ct_all,   "data/ct_predictions.rds")
 saveRDS(prev_all, "data/prev_predictions.rds")
-saveRDS(prev_all, "data/prev_data.rds")
+saveRDS(prev_fit, "data/prev_data.rds")
