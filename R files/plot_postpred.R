@@ -16,13 +16,25 @@ library(RColorBrewer)
 #############
 # Load data #
 #############
-ct_all <- readRDS("data/ct_predictions.rds")
+ct_all   <- readRDS("data/ct_predictions.rds")
 prev_all <- readRDS("data/prev_predictions.rds")
+prev_fit <- readRDS("data/prev_data.rds")
 
+#############
+# Set fonts #
+#############
+if(.Platform$OS.type == "windows") { # set Times New Roman font on Windows
+  # library(extrafont)
+  # font_import()
+  # loadfonts(device = "win")
+  windowsFonts(Times=windowsFont("TT Times New Roman")) 
+}
 
 ################
 ## Make plots ##
 ################
+min_year <- 1980 #Minimum year to display modelled estimates from
+max_year <- 2030 #Maximum year to display modelled estimates from
 
 ## Prevalence ##
 
@@ -33,117 +45,52 @@ if (!exists("prev_allyears")) {  #only create if list not in existence
 
 #Colour for geom_ribbon
 # display.brewer.pal(8, "Pastel1")
-ribbonColour <- brewer.pal(8, "Pastel2")[c(3, 7)]
 
-prev_allyears[[which(countries == pars$country)]] <- ggplot(
-  data=prev_all[[which(countries == pars$country)]]) + 
-  geom_line(aes(x=time, y=mod_prev), size=0.3) + 
-  geom_ribbon(aes(x=time, ymin = mod_prev_low, ymax = mod_prev_up), alpha=0.5, fill=ribbonColour[2]) +
-  annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
-           ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
-  xlab("Year") + 
-  ylab("Seroprevalence") + 
-  scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks = 3) + 
-  scale_y_continuous(expand = c(0,0)) +
-  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
-  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none") + 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+levels(countries)[7] <- "Iran" ## Make Iran's name shorter for plotting
 
-## Calculate where to place inset within main plot area
-space_below_plot <- min(prev_all[[which(countries == pars$country)]]$mod_prev_low[which(years == 1900):which(years == 1975)])
-space_above_plot <- 1 - (max(prev_all[[which(countries == pars$country)]]$mod_prev_up[which(years == 1900):which(years == 1975)]))
-
-if (space_below_plot > space_above_plot) { 
+for (i in 1:length(countries)) {
   
-  ymin_val <- 0.05
-  ymax_val <- space_below_plot * 0.92
-  xmin_val <- 1900 + 10
-  xmax_val <- min(fitting_data$year) - 10
+  pars$country <- levels(countries)[i]
   
-  # make arrow
-  arrow_vec <- data.frame(
-    x1 = min(fitting_data$year),
-    x2 = xmax_val, 
-    y1 = prev_all[[which(countries == pars$country)]]$mod_prev_low[which(prev_all[[which(countries == pars$country)]]$time == min(fitting_data$year))], #find intersection
-    y2 = ymax_val * 0.95
-  )
+  ribbonColour <- brewer.pal(8, "Pastel2")[c(3, 7)]
   
-} else if (space_below_plot < space_above_plot) { 
-  
-  ymin_val <- 1 - space_above_plot + (0.02 * space_above_plot)
-  ymax_val <- 0.98
-  xmin_val <- 1900 + 10
-  xmax_val <- min(fitting_data$year) - 10
-  
-  # make arrow
-  arrow_vec <- data.frame(
-    x1 = min(fitting_data$year),
-    x2 = xmax_val, 
-    y1 = prev_all[[which(countries == pars$country)]]$mod_prev_up[which(prev_all[[which(countries == pars$country)]]$time == min(fitting_data$year))], #find intersection
-    y2 = ymin_val
-  )
-  
-  prev_allyears[[which(countries == pars$country)]] <- prev_allyears[[which(countries == pars$country)]] +
-    scale_y_continuous(expand = c(0,0), limits=c(0,1))  # change main plot limits to allow inset to fit
+  prev_allyears[[i]] <- ggplot(
+    data=prev_all[[i]]) + 
+    ggtitle(levels(countries)[i]) + 
+    geom_line(aes(x=time, y=mod_prev), size=0.3) + 
+    geom_ribbon(aes(x=time, ymin = mod_prev_low, ymax = mod_prev_up), alpha=0.5, fill=ribbonColour[2]) +
+    geom_point(data=prev_fit[[i]], 
+               aes(x=time, y=dat_prev), col="grey", size=0.2) +
+    geom_errorbar(data=prev_fit[[i]], 
+                  aes(width=.3, x=time, ymin = dat_low, ymax = dat_up),  col="grey", size=0.2) +
+    # annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
+    #          ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
+    xlab("Year") + 
+    ylab("Seroprevalence (%)") + 
+    scale_x_continuous(expand = c(0,0), limits = c(min_year, max_year), breaks = c(min_year, 2005, max_year)) + 
+    scale_y_continuous(expand = c(0,0), limits = c(0,100)) +
+    theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+    theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+    theme(legend.position = "none") + 
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+    theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm"))
   
 }
 
-## Prevalence inset graph
-if (!exists("prev_inset")) {  #only create if list not in existence
-  prev_inset <- vector("list", length=length(countries))
-}
+## Plot & save multipanel prevalence plot
+wrap_plots(prev_allyears, nrow=4, ncol=3) + 
+  plot_annotation(
+    tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
+                        '(g)', '(h)', '(i)', '(j)', '(k)')))
 
-# Calculate no. breaks for y axis
-if (ymax_val - ymin_val > 0.4) {
-  num_breaks <- 4
-} else if (ymax_val - ymin_val < 0.4) { 
-  num_breaks <- 3
-} 
+ggsave(filename = "plots/prev_multipanel.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
 
-if (pars$country == "Italy" | pars$country == "Turkey"){
-  num_breaks <- 2
-}
-
-prev_inset[[which(countries == pars$country)]] <- ggplot(
-  data=prev_fit[[which(countries == pars$country)]], aes(x=time, y=mod_prev)) + 
-  geom_line(size=0.3) + 
-  geom_ribbon(aes(ymin = mod_prev_low, ymax = mod_prev_up), alpha=0.5, fill = ribbonColour[2]) +
-  geom_point(aes(y=dat_prev), col="grey", size=0.2) +
-  geom_errorbar(aes(width=.3, ymin = dat_low, ymax = dat_up),  col="grey", size=0.2) +
-  scale_x_continuous(breaks=c(min(fitting_data$year), max(fitting_data$year))) +
-  coord_cartesian(xlim=c(min(fitting_data$year), max(fitting_data$year, 
-                                                     ylim=c(min(prev_fit[[which(countries == pars$country)]]$dat_low), 
-                                                            max(prev_fit[[which(countries == pars$country)]]$dat_up))))) + #avoids error bars getting clipped
-  scale_y_continuous(n.breaks=num_breaks) +
-  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank()) + 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  theme(plot.margin=grid::unit(c(rep(0.1,4)),"cm"))
-
-  
-## Combined main prevalence plot with inset
-if (!exists("prev_combo")) {  #only create if list not in existence
-  prev_combo <- vector("list", length=length(countries))
-}
-
-prev_combo[[which(countries == pars$country)]] <- prev_allyears[[which(countries == pars$country)]] + 
-  annotation_custom(
-    ggplotGrob(prev_inset[[which(countries == pars$country)]]), 
-    xmin = xmin_val, xmax = xmax_val, ymin = ymin_val, ymax = ymax_val
-  ) + 
-  geom_segment(data = arrow_vec, aes(x = x1, y = y1,       #add arrow
-                                     xend = x2, yend = y2),
-               lineend = "round", 
-               linejoin = "round",
-               size = 0.3, 
-               arrow = arrow(length = unit(0.04, "inches")),
-               colour = "grey") + 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
-
-
+# ggsave(filename = "plots/ct_sequelae_multipanel.png",
+#        height = 8, width = 8, units = "in", dpi=600)
 
 ## CT incidence ##
+levels(countries)[7] <- "Iran" ## Make Iran's name shorter for plotting
 
 # make list to store all plots from different countries
 if (!exists("ct_allyears")) {  #only create if list not in existence
@@ -151,43 +98,49 @@ if (!exists("ct_allyears")) {  #only create if list not in existence
 }
 
 # Main CT incidence plot
-if(pars$country != "China"){
-  ct_allyears[[which(countries == pars$country)]] <- ggplot(
-    data=ct_all[[which(countries == pars$country)]], aes(x=time, y=ct_rel)) + 
-    geom_line(aes(y=ct_rel), size=.3) +                        # Overall CT cases
-    geom_ribbon(aes(ymin = ct_rel_low, ymax = ct_rel_up), alpha=0.5, fill = ribbonColour[2]) +
-    annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
-             ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
-    xlab("Year") + 
-    ylab("Incidence per 10 000 live births") + 
-    scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks = 3) + 
-    scale_y_continuous(expand = c(0,0), n.breaks = 5) + 
-    theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
-    theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-    theme(legend.position = "none") + 
-    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+for (i in 1:length(countries)) {
+  pars$country <- countries[i]
   
-} else if(pars$country == "China"){
-  ct_allyears[[which(countries == pars$country)]] <- ggplot(
-    data=ct_all[[which(countries == pars$country)]], aes(x=time, y=ct_rel)) + 
-    geom_line(aes(y=ct_rel), size=.3) +                        # Overall CT cases
-    geom_ribbon(aes(ymin = ct_rel_low, ymax = ct_rel_up), alpha=0.5, fill = ribbonColour[2]) +
-    annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
-             ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
-    xlab("Year") + 
-    ylab("Incidence per 10 000 live births") + 
-    scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks = 3) + 
-    scale_y_continuous(limits=c(0, 300), expand = c(0,0), n.breaks = 5) + 
-    theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
-    theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-    theme(legend.position = "none") + 
-    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  if(pars$country != "China" & pars$country != "United Kingdom"){
+    ct_allyears[[i]] <- ggplot(
+      data=ct_all[[i]], aes(x=time, y=ct_rel)) + 
+      ggtitle(levels(countries)[i]) + 
+      geom_line(aes(y=ct_rel), size=.3) +  #Overall CT cases
+      geom_ribbon(aes(ymin = ct_rel_low, ymax = ct_rel_up), alpha=0.5, fill = ribbonColour[2]) +
+      annotate("rect", xmin=min(prev_fit[[i]]$time), xmax=max(prev_fit[[i]]$time), #years with data
+               ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
+      xlab("Year") + 
+      ylab("Incidence per 10 000 live births") + 
+      scale_x_continuous(expand = c(0,0), limits = c(min_year, max_year), breaks = c(min_year, 2005, max_year)) + 
+      scale_y_continuous(expand = c(0,0), n.breaks = 5) + 
+      theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+      theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+      theme(legend.position = "none") + 
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+      theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm"))
+    
+  } else if(pars$country == "China" | pars$country == "United Kingdom"){
+    
+    if (pars$country == "China") y_limits <- c(0, 200) else y_limits <- c(0,40)
+    
+    ct_allyears[[i]] <- ggplot(
+      data=ct_all[[i]], aes(x=time, y=ct_rel)) + 
+      ggtitle(levels(countries)[i]) + 
+      geom_line(aes(y=ct_rel), size=.3) +   #Overall CT cases
+      geom_ribbon(aes(ymin = ct_rel_low, ymax = ct_rel_up), alpha=0.5, fill = ribbonColour[2]) +
+      annotate("rect", xmin=min(prev_fit[[i]]$time), xmax=max(prev_fit[[i]]$time), #years with data
+               ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
+      xlab("Year") + 
+      ylab("Incidence per 10 000 live births") + 
+      scale_x_continuous(expand = c(0,0), limits = c(min_year, max_year), breaks = c(min_year, 2005, max_year)) + 
+      scale_y_continuous(limits=y_limits, expand = c(0,0), n.breaks = 5) + 
+      theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+      theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+      theme(legend.position = "none") + 
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+      theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm"))
+  }
 }
-
-# Save
-# ggsave(filename = paste("plots/", pars$country, "/", pars$temporal_foi, "_CT_allyears", ".pdf", sep=""),
-# device = cairo_pdf, height = 6, width = 6, units = "in")
-
 
 # CT sequelae incidence inset plot
 # make list to store all plots from different countries
@@ -196,37 +149,32 @@ if (!exists("ct_inset")) {  #only create if list not in existence
 }
 
 # colours
-# display.brewer.pal(8, "Pastel2") # choose colours
-
 myColors <- brewer.pal(7,"Set2") #set colours to use
 
 inset_line_size = 0.3
 
-max_incidence <- max(map_dbl(ct_all[[which(countries == pars$country)]][,-(1:4)], max)) # find max sequelae incidence
-
-ct_inset[[which(countries == pars$country)]] <- ggplot(
-  data=ct_all[[which(countries == pars$country)]], aes(x=time, y=ct_rel)) + 
-  geom_line(aes(y=chorioretinitis_first), size=inset_line_size, col = myColors[1]) +         # Chorioretinitis in first year
-  geom_line(aes(y=chorioretinitis_later), size=inset_line_size, col = myColors[2]) +         # Chorioretinitis in later life
-  geom_line(aes(y=intracranial_calcifications), size=inset_line_size, col = myColors[3]) +   # Intracranial calcifications
-  geom_line(aes(y=cns_abnormalities), size=inset_line_size, col = myColors[4]) +             # CNS abnormalities
-  geom_line(aes(y=foetal_loss), size=inset_line_size, col = myColors[5]) +                   # Foetal loss
-  geom_line(aes(y=hydrocephalus), size=inset_line_size, col = myColors[6]) +                 # Hydrocephalus
-  geom_line(aes(y=neonatal_death), size=inset_line_size, col = myColors[7]) +                # Neonatal death
-  annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
-           # ymin=min(ct_all[[which(countries == pars$country)]]$ct_rel_low), 
-           ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
-  scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks=2) + 
-  scale_y_continuous(limits=c(0, max_incidence+0.05*max_incidence), expand = c(0,0), n.breaks=3) + 
-  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
-  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank(),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  theme(plot.margin=grid::unit(c(0,0,0,0),"cm"))
-
-
-# ct_inset[[which(countries == pars$country)]]
-
+for(i in 1:length(countries)){
+  max_incidence <- max(map_dbl(ct_all[[i]][,-(1:4)], max)) # find max sequelae incidence
+  
+  ct_inset[[i]] <- ggplot(
+    data=ct_all[[i]], aes(x=time, y=ct_rel)) + 
+    geom_line(aes(y=chorioretinitis_first), size=inset_line_size, col = myColors[1]) +         # Chorioretinitis in first year
+    geom_line(aes(y=chorioretinitis_later), size=inset_line_size, col = myColors[2]) +         # Chorioretinitis in later life
+    geom_line(aes(y=intracranial_calcifications), size=inset_line_size, col = myColors[3]) +   # Intracranial calcifications
+    geom_line(aes(y=cns_abnormalities), size=inset_line_size, col = myColors[4]) +             # CNS abnormalities
+    geom_line(aes(y=foetal_loss), size=inset_line_size, col = myColors[5]) +                   # Foetal loss
+    geom_line(aes(y=hydrocephalus), size=inset_line_size, col = myColors[6]) +                 # Hydrocephalus
+    geom_line(aes(y=neonatal_death), size=inset_line_size, col = myColors[7]) +                # Neonatal death
+    annotate("rect", xmin=min(prev_fit[[i]]$time), xmax=max(prev_fit[[i]]$time), #years with data
+             ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
+    scale_x_continuous(expand = c(0,0), limits = c(min_year, max_year), breaks=c(min_year, max_year)) + 
+    scale_y_continuous(limits=c(0, max_incidence+0.05*max_incidence), expand = c(0,0), n.breaks=3) + 
+    theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+    theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+    theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank(),
+          panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+    theme(plot.margin=grid::unit(c(0,0,0,0),"cm"))
+}
 
 # Combine main plot with inset plot
 # make list to store all plots from different countries
@@ -234,65 +182,58 @@ if (!exists("ct_combo")) {  #only create if list not in existence
   ct_combo <- vector("list", length=length(countries))
 }
 
-if (pars$country == "Cameroon" | pars$country == "Ethiopia") {
-  ymin_val <-  max(ct_all[[which(countries == pars$country)]]$ct_rel_up[which(years == 1900):which(years == 1975)]) * 1.1
-  ymax_val <-  max(ct_all[[which(countries == pars$country)]]$ct_rel_up[which(years == 1900):which(years == 2025)]) * 0.90
-  xmin_val <- 1910
-  xmax_val <- 1985
-  
-} else if (pars$country == "Iran (Islamic Republic of)") { 
-  ymin_val <- 0
-  ymax_val <- min(ct_all[[which(countries == pars$country)]]$ct_rel_low[which(years == 1940):which(years == 2000)]) * 0.91
-  xmin_val <- 1940
-  xmax_val <- 2000
-  
-} else if (pars$country == "China") {
-  ymin_val <- 150
-  ymax_val <- 300 * 0.91
-  xmin_val <- 1910
-  xmax_val <- 1985
-  
-  } else if (pars$country != "Cameroon" | pars$country != "Ethiopia" | 
-             pars$country != "Iran (Islamic Republic of)" | pars$country != "China") { 
-  ymin_val <- 0
-  ymax_val <- min(ct_all[[which(countries == pars$country)]]$ct_rel_low[which(years == 1900):which(years == 1975)]) * 0.90
-  xmin_val <- 1910
-  xmax_val <- 1985
-  
+ymin_val <- ymax_val <- xmin_val <- xmax_val <- vector("numeric", length=length(countries))
+
+for(i in 1:length(countries)){
+  if (countries[i] == "China") {
+    ymin_val[i] <- 60
+    ymax_val[i] <- 200 * 0.91
+    xmin_val[i] <- min_year + 2
+    xmax_val[i] <- min_year + (max_year - min_year)/2 + 2
+    
+  } else if (countries[i] ==  "Cameroon" | countries[i] ==  "Ethiopia"){
+    ymin_val[i] <- 0
+    ymax_val[i] <- min(ct_all[[i]]$ct_rel_low[which(years == max_year - (max_year - min_year)/2 + 2):which(years == max_year)]) * 0.90
+    xmin_val[i] <- max_year - (max_year - min_year)/2 - 6
+    xmax_val[i] <- max_year - 6
+    
+  } else if (countries[i] ==  "United Kingdom") {
+    ymin_val[i] <- 18
+    ymax_val[i] <- 38
+    xmin_val[i] <- max_year - (max_year - min_year)/2 - 6
+    xmax_val[i] <- max_year - 6
+    
+  } else if (countries[i] != "China" | countries[i] != "Cameroon" | 
+             countries[i] != "Ethiopia" | countries[i] != "United Kingdom") { 
+    ymin_val[i] <- 0
+    ymax_val[i] <- min(ct_all[[i]]$ct_rel_low[which(years == min_year):which(years == 2007)]) * 0.90
+    xmin_val[i] <- min_year + 2
+    xmax_val[i] <- min_year + (max_year - min_year)/2 + 2
+    
+  }
 }
 
 ## Combined CT incidence plot with sequelae inset plot
-ct_combo[[which(countries == pars$country)]] <- ct_allyears[[which(countries == pars$country)]] + 
-  annotation_custom(
-    ggplotGrob(ct_inset[[which(countries == pars$country)]]), 
-    xmin = xmin_val, xmax = xmax_val, ymin = ymin_val, ymax = ymax_val
-  ) + 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+for(i in 1:length(countries)){
+  ct_combo[[i]] <- ct_allyears[[i]] + 
+    annotation_custom(
+      ggplotGrob(ct_inset[[i]]), 
+      xmin = xmin_val[i], xmax = xmax_val[i], ymin = ymin_val[i], ymax = ymax_val[i]
+    ) + 
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+}
 
-
-###################### 
-## Multipanel plots ##
-######################
-
-## Prevalence, with inset
-wrap_plots(prev_combo, nrow=4, ncol=3) + 
-  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
-                                      '(g)', '(h)', '(i)', '(j)', '(k)')))
-
-# letters[which(pars$country == countries)]  #which letter corresponds to which country?
-
-ggsave(filename = "plots/prev_inset_multipanel.pdf",
-       device = cairo_pdf, height = 8, width = 8, units = "in")
-
-## CT, with inset
+## Plot & save CT incidence estimates, with inset graph
 wrap_plots(ct_combo, nrow=4, ncol=3) & 
-  scale_x_continuous(expand = c(0,0), limits = c(1900, 2030), n.breaks = 3) & 
   ylab("Incidence") &  
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
                                       '(g)', '(h)', '(i)', '(j)', '(k)')))
 
-ggsave(filename = "plots/ct_sequelae_multipanel.pdf",
-       device = cairo_pdf, height = 8, width = 8, units = "in")
+ # ggsave(filename = "plots/ct_sequelae_multipanel.pdf",
+ #        device = cairo_pdf, height = 8, width = 8, units = "in")
+
+ # ggsave(filename = "plots/ct_sequelae_multipanel.png",
+ #        height = 8, width = 8, units = "in", dpi=600)
 
 
 #####################################
@@ -379,4 +320,54 @@ for (i in 1:length(countries)) {
   }
   
   
+}
+
+
+# Extract CT estimates for specific years
+
+# Min:max sampling years that systematic reivew extracted data (Rostami et al 2019 PloS NTD)
+years_list <- list(1997:2014, 
+                   2004:2014, 
+                   2009, 
+                   1993:2017, 
+                   2011:2015, 
+                   2002:2017, 
+                   1999:2017, 
+                   1987:2014, 
+                   1999:2016, 
+                   2002:2016,
+                   1992)
+
+# Create lists to store indices & matched CT estimates
+matched_ct <- indices <- vector("list", length=length(years_list))
+
+# Fill lists 
+for (i in 1:length(years_list)) {
+  
+  # Find indices
+  indices[[i]] <- which(ct_all[[i]]$time == years_list[[i]][1]): which(ct_all[[i]]$time == years_list[[i]][length(years_list[[i]])])
+  
+  
+  # Find CT incidence & uncertainties
+  matched_ct[[i]]$ct      <- ct_all[[i]]$ct_rel    [indices[[i]]]
+  matched_ct[[i]]$ct_low  <- ct_all[[i]]$ct_rel_low[indices[[i]]]
+  matched_ct[[i]]$ct_high <- ct_all[[i]]$ct_rel_up [indices[[i]]]
+  
+}
+
+# Calculate median CT incidence over whole period
+point_estimates <- vector("list", length=length(matched_ct))
+
+for (i in 1:length(point_estimates)) {
+  
+  point_estimates[[i]]$central <- round(median(matched_ct[[i]]$ct), 1)
+  point_estimates[[i]]$low     <- round(median(matched_ct[[i]]$ct_low), 1)
+  point_estimates[[i]]$up      <- round(median(matched_ct[[i]]$ct_high), 1)
+  
+}
+
+# Display in useful format for table
+for (i in 1:length(point_estimates)) {
+  print(paste(countries[i], ": ", point_estimates[[i]]$central, " (", 
+              point_estimates[[i]]$low, ", ", point_estimates[[i]]$up, ")", sep=""))
 }
