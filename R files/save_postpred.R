@@ -16,68 +16,47 @@ source("R files/setparms.R")
 #####################################
 ## Read in  posterior distribution ##
 #####################################
-new_fit <- 1 #fitting with shape prior 0-2 (1) or 0-0.8 (0)
-
-rm(post.lambda, post.shape, post.tdecline)
-
-if (new_fit == 0) {
-  post <- readRDS(file = paste("posteriors/", pars$country, "/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
-} else if (new_fit == 1){
-  post <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
-}
+post <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", "posteriors_",
+                             pars$country, "_t", pars$temporal_foi, "_", "a",
+                             pars$age_foi, ".RDS", sep=""))
 
 attach(post)
 
 ###################################
 ## Read in posterior predictions ##
 ###################################
-
-if (new_fit == 0) {
-  
-  if (pars$country == "Brazil" | pars$country == "Burkina Faso") {
-    
-    n_samples  <- 6    #no. parameter sets run on each cluster job
-    niter      <- 100  #overall no. cluster jobs
-    
-  } else if (pars$country == "Iran (Islamic Republic of)") {
-    
-    n_samples  <- 1    #no. parameter sets run on each cluster job
-    niter      <- 599  #overall no. cluster jobs
-    
-  } else if (pars$country != "Brazil" | pars$country != "Burkina Faso" | pars$country != "Iran (Islamic Republic of)" )  { #for the rest of the countries 
-    
-    n_samples  <- 1    #no. parameter sets run on each cluster job
-    niter      <- 600  #overall no. cluster jobs
-    
-  }
-  
-} else if (new_fit == 1) {
-  n_samples <- 1
-  niter     <- 600
-}
-
+n_samples <- 1
+niter     <- 600
 
 prev_list <- ct_list <- vector("list", length=niter)
 
-if (new_fit == 0) {
-  
+if(pars$country != "United Kingdom") {
   for(i in 1:niter){
     
-    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/", "prev_predictions/", "prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a",
+    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", 
+                                           "prev_predictions/", "prev_predictions_", 
+                                           pars$country, "_t", pars$temporal_foi, "_a",
                                            pars$age_foi, "_", i, ".Rdata", sep = ""))
     
-    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/", "ct_predictions/", "ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
+    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", 
+                                         "ct_predictions/", "ct_predictions_", 
+                                         pars$country, "_t", pars$temporal_foi, "_a", 
                                          pars$age_foi, "_", i, ".Rdata", sep = ""))
+    
   }
   
-} else if (new_fit == 1) {
-  
-  for(i in 1:niter){
+  ## NB missing prev_prediction (but not ct_prediction) no. 46 for UK -- check on Myriad when able
+} else if (pars$country == "United Kingdom") {
+  for(i in c(1:45, 47:niter)){
     
-    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", "prev_predictions/", "prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a",
+    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", 
+                                           "prev_predictions/", "prev_predictions_", 
+                                           pars$country, "_t", pars$temporal_foi, "_a",
                                            pars$age_foi, "_", i, ".Rdata", sep = ""))
     
-    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", "ct_predictions/", "ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
+    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", 
+                                         "ct_predictions/", "ct_predictions_", 
+                                         pars$country, "_t", pars$temporal_foi, "_a", 
                                          pars$age_foi, "_", i, ".Rdata", sep = ""))
     
   }
@@ -184,7 +163,7 @@ for(i in 1:nrow(fitting_data)){
 new_tp <- (fitting_data$k + k_tp) / fitting_data$n
 true_prev <- data.frame(prev = new_tp, k = fitting_data$k + k_tp, n = fitting_data$n)
 
-## make sure can't get true prevalence < 0 
+## to make sure can't get true prevalence < 0 
 for(i in 1:length(true_prev$k)){
   if(true_prev$k[i]   < 0){
     true_prev$k[i]    <- 0
@@ -217,22 +196,19 @@ if (!exists("prev_fit")) {  #only create if list not in existence
 
 prev_fit[[which(countries == pars$country)]] <- 
   data.frame(
-    time = fitting_data$year,             #sampling year
-    dat_prev = true_prev$prev,            #data adjusted to true prevalence
-    dat_low = true_prev$ci_lo,            #data lower interval
-    dat_up = true_prev$ci_up,             #data upper interval
-    mod_prev = prev_med[year_diff],       #modelled median prevalence
-    mod_prev_low = prev_lower[year_diff], #modelled prevalence lower interval
-    mod_prev_up = prev_upper[year_diff]   #modelled prevalence upper interval
+    time = fitting_data$year,      #sampling year
+    dat_prev = true_prev$prev*100, #data adjusted to true prevalence (%)
+    dat_low = true_prev$ci_lo*100, #data lower interval (%)
+    dat_up = true_prev$ci_up *100  #data upper interval (%)
   )
 
 
 ## Prevalence, past & forecasting ##
 # time points across which foi is declining
-timepoints <- (pars$burnin - (round(max(exp(post$post.tdecline)), 0))-10) : max(time)
+timepoints <- (pars$burnin - (round(max(exp(post$post.tdecline)), 0))) : max(time)
 
 # equivalent years
-years <- (min(fitting_data$year) - (round(max(exp(post$post.tdecline)), 0))-10) : (max(fitting_data$year)+pars$years_forecast)
+years <- (min(fitting_data$year) - (round(max(exp(post$post.tdecline)), 0))) : (max(fitting_data$year)+pars$years_forecast)
 
 # period from beginning of foi decrease to final data timepoint
 sampling_period <- (min(fitting_data$year) - round(exp(pars$log.tdecline), 0)) : max(fitting_data$year)
@@ -244,10 +220,10 @@ if (!exists("prev_all")) {  #only create if list not in existence
 }
 
 prev_all[[which(countries == pars$country)]] <- data.frame(
-  time         = years,                  #years of foi decrease
-  mod_prev     = prev_med[timepoints],   #modelled median prevalence
-  mod_prev_low = prev_lower[timepoints], #modelled prevalence lower interval
-  mod_prev_up  = prev_upper[timepoints]  #modelled prevalence upper interval
+  time         = years,                       #years of foi decrease
+  mod_prev     = prev_med[timepoints]  *100,  #modelled median prevalence (%)
+  mod_prev_low = prev_lower[timepoints]*100, #modelled prevalence lower interval (%)
+  mod_prev_up  = prev_upper[timepoints]*100   #modelled prevalence upper interval (%)
 )
 
 
@@ -312,6 +288,7 @@ if (pars$forecast == 1){
   
 }
 
-## Save data for plotting
-saveRDS(ct_all, "data/ct_predictions.rds")
+## Save model estimates & data for plotting
+saveRDS(ct_all,   "data/ct_predictions.rds")
 saveRDS(prev_all, "data/prev_predictions.rds")
+saveRDS(prev_all, "data/prev_data.rds")
