@@ -291,6 +291,7 @@ plot_dw[[1]] <- p +
         panel.grid = element_blank(), axis.text.y=element_blank(),
         axis.ticks.y = element_blank()) + 
   labs(x = "", y = expression(lambda[0])) + 
+  guides(colour = guide_legend(reverse=T)) +
   colScale
 
 
@@ -356,4 +357,3 @@ ggsave(filename = "plots/posteriors_dwplot.pdf",
 # PNG
 ggsave(filename = "plots/posteriors_dwplot.png",
        height = 8, width = 8, units = "in", dpi=600)
-
