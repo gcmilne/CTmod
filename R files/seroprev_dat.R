@@ -1,14 +1,23 @@
 ################################################################
 ################## Global seroprevalence data ##################
 ################################################################
+
+###################
+## Load packages ##
+###################
 library(dplyr)
-library(ggplot2)
-library(patchwork)
-library(lme4)
 library(binom)
 
+###############
+## Load data ##
+###############
 data <- read.csv("data/seroprev_global.csv", fileEncoding="UTF-8-BOM") #to avoid erroneous labelling of col 1
-min_samples <- 4 #minimum number of longitudinal samples
+
+#####################################################
+## Clean data & apply inclusion/exclusion criteria ##
+#####################################################
+# minimum number of samples per country
+min_samples <- 4 
 
 # clean data
 data <- data %>%
@@ -16,148 +25,53 @@ data <- data %>%
   filter(!is.na(first_sample)) %>%      # remove rows with no info on sampling year
   filter(method != "" | !is.na(method)) # only include studies with specified immunoassay method
 
-# calculate prevalence
-data$prev <- data$k/data$n
-
 # calculate median sampling year
-for(i in 1:nrow(data)){
+for (i in 1:nrow(data)) {
   data$year[i] <- floor(median(seq(data$first_sample[i],data$last_sample[i], 1)))
 }
 
-# include countries with minimum of x observations
+# include countries with minimum no. of observations (defined above)
 data <- data %>%
   group_by(country) %>%
   filter(n() >= min_samples)
 
-# create separate dfs for countries, group by year & calculate weighted prevalence
+# create separate data frames for countries, group by year
 countries <- sort(unique(data$country))
 data_list <- vector(mode = "list", length = length(countries))
 
-
-##### 
-## Make data as 1 row per study
-#####
-
-for(i in 1:length(countries)){
+## Store data for all countries in a list
+for (i in 1:length(countries)) {
   data_list[[i]] <- 
     data %>%
     filter(country==countries[i]) %>% 
-    filter(!is.na(year)) %>%
+    filter(!is.na(year)) %>%  #omit data with missing sampling year
     arrange(year) %>%
-    # group_by(year) %>%
     summarise(
-      # w.prev = weighted.mean(prev, n), 
-      prev = k/n,
-      year=year, year_published=year_published, k=k, n=n, country=countries[i],
-      method=method, method2=method2, method3=method3, prop_method1=prop_method1,
-      prop_method2=prop_method2, prop_method3=prop_method3) %>%
-    # distinct(k, n, .keep_all = T) %>% #remove duplicate rows (where median sampling years are equal)
+      prev=k/n, #calculate seroprevalence
+      year=year,  #sampling year
+      year_published=year_published, #publishing year
+      k=k,  #no. positive tests
+      n=n,  #total no. tests
+      country=countries[i], #country from which samples came
+      method=method,  #immunoassay method 
+      method2=method2,  #second immunoassay method (if applicable)
+      method3=method3,  #third immunoassay method (if applicable)
+      prop_method1=prop_method1,  #proportion of study's time spent using first immunoassay method
+      prop_method2=prop_method2,  #proportion of study's time spent using second immunoassay method
+      prop_method3=prop_method3) %>%  #proportion of study's time spent using third immunoassay method
     as.data.frame()
 }
 
-## make ggplots for each of the countries
-p <- vector(mode = "list", length = length(countries))
-
-# for(j in 1:length(who_regions)){  ## if you want to order plots by region too
-for(i in 1:length(countries)){
-  p[[i]] <- ggplot(data_list[[i]], aes(x=year, y=prev)) +
-    geom_point() +
-    geom_smooth(method = "lm", formula = 'y~x') +
-    xlab("Year") + ylab("Seroprevalence") +
-    scale_y_continuous(breaks = seq(0,1, 0.2)) +
-    labs(title = paste(countries[i])) +
-    theme_light()
-}
-
-wrap_plots(p)
-
-
-## put data list into one dataframe
+## transform data list into dataframe
 df <- do.call(rbind.data.frame, data_list)
 df$country <- as.factor(df$country)
 
-## Calculate data 95% CIs (Agresti-Coull method)
-cis<- binom.confint(x=df$k, n=df$n, conf.level=0.95, methods="exact")
+## Calculate 95% CIs
+cis <- binom.confint(x=df$k, n=df$n, conf.level=0.95, methods="exact")
 
-# Store lower and upper estimates
-df$ci_lo <-cis$lower
-df$ci_up <-cis$upper
+## Store lower and upper estimates
+df$ci_lo <- cis$lower
+df$ci_up <- cis$upper
 
-# saveRDS(df, "data/global_data.rds")
-
-####################
-## Regional plots ##
-####################
-
-# # omit rows with no regional data
-# for(i in 1:length(countries)){
-#   data_list[[i]] <- data_list[[i]] %>%
-#     filter(!is.na(year)) %>%
-#     filter(!is.na(state))
-# }
-# 
-# # store names of unique states
-# states <- vector(mode = "list", length = length(countries))
-# for(i in 1:length(countries)){
-#   states[[i]] <- unique(data_list[[i]]$state)
-# }
-# 
-# # find n times each unique state is present in dataset
-# n_states <- table(data$state)
-# 
-# # store names of states if >n number of samples
-# n <- 3
-# 
-# freq_states <- vector("numeric", length=length(n_states))
-# 
-# for(i in 1:length(n_states)){
-#   if(n_states[i] >= n){
-#     print(n_states[i])
-#     freq_states[i] <- names(n_states[i])
-#   }else{
-#     freq_states[i] <- NA
-#   }
-# }
-# 
-# freq_states <- freq_states[!is.na(freq_states)] #omit na
-# 
-# ## store data & calculate weighted prevalence for these states
-# regional_data <- vector(mode = "list", length = length(freq_states))
-# 
-# for(i in 1:length(freq_states)){
-#   regional_data[[i]] <- data %>%
-#     filter(!is.na(year)) %>%
-#     filter(!is.na(state)) %>%
-#     filter(state==freq_states[[i]]) %>%
-#     arrange(year) %>%
-#     group_by(year) %>%
-#     summarise(w.prev = weighted.mean(prev, n), k=sum(k), n = sum(n), country=country, state=freq_states[[i]]) %>%
-#     as.data.frame()
-# }
-# 
-# # omit those with fewer than n observations
-# for(i in 1:length(freq_states)){
-#   if(length(unique(regional_data[[i]]$year)) < n){
-#     regional_data[[i]] <- NA
-#   }
-# }
-# 
-# regional_data <- regional_data[!is.na(regional_data)] #omit na
-# 
-# # ggplot for each state
-# p <- vector(mode = "list", length = length(regional_data))
-# for(i in 1:length(regional_data)){
-#   p[[i]] <- vector(mode = "list", length = length(regional_data[[i]]))
-# }
-# 
-# for(i in 1:length(regional_data)){
-#   p[[i]] <- ggplot(regional_data[[i]], aes(x=year, y=w.prev)) + 
-#     geom_point() + 
-#     geom_smooth(method = "lm", formula = 'y~x') +
-#     scale_y_continuous(breaks = seq(0,1, 0.2)) +
-#     labs(title = paste(c(freq_states[i]), regional_data[[i]]$country, sep=", ")) + 
-#          xlab("Year") +
-#          ylab("Seroprevalence")
-# }
-# 
-# # wrap_plots(p)
+## Save data as R data file
+saveRDS(df, "data/global_data.rds")
