@@ -3,6 +3,16 @@ library(ggplot2)
 library(ggpubr)
 library(RColorBrewer)
 
+#############
+# Set fonts #
+#############
+if(.Platform$OS.type == "windows") { # set Times New Roman font on Windows
+  # library(extrafont)
+  # font_import()
+  # loadfonts(device = "win")
+  windowsFonts(Times=windowsFont("TT Times New Roman")) 
+}
+
 #read in data
 df <- readRDS("data/global_data.rds")
 
@@ -15,9 +25,13 @@ myColors[6] <- brewer.pal(11,"PRGn")[5]   #make pale colours bolder
 names(myColors) <- levels(df$country)
 colScale <- scale_colour_manual(name = "plotcols",values = myColors)
 
+#linear regression of publication year on sampling year
+mod <- lm(year~year_published, data=df)
+
 #plot
 p1 <- ggplot(data=df, aes(x=year_published, y=year, colour = country)) +
   geom_point() +
+  geom_line(aes(x=year_published, y=mod$fitted.values, colour = "red")) + #regression line
   scale_x_continuous(limits = c(1982, 2020), expand = c(0,0)) + 
   scale_y_continuous(limits = c(1982, 2020), expand = c(0,0)) + 
   ylab("Median sampling year") +
@@ -31,7 +45,7 @@ p1 + colScale
 
 # save plot
 # ggsave(filename = "plots/publishing_vs_sampling_year.png", width = 6, height = 6,
-# units = "in", family = "Times")
+# units = "in", dpi=600, family = "Times")
 
 
 #### Plots of demographic data
@@ -201,7 +215,9 @@ dev.off()
 
 
 ### Burn-in time plots
-sol <- ode(y=y, times=time, func=age_si, parms=pars)
+# system.time(
+#   sol <- ode(y=y, times=time, func=age_si, parms=pars)
+# )
 
 data <- data.frame(time = sol[,"time"], prev = sol[,"pIt"], ct = sol[,"ctt"])
 
@@ -213,7 +229,7 @@ p1 <- ggplot(data=data, aes(x=time, y=prev)) +
   ylab("Seroprevalence") +
   xlab("Time") +
   
-  geom_vline(xintercept = pars$burnin, linetype = "dotted") +
+  geom_vline(xintercept = 2000, linetype = "dotted") +
   
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
   theme(legend.position = "none", axis.ticks = element_blank(), plot.margin=unit(c(rep(.5,4)),"cm"))
@@ -223,17 +239,20 @@ p2 <- ggplot(data=data, aes(x=time, y=ct)) +
   geom_line() + 
   scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(expand = c(0,0), limits=c(0,15000)) +
-  ylab("Incidence of CT") +
+  ylab("CT cases") +
   xlab("Time") +
   
-  geom_vline(xintercept = pars$burnin, linetype = "dotted") +
+  geom_vline(xintercept = 2000, linetype = "dotted") +
   
   theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
   theme(legend.position = "none", axis.ticks = element_blank(), plot.margin=unit(c(rep(.5,4)),"cm"))
 
-
-
+# Save (eps)
 setEPS()
 postscript("plots/burnin.eps", family="Times", width = 6, height = 6)
 ggarrange(p1, p2, ncol=1, nrow=2, labels=c("(a)", "(b)"), font.label=list(size=12, family="Times"), hjust = .02)
 dev.off()
+
+# Save (png)
+ggsave("plots/burnin.png", family="Times", width = 6, height = 6, dpi=600)
+
