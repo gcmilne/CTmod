@@ -1,6 +1,7 @@
 #########################
 ### Model description ###
 #########################
+
 A mathematical model for estimating the time-varying seroprevalence of 
 anti-Toxoplasma gondii IgG and incidence of congenital toxoplasmosis (CT) 
 
