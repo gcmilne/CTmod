@@ -36,7 +36,7 @@ to control posterior predictions.
 # (4) demogdat.R 
 For getting demographic data for the given country (specified in setparms.R as 
 pars$country), for a given year (automated in demogdat.R to be the first time 
-point of the data (fitting_data, set in setparms.R), rounded to the nearest 5 years.
+point of the data (fitting_data, set in setparms.R), rounded to the nearest 5 years).
 
 # (5) linear_mods.R 
 Linear regressions of the relationship between seroprevalence and sampling year.
