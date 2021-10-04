@@ -16,38 +16,6 @@ if(.Platform$OS.type == "windows") { # set Times New Roman font on Windows
 #read in data
 df <- readRDS("data/global_data.rds")
 
-#### Plot of publishing vs. sampling year
-  
-#create custom color scale
-library(RColorBrewer)
-myColors <- brewer.pal(11,"PuOr")
-myColors[6] <- brewer.pal(11,"PRGn")[5]   #make pale colours bolder
-names(myColors) <- levels(df$country)
-colScale <- scale_colour_manual(name = "plotcols",values = myColors)
-
-#linear regression of publication year on sampling year
-mod <- lm(year~year_published, data=df)
-
-#plot
-p1 <- ggplot(data=df, aes(x=year_published, y=year, colour = country)) +
-  geom_point() +
-  geom_line(aes(x=year_published, y=mod$fitted.values, colour = "red")) + #regression line
-  scale_x_continuous(limits = c(1982, 2020), expand = c(0,0)) + 
-  scale_y_continuous(limits = c(1982, 2020), expand = c(0,0)) + 
-  ylab("Median sampling year") +
-  xlab("Publishing year") +
-  theme_light(base_size = 12, base_line_size = .5, base_family = "Times") +
-  theme(legend.position = "none", axis.ticks = element_blank()) + 
-  theme(plot.margin=unit(c(rep(.5,4)),"cm"))
-
-#add colours
-p1 + colScale
-
-# save plot
-# ggsave(filename = "plots/publishing_vs_sampling_year.png", width = 6, height = 6,
-# units = "in", dpi=600, family = "Times")
-
-
 #### Plots of demographic data
 
 ## change to get plots for mortality, fertility or population size
