@@ -7,7 +7,7 @@ library(patchwork)
 library(lme4)
 library(binom)
 
-data <- read.csv("data/seroprev_global.csv")
+data <- read.csv("data/seroprev_global.csv", fileEncoding="UTF-8-BOM") #to avoid erroneous labelling of col 1
 min_samples <- 4 #minimum number of longitudinal samples
 
 # clean data
