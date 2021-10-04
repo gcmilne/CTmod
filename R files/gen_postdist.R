@@ -24,32 +24,33 @@ library(RColorBrewer)
 ## Read in parameter sets & likelihood values ##
 ################################################
 niter <- 1000
-nsim <- 60
+nsim  <- 60
 npars <- 3
 
 # Save posterior distributions for later plotting
-post.lambda <- post.shape <- post.tdecline <- vector("list", length=length(countries))
-posteriors <- vector("list", length=length(countries)) #to store summaries of posterior distributions
+post.lambda <- post.beta <- post.tau <- vector("list", length=length(countries))
+posteriors  <- vector("list", length=length(countries)) #to store summaries of posterior distributions
 
-for(j in 1:length(countries)){
-  pars$country <- countries[j]
-  out_likpar <- data.frame(matrix(ncol=npars+1, nrow=niter*nsim))
-  names(out_likpar) <- c("log.lambda0", "log.shape", "log.tdecline", "likelihood")
-  counter <- seq(1, (nsim*niter), by = 1/nsim)  # used in for loop to pick correct parliks_ file
+for (j in 1:length(countries)) {
+  pars$country      <- countries[j]
+  out_likpar        <- data.frame(matrix(ncol=npars+1, nrow=niter*nsim))
+  names(out_likpar) <- c("log.lambda0", "log.beta", "log.tau", "likelihood")
+  counter           <- seq(1, (nsim*niter), by = 1/nsim)  # used in for loop to pick correct parliks_ file
   
   #works for multiples of 10
   i_seq <- seq(1, niter*nsim, by=nsim)
   
-  for(i in i_seq){
+  for (i in i_seq) {
     if(i==1){
       out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/", pars$country, "/new_fit", "/parliks_", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_", i, ".Rdata", sep = ""))
-    } else if (i > 1 & i < (niter*nsim)){
+    
+      } else if (i > 1 & i < (niter*nsim)) {
       out_likpar[i:(i+nsim-1),] <- readRDS(file = paste("mod_output/", pars$country,  "/new_fit", "/parliks_", pars$country, "_t", pars$temporal_foi, "_a", pars$age_foi, "_", i-(i-counter[i]), ".Rdata", sep = ""))
     }
   }
   
   
-  colnames(out_likpar) <- c("log.lambda0", "log.shape",  "log.tdecline", "likelihood")
+  colnames(out_likpar) <- c("log.lambda0", "log.beta",  "log.tau", "likelihood")
   
   # sum(is.na(out_likpar$likelihood))  #check if NAs in likelihood
   
@@ -59,41 +60,41 @@ for(j in 1:length(countries)){
   ###########################################
   
   #priors
-  prior.lambda   <- out_likpar$log.lambda0
-  prior.shape    <- out_likpar$log.shape
-  prior.tdecline <- out_likpar$log.tdecline
+  prior.lambda <- out_likpar$log.lambda0
+  prior.beta   <- out_likpar$log.beta
+  prior.tau    <- out_likpar$log.tau
   
   #posteriors
-  sorted_lik         <- head(out_likpar[order(out_likpar$likelihood),], nrow(out_likpar)*0.01) #take top 1%
-  post.lambda[[j]]   <- sorted_lik$log.lambda0
-  post.shape[[j]]    <- sorted_lik$log.shape
-  post.tdecline[[j]] <- sorted_lik$log.tdecline
+  sorted_lik       <- head(out_likpar[order(out_likpar$likelihood),], nrow(out_likpar)*0.01) #take top 1%
+  post.lambda[[j]] <- sorted_lik$log.lambda0
+  post.beta[[j]]   <- sorted_lik$log.beta
+  post.tau[[j]]    <- sorted_lik$log.tau
   
   ## Medians & 95% CIs
   # lambda0
   x<-describe_posterior(post.lambda[[j]], centrality = "median")
   post.median.lambda <- exp(x$Median)
-  ci.low.lambda    <- exp(x$CI_low)
-  ci.high.lambda   <- exp(x$CI_high)
+  ci.low.lambda      <- exp(x$CI_low)
+  ci.high.lambda     <- exp(x$CI_high)
   
-  # shape
-  x<-describe_posterior(post.shape[[j]], centrality = "median")
-  post.median.shape <- exp(x$Median)
-  ci.low.shape    <- exp(x$CI_low)
-  ci.high.shape   <- exp(x$CI_high)
+  # beta
+  x<-describe_posterior(post.beta[[j]], centrality = "median")
+  post.median.beta <- exp(x$Median)
+  ci.low.beta      <- exp(x$CI_low)
+  ci.high.beta     <- exp(x$CI_high)
   
-  # tdecline
-  x<-describe_posterior(post.tdecline[[j]], centrality = "median")
-  post.median.tdecline <- exp(x$Median)
-  ci.low.tdecline    <- exp(x$CI_low)
-  ci.high.tdecline   <- exp(x$CI_high)
+  # tau
+  x <- describe_posterior(post.tau[[j]], centrality = "median")
+  post.median.tau <- exp(x$Median)
+  ci.low.tau      <- exp(x$CI_low)
+  ci.high.tau     <- exp(x$CI_high)
   
   #### Summary of the posteriors #####
   posteriors[[j]] <- 
-    data.frame(par = c("lambda0", "shape", "tdecline"), 
-               med = c(round(post.median.lambda, 3), round(post.median.shape, 3), round(post.median.tdecline, 0)),
-               lower_ci = c(round(ci.low.lambda, 3), round(ci.low.shape, 3), round(ci.low.tdecline, 0)), 
-               upper_ci = c(round(ci.high.lambda, 3), round(ci.high.shape, 3), round(ci.high.tdecline, 0))
+    data.frame(par = c("lambda0", "beta", "tau"), 
+               med = c(round(post.median.lambda, 3), round(post.median.beta, 3), round(post.median.tau, 0)),
+               lower_ci = c(round(ci.low.lambda, 3), round(ci.low.beta, 3), round(ci.low.tau, 0)), 
+               upper_ci = c(round(ci.high.lambda, 3), round(ci.high.beta, 3), round(ci.high.tau, 0))
     )
   
   
@@ -111,10 +112,10 @@ for(j in 1:length(countries)){
   
   #dataframe
   dat <- data.frame(
-    dens = c(prior.lambda, post.lambda[[j]]), 
-    ci_low = ci.low.lambda,
+    dens    = c(prior.lambda, post.lambda[[j]]), 
+    ci_low  = ci.low.lambda,
     ci_high = ci.high.lambda,
-    lines = c(rep("a", length(prior.lambda)), rep("b", length(post.lambda[[j]])))
+    lines   = c(rep("a", length(prior.lambda)), rep("b", length(post.lambda[[j]])))
   )
   
   #plot
@@ -136,54 +137,51 @@ for(j in 1:length(countries)){
     theme(plot.margin=unit(c(rep(1,4)),"cm"))
   
   
-  ## shape
+  ## beta
   
   #dataframe
-  dat <- data.frame(dens = c(prior.shape, post.shape[[j]]), 
-                    ci_low = ci.low.shape,
-                    ci_high = ci.high.shape,
-                    lines = c(rep("a", length(prior.shape)), rep("b", length(post.shape[[j]]))))
+  dat <- data.frame(dens = c(prior.beta, post.beta[[j]]), 
+                    ci_low = ci.low.beta,
+                    ci_high = ci.high.beta,
+                    lines = c(rep("a", length(prior.beta)), rep("b", length(post.beta[[j]]))))
   
   
   #plot
-  if (exists("shape") == F) {  #only create if list not in existence
-    shape <- vector("list", length=length(countries))
+  if (exists("plot_beta") == F) {  #only create if list not in existence
+    plot_beta <- vector("list", length=length(countries))
   }
   
-  shape[[which(pars$country == countries)]] <- ggplot(
+  plot_beta[[which(pars$country == countries)]] <- ggplot(
     dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 0.5) + 
-    geom_vline(xintercept = post.median.shape) +                   # mode
-    geom_vline(xintercept = ci.low.shape, linetype='dotted') +   # lower ci
-    geom_vline(xintercept = ci.high.shape, linetype='dotted') +  # upper ci
+    geom_vline(xintercept = post.median.beta) +                   # mode
+    geom_vline(xintercept = ci.low.beta, linetype='dotted') +   # lower ci
+    geom_vline(xintercept = ci.high.beta, linetype='dotted') +  # upper ci
     theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
     theme(legend.position = "none", panel.grid = element_blank(), axis.ticks = element_blank()) +
     labs(fill = "") + 
-    # scale_x_continuous(breaks = seq(0, 0.8, 0.4), limits = c(0, 0.8), expand = c(0, 0)) +
-    # scale_y_continuous(breaks = seq(0, 1.6, 0.75), limits = c(0, 1.6), expand = c(0, 0)) +
-    # xlab("Shape") + 
     xlab(expression(beta)) + 
     ylab("Density") + 
     theme(plot.margin=unit(c(rep(1,4)),"cm"))
   
   
-  ## tdecline
+  ## tau
   
   #dataframe
-  dat <- data.frame(dens = c(prior.tdecline, post.tdecline[[j]]), 
-                    ci_low = ci.low.tdecline,
-                    ci_high = ci.high.tdecline,
-                    lines = c(rep("a", length(prior.tdecline)), rep("b", length(post.tdecline[[j]]))))
+  dat <- data.frame(dens = c(prior.tau, post.tau[[j]]), 
+                    ci_low = ci.low.tau,
+                    ci_high = ci.high.tau,
+                    lines = c(rep("a", length(prior.tau)), rep("b", length(post.tau[[j]]))))
   
   #plot
-  if (exists("tdecline") == F) {  #only create if list not in existence
-    tdecline <- vector("list", length=length(countries))
+  if (exists("tau") == F) {  #only create if list not in existence
+    tau <- vector("list", length=length(countries))
   }
   
-  tdecline[[which(pars$country == countries)]] <- ggplot(
+  tau[[which(pars$country == countries)]] <- ggplot(
     dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 0.5) + 
-    geom_vline(xintercept = post.median.tdecline) +                   # mode
-    geom_vline(xintercept = ci.low.tdecline, linetype='dotted') +   # lower ci
-    geom_vline(xintercept = ci.high.tdecline, linetype='dotted') +  # upper ci 
+    geom_vline(xintercept = post.median.tau) +                   # mode
+    geom_vline(xintercept = ci.low.tau, linetype='dotted') +   # lower ci
+    geom_vline(xintercept = ci.high.tau, linetype='dotted') +  # upper ci 
     theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
     theme(legend.position = "none", panel.grid = element_blank(), axis.ticks = element_blank()) +
     labs(fill = "") + 
@@ -202,8 +200,8 @@ for(j in 1:length(countries)){
   
   pars$country <- countries[j]
   
-  post[[j]] <- data.frame(lambda = exp(post.lambda[[j]]), shape = exp(post.shape[[j]]), 
-                          tdecline = exp(post.tdecline[[j]]))
+  post[[j]] <- data.frame(lambda = exp(post.lambda[[j]]), beta = exp(post.beta[[j]]), 
+                          tau = exp(post.tau[[j]]))
   
   saveRDS(post[[j]], file = paste("posteriors/", pars$country, "/", "new_fit/", 
                                   "posteriors_", pars$country, "_t", pars$temporal_foi, 
@@ -216,19 +214,19 @@ for(j in 1:length(countries)){
 #############################################################################
 
 #lambda
-multipanel_lambda   <- wrap_plots(lambda0, nrow=4, ncol=3) +
+multipanel_lambda <- wrap_plots(lambda0, nrow=4, ncol=3) +
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
   theme(plot.margin=unit(c(rep(0.2,4)),"cm"))& 
   scale_y_continuous(n.breaks = 4)
 
-#shape
-multipanel_shape    <- wrap_plots(shape, nrow=4, ncol=3) +
+#beta
+multipanel_beta <- wrap_plots(plot_beta, nrow=4, ncol=3) +
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
   theme(plot.margin=unit(c(rep(0.2,4)),"cm"))& 
   scale_y_continuous(n.breaks = 4)
 
-#tdecline
-multipanel_tdecline    <- wrap_plots(tdecline, nrow=4, ncol=3) +
+#tau
+multipanel_tau <- wrap_plots(tau, nrow=4, ncol=3) +
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
   theme(plot.margin=unit(c(rep(0.2,4)),"cm")) & 
   scale_y_continuous(n.breaks = 4)
@@ -238,20 +236,20 @@ multipanel_tdecline    <- wrap_plots(tdecline, nrow=4, ncol=3) +
 ggsave(multipanel_lambda, filename = "plots/lambda_multipanel.pdf",
        device = cairo_pdf, height = 8, width = 8, units = "in")
 
-ggsave(multipanel_shape, filename = "plots/shape_multipanel.pdf",
+ggsave(multipanel_beta, filename = "plots/beta_multipanel.pdf",
        device = cairo_pdf, height = 8, width = 8, units = "in")
 
-ggsave(multipanel_tdecline, filename = "plots/tdecline_multipanel.pdf",
+ggsave(multipanel_tau, filename = "plots/tau_multipanel.pdf",
        device = cairo_pdf, height = 8, width = 8, units = "in")
 
 # PNG
 ggsave(multipanel_lambda, filename = "plots/lambda_multipanel.png",
        dpi=600, height = 8, width = 8, units = "in")
 
-ggsave(multipanel_shape, filename = "plots/shape_multipanel.png",
+ggsave(multipanel_beta, filename = "plots/beta_multipanel.png",
        dpi=600, height = 8, width = 8, units = "in")
 
-ggsave(multipanel_tdecline, filename = "plots/tdecline_multipanel.png",
+ggsave(multipanel_tau, filename = "plots/tau_multipanel.png",
        dpi=600, height = 8, width = 8, units = "in")
 
 
@@ -295,8 +293,8 @@ plot_dw[[1]] <- p +
   colScale
 
 
-## Shape posteriors plot ##
-p <- ggplot(data = subset(df, par == "shape"), aes(x=par, y=med, color = country)) +
+## beta posteriors plot ##
+p <- ggplot(data = subset(df, par == "beta"), aes(x=par, y=med, color = country)) +
   geom_hline(yintercept=1, linetype="dotted") +
   geom_point(size = 2, position=position_dodge(width=1)) +
   geom_errorbar(
@@ -314,8 +312,8 @@ plot_dw[[2]] <- p +
   colScale
 
 
-## Tdecline posteriors plot ##
-p <- ggplot(data = subset(df, par == "tdecline"), aes(x=par, y=med, color = country)) +
+## tau posteriors plot ##
+p <- ggplot(data = subset(df, par == "tau"), aes(x=par, y=med, color = country)) +
   geom_point(size = 2, position=position_dodge(width=1)) +
   geom_errorbar(
     aes(ymin = lower_ci, ymax = upper_ci),

@@ -4,8 +4,8 @@
 
 ## Parameters to be fit to data ##
 pars  <- list(log.lambda0 = log(0.02),  #baseline force of infetion (FoI) 
-              log.shape = log(0.60),    #proportional change in FoI
-              log.tdecline = log(20))   #no. years before 1st datapoint that FoI decline begins
+              log.beta = log(0.60),     #proportional change in FoI
+              log.tau = log(20))        #no. years before 1st datapoint that FoI decline begins
 
 ## Toggle parameters ##
 pars$post_pred     <- 1           #posterior predictions (1) or not? (0)

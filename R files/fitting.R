@@ -3,9 +3,16 @@
 #######################################
 rm(list = ls()) # clear working environment
 
-#######################
-#### Set directory ####
-#######################
+###################
+## Load packages ##
+###################
+library(deSolve)
+library(lhs)
+library(dplyr)
+
+###################
+## Set directory ##
+###################
 # Sets working directory based on environment (Cluster (RVC or UCL), or local). 
 # Options: "RVC", "UCL", "none"
 cluster <- "UCL"
@@ -14,25 +21,12 @@ if (cluster == "RVC") {
   setwd("/storage/users/gmilne/test")  #cluster (RVC)
   
 } else if (cluster == "UCL") { 
-  setwd("/lustre/scratch/scratch/ucbtgmi")        #cluster (UCL)
+  setwd("/lustre/scratch/scratch/ucbtgmi")  #cluster (UCL)
   
 } else if (cluster == "none") { 
-  setwd("~/GitHub/stan")  #local
+  setwd("~/GitHub/toxCTmod")  #local
   
 }
-
-
-############
-# Set seed #
-############
-if(cluster == "none"){ #local
-  SEED = 1
-
-} else if (cluster == "RVC" | cluster == "UCL"){ #cluster
-  SEED = as.numeric(Sys.getenv("SEED"))
-}
-
-set.seed(SEED)
 
 ##################
 ## Load scripts ##
@@ -50,24 +44,28 @@ if (cluster == "none") { #local
   source("funcs.R")
 }
 
-#################
-# Load packages #
-#################
-library(deSolve)
-library(lhs)
-library(dplyr)
+##############
+## Set seed ##
+##############
+if (cluster == "none") { #local
+  SEED = 1
+  
+} else if (cluster == "RVC" | cluster == "UCL"){ #cluster
+  SEED = as.numeric(Sys.getenv("SEED"))
+}
 
-###################
-# Additional data #
-###################
+set.seed(SEED)
 
+#####################
+## Additional data ##
+#####################
 if (cluster == "UCL") {
-  niter <- 1000                      # no. jobs to submit
-  tot_iter <- 60000                 # total number of samples to run
+  niter <- 1000                 # no. jobs to submit
+  tot_iter <- 60000             # total number of samples to run
 
 } else if (cluster == "RVC") {
-  niter <- 68                      # no. jobs to submit
-  tot_iter <- 60000                 # total number of samples to run
+  niter <- 68                   # no. jobs to submit
+  tot_iter <- 60000             # total number of samples to run
 
 }
 
@@ -84,13 +82,12 @@ logliks <- vector("numeric", length=nrow(fitting_data))  #initialise log likelih
 ##############################
 ## Latin hypercube sampling ##
 ##############################
-
 par_arr <- randomLHS(nsim, npars) #create parameter array
-par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))        #log lambda0
-par_arr[,2] <- log(qunif(par_arr[,2], min=0, max=2))        #log shape
-par_arr[,3] <- log(qunif(par_arr[,3], min=0, max=100))        #log tdecline
+par_arr[,1] <- log(qunif(par_arr[,1], min=0, max=0.2))  #log lambda0
+par_arr[,2] <- log(qunif(par_arr[,2], min=0, max=2))    #log beta
+par_arr[,3] <- log(qunif(par_arr[,3], min=0, max=100))  #log tau
 
-colnames(par_arr) <- c("log.lambda0", "log.shape", "log.tdecline")
+colnames(par_arr) <- c("log.lambda0", "log.beta", "log.tau")
 
 # par(mfrow=c(3,2))
 # dummy <- apply(exp(par_arr), 2, hist, main = "") #plot prior distributions
@@ -98,9 +95,7 @@ colnames(par_arr) <- c("log.lambda0", "log.shape", "log.tdecline")
 #####################################
 ## Run model and store likelihoods ##
 #####################################
-
 lik_arr <- vector(mode="numeric", length=nsim) #create likelihood array
-
 
 # Create list to store model output for each of the timepoints being fit
 matched_prev      <- vector("list", length = nrow(fitting_data))
@@ -113,8 +108,8 @@ system.time (
     
     # extract parameter values from priors
     pars$log.lambda0  <- par_arr[i,"log.lambda0"]
-    pars$log.shape    <- par_arr[i,"log.shape"]
-    pars$log.tdecline <- par_arr[i,"log.tdecline"]
+    pars$log.beta    <- par_arr[i,"log.beta"]
+    pars$log.tau <- par_arr[i,"log.tau"]
     
     sol                <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
     

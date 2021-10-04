@@ -5,7 +5,7 @@
 #######################
 #### Set directory ####
 #######################
-cluster <- "UCL"
+cluster <- "none"
 
 if (cluster == "RVC") {
   setwd("/storage/users/gmilne/test")  #cluster (RVC)
@@ -14,7 +14,7 @@ if (cluster == "RVC") {
   setwd("/lustre/scratch/scratch/ucbtgmi")        #cluster (UCL)
   
 } else if (cluster == "none") { 
-  setwd("~/GitHub/stan")  #local
+  setwd("~/GitHub/toxCTmod")  #local
   
 }
 
@@ -59,14 +59,12 @@ library(dplyr)
 ###############
 ## Posterior distributions for given country
 if (cluster == "none") { #local
-  post <- readRDS(file = paste("posteriors/", pars$country, "/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
+  post <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
 
 } else if (cluster == "RVC" | cluster == "UCL"){ #cluster
   post <- readRDS(file = paste("posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
   
 }
-
-attach(post)
 
 ###################################
 ## Perform posterior predictions ##
@@ -77,23 +75,23 @@ n_samples <- 1
 if (n_samples > 1) {
   
   if (SEED == 1) {
-    lambda.vec   <- post.lambda  [SEED : n_samples]
-    shape.vec    <- post.shape   [SEED : n_samples]
-    tdecline.vec <- post.tdecline[SEED : n_samples]
+    lambda.vec <- post$lambda[SEED : n_samples]
+    beta.vec   <- post$beta  [SEED : n_samples]
+    tau.vec    <- post$tau   [SEED : n_samples]
     
   } else if (SEED > 1) {
-    lambda.vec   <- post.lambda  [ (n_samples*(SEED-1)+1) : (n_samples*SEED) ]
-    shape.vec    <- post.shape   [ (n_samples*(SEED-1)+1) : (n_samples*SEED) ]
-    tdecline.vec <- post.tdecline[ (n_samples*(SEED-1)+1) : (n_samples*SEED) ]
+    lambda.vec <- post$lambda [ (n_samples*(SEED-1)+1) : (n_samples*SEED) ]
+    beta.vec   <- post$beta   [ (n_samples*(SEED-1)+1) : (n_samples*SEED) ]
+    tau.vec    <- post$tau    [ (n_samples*(SEED-1)+1) : (n_samples*SEED) ]
     
     
   }
   
 } else if (n_samples == 1) {
   
-  lambda.vec   <- post.lambda  [SEED]
-  shape.vec    <- post.shape   [SEED]
-  tdecline.vec <- post.tdecline[SEED]
+  lambda.vec <- post$lambda [SEED]
+  beta.vec   <- post$beta   [SEED]
+  tau.vec    <- post$tau    [SEED]
 }
 
 
@@ -102,15 +100,15 @@ ct_cases        <- mean_matched_prev <- vector("list", length = n_samples)
 matched_prev    <- vector("list", length=max(time))
 matched_indices <- which(pars$propfert !=0)  #child-bearing ages
 
-for(i in 1:length(lambda.vec)){
+for (i in 1:length(lambda.vec)) {
   
-  pars$log.lambda0  <- lambda.vec[i]
-  pars$log.shape    <- shape.vec[i]
-  pars$log.tdecline <- tdecline.vec[i]
+  pars$log.lambda0 <- lambda.vec[i]
+  pars$log.beta    <- beta.vec[i]
+  pars$log.tau     <- tau.vec[i]
   
   sol <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
   
-  for(j in 1:max(time)){
+  for (j in 1:max(time)) {
     
     ct_cases[[i]][j] <- sol[j, "ctt"] #store CT incidence
     store_sim <- getit(j) #get age profile
