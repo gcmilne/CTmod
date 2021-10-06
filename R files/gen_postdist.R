@@ -119,11 +119,11 @@ for (j in 1:length(countries)) {
   )
   
   #plot
-  if (exists("lambda0") == F) {  #only create if list not in existence
-    lambda0 <- vector("list", length=length(countries))
+  if (exists("plot_lambda0") == F) {  #only create if list not in existence
+    plot_lambda0 <- vector("list", length=length(countries))
   }
   
-  lambda0[[which(pars$country == countries)]] <- ggplot(
+  plot_lambda0[[which(pars$country == countries)]] <- ggplot(
     dat, aes(x = exp(dens), fill = lines)) + 
     geom_density(alpha = 0.5) +
     geom_vline(xintercept = post.median.lambda) +                   # mode
@@ -173,11 +173,11 @@ for (j in 1:length(countries)) {
                     lines = c(rep("a", length(prior.tau)), rep("b", length(post.tau[[j]]))))
   
   #plot
-  if (exists("tau") == F) {  #only create if list not in existence
-    tau <- vector("list", length=length(countries))
+  if (exists("plot_tau") == F) {  #only create if list not in existence
+    plot_tau <- vector("list", length=length(countries))
   }
   
-  tau[[which(pars$country == countries)]] <- ggplot(
+  plot_tau[[which(pars$country == countries)]] <- ggplot(
     dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 0.5) + 
     geom_vline(xintercept = post.median.tau) +                   # mode
     geom_vline(xintercept = ci.low.tau, linetype='dotted') +   # lower ci
@@ -214,7 +214,7 @@ for(j in 1:length(countries)){
 #############################################################################
 
 #lambda
-multipanel_lambda <- wrap_plots(lambda0, nrow=4, ncol=3) +
+multipanel_lambda <- wrap_plots(plot_lambda0, nrow=4, ncol=3) +
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
   theme(plot.margin=unit(c(rep(0.2,4)),"cm"))& 
   scale_y_continuous(n.breaks = 4)
@@ -226,7 +226,7 @@ multipanel_beta <- wrap_plots(plot_beta, nrow=4, ncol=3) +
   scale_y_continuous(n.breaks = 4)
 
 #tau
-multipanel_tau <- wrap_plots(tau, nrow=4, ncol=3) +
+multipanel_tau <- wrap_plots(plot_tau, nrow=4, ncol=3) +
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)', '(j)', '(k)'))) &
   theme(plot.margin=unit(c(rep(0.2,4)),"cm")) & 
   scale_y_continuous(n.breaks = 4)
