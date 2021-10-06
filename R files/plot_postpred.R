@@ -65,7 +65,7 @@ for (i in 1:length(countries)) {
   
   pars$country <- levels(countries)[i]  #set country
   
-  ## store title colour according to income status
+  ## store colour according to income status
   if (pars$country %in% income_status$high) {
     ses_colour <- income_cols[1]
   } else if (pars$country %in% income_status$upper_middle) {
@@ -97,9 +97,7 @@ for (i in 1:length(countries)) {
   
   prev_allyears[[i]] <- prev_allyears[[i]] + 
     theme(panel.background = element_rect(colour = ses_colour, 
-                                          size = 2.5, linetype = "solid"))
-  
-  
+                                          size = 2, linetype = "solid"))
 }
 
 ## Plot & save multipanel prevalence plot
@@ -108,14 +106,15 @@ wrap_plots(prev_allyears, nrow=4, ncol=3) +
     tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
                         '(g)', '(h)', '(i)', '(j)', '(k)')))
 
-ggsave(filename = "plots/prev_multipanel_test.pdf",
+#PDF
+ggsave(filename = "plots/prev_multipanel.pdf",
        device = cairo_pdf, height = 8, width = 8, units = "in")
 
-# ggsave(filename = "plots/ct_sequelae_multipanel.png",
-#        height = 8, width = 8, units = "in", dpi=600)
+# PNG
+ggsave(filename = "plots/prev_multipanel.png",
+       dpi=600, height = 8, width = 8, units = "in")
 
 ## CT incidence ##
-levels(countries)[7] <- "Iran" ## Make Iran's name shorter for plotting
 
 # make list to store all plots from different countries
 if (!exists("ct_allyears")) {  #only create if list not in existence
@@ -124,7 +123,19 @@ if (!exists("ct_allyears")) {  #only create if list not in existence
 
 # Main CT incidence plot
 for (i in 1:length(countries)) {
-  pars$country <- countries[i]
+  
+  pars$country <- levels(countries)[i]  #set country
+  
+  ## store colour according to income status
+  if (pars$country %in% income_status$high) {
+    ses_colour <- income_cols[1]
+  } else if (pars$country %in% income_status$upper_middle) {
+    ses_colour <- income_cols[2]
+  } else if (pars$country %in% income_status$lower_middle) {
+    ses_colour <- income_cols[3]
+  } else if (pars$country %in% income_status$low) {
+    ses_colour <- income_cols[4]
+  }
   
   if(pars$country != "China" & pars$country != "United Kingdom"){
     ct_allyears[[i]] <- ggplot(
@@ -144,7 +155,11 @@ for (i in 1:length(countries)) {
       theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
       theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm"))
     
-  } else if(pars$country == "China" | pars$country == "United Kingdom"){
+    ct_allyears[[i]] <- ct_allyears[[i]] + 
+      theme(panel.background = element_rect(colour = ses_colour, 
+                                            size = 2, linetype = "solid"))
+    
+  } else if(pars$country == "China" | pars$country == "United Kingdom"){ #create space at top of graph for inset plots
     
     if (pars$country == "China") y_limits <- c(0, 200) else y_limits <- c(0,40)
     
@@ -164,6 +179,10 @@ for (i in 1:length(countries)) {
       theme(legend.position = "none") + 
       theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
       theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm"))
+    
+    ct_allyears[[i]] <- ct_allyears[[i]] + 
+      theme(panel.background = element_rect(colour = ses_colour, 
+                                            size = 2, linetype = "solid"))
   }
 }
 
@@ -217,8 +236,8 @@ for(i in 1:length(countries)){
     xmax_val[i] <- min_year + (max_year - min_year)/2 + 2
     
   } else if (countries[i] ==  "Cameroon" | countries[i] ==  "Ethiopia"){
-    ymin_val[i] <- 0
-    ymax_val[i] <- min(ct_all[[i]]$ct_rel_low[which(years == max_year - (max_year - min_year)/2 + 2):which(years == max_year)]) * 0.90
+    ymin_val[i] <- 4
+    ymax_val[i] <- 61
     xmin_val[i] <- max_year - (max_year - min_year)/2 - 6
     xmax_val[i] <- max_year - 6
     
@@ -230,7 +249,7 @@ for(i in 1:length(countries)){
     
   } else if (countries[i] != "China" | countries[i] != "Cameroon" | 
              countries[i] != "Ethiopia" | countries[i] != "United Kingdom") { 
-    ymin_val[i] <- 0
+    ymin_val[i] <- 5
     ymax_val[i] <- min(ct_all[[i]]$ct_rel_low[which(years == min_year):which(years == 2007)]) * 0.90
     xmin_val[i] <- min_year + 2
     xmax_val[i] <- min_year + (max_year - min_year)/2 + 2
@@ -254,8 +273,8 @@ wrap_plots(ct_combo, nrow=4, ncol=3) &
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
                                       '(g)', '(h)', '(i)', '(j)', '(k)')))
 
- # ggsave(filename = "plots/ct_sequelae_multipanel.pdf",
- #        device = cairo_pdf, height = 8, width = 8, units = "in")
+ggsave(filename = "plots/ct_sequelae_multipanel.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
 
- # ggsave(filename = "plots/ct_sequelae_multipanel.png",
- #        height = 8, width = 8, units = "in", dpi=600)
+ggsave(filename = "plots/ct_sequelae_multipanel.png",
+       height = 8, width = 8, units = "in", dpi=600)
