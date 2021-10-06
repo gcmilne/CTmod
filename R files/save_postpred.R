@@ -16,7 +16,7 @@ source("R files/setparms.R")
 #####################################
 ## Read in  posterior distribution ##
 #####################################
-post <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", "posteriors_",
+post <- readRDS(file = paste("posteriors/", pars$country, "/posteriors_",
                              pars$country, "_t", pars$temporal_foi, "_", "a",
                              pars$age_foi, ".RDS", sep=""))
 
@@ -33,13 +33,13 @@ prev_list <- ct_list <- vector("list", length=niter)
 if(pars$country != "United Kingdom") {
   for(i in 1:niter){
     
-    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", 
-                                           "prev_predictions/", "prev_predictions_", 
+    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country,
+                                           "/prev_predictions/", "prev_predictions_", 
                                            pars$country, "_t", pars$temporal_foi, "_a",
                                            pars$age_foi, "_", i, ".Rdata", sep = ""))
     
-    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", 
-                                         "ct_predictions/", "ct_predictions_", 
+    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, 
+                                         "/ct_predictions/", "ct_predictions_", 
                                          pars$country, "_t", pars$temporal_foi, "_a", 
                                          pars$age_foi, "_", i, ".Rdata", sep = ""))
     
@@ -49,13 +49,13 @@ if(pars$country != "United Kingdom") {
 } else if (pars$country == "United Kingdom") {
   for(i in c(1:45, 47:niter)){
     
-    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", 
-                                           "prev_predictions/", "prev_predictions_", 
+    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, 
+                                           "/prev_predictions/", "prev_predictions_", 
                                            pars$country, "_t", pars$temporal_foi, "_a",
                                            pars$age_foi, "_", i, ".Rdata", sep = ""))
     
-    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", 
-                                         "ct_predictions/", "ct_predictions_", 
+    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, 
+                                         "/ct_predictions/", "ct_predictions_", 
                                          pars$country, "_t", pars$temporal_foi, "_a", 
                                          pars$age_foi, "_", i, ".Rdata", sep = ""))
     
