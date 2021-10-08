@@ -268,7 +268,7 @@ levels(df$country)[7] <- "Iran"
 ## Create list to store plots for each parameter
 plot_dw <- vector("list", length=3)
 
-## Create custom color scale
+## Create colourblind friendly custom color scale
 myColors    <- brewer.pal(11,"PuOr")
 myColors[6] <- brewer.pal(11,"PRGn")[5]  #make pale colour bolder
 names(myColors) <- levels(df$country)    #link colours to countries
@@ -343,34 +343,31 @@ yr_rate <- vector("list", length=length(countries))
 
 for(i in 1:length(countries)){
   
-  for(j in 1:600){
-    
-    #set country
-    pars$country <- countries[i]
-    
-    #subset seroprevalence data
-    fitting_data <- subset(df, country == pars$country)
-    
-    #no. of years between 1st & last data time points
-    pars$tdiff   <- max(fitting_data$year) - min(fitting_data$year)
-    
-    #read in posterior distribution
-    post_dist    <- readRDS(file = paste("posteriors/", pars$country, "/", 
-                                         "posteriors_", pars$country, "_t", pars$temporal_foi, 
-                                         "_", "a", pars$age_foi, ".RDS", sep=""))
-    
-    #save single parameter set
-    lambda0 <- post_dist$lambda[j]
-    beta    <- post_dist$beta  [j]
-    tau     <- post_dist$tau   [j]
-    
-    #calculate annual % change in FoI
-    threshold       <- pars$burnin - tau
-    yr_rate[[i]][j] <- ((1 - beta) / ((pars$burnin + pars$tdiff) - threshold)*100)
-    
-    #correct sign, so positive numbers equate to increases, whereas negatives equate to declines
-    yr_rate[[i]][j] <- yr_rate[[i]][j] * -1 
-  }
+  #set country
+  pars$country <- countries[i]
+  
+  #subset seroprevalence data
+  fitting_data <- subset(df, country == pars$country)
+  
+  #no. of years between 1st & last data time points
+  pars$tdiff   <- max(fitting_data$year) - min(fitting_data$year)
+  
+  #read in posterior distribution
+  post_dist    <- readRDS(file = paste("posteriors/", pars$country, "/", 
+                                       "posteriors_", pars$country, "_t", pars$temporal_foi, 
+                                       "_", "a", pars$age_foi, ".RDS", sep=""))
+  
+  #save single parameter set
+  lambda0 <- post_dist$lambda
+  beta    <- post_dist$beta 
+  tau     <- post_dist$tau
+  
+  #calculate annual % change in FoI
+  threshold       <- pars$burnin - tau
+  yr_rate[[i]] <- ((1 - beta) / ((pars$burnin + pars$tdiff) - threshold)*100)
+  
+  #correct sign, so positive numbers equate to increases, whereas negatives equate to declines
+  yr_rate[[i]] <- yr_rate[[i]] * -1 
 }
 
 ## Calculate medians & 95% credible intervals
