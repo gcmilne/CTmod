@@ -362,6 +362,13 @@ for(i in 1:length(countries)){
   beta    <- post_dist$beta 
   tau     <- post_dist$tau
   
+  ###check correlation between parameters
+  par(mfrow=c(2,2))
+  plot(lambda0, beta, main=pars$country)
+  plot(lambda0, tau, main=pars$country)
+  plot(beta, tau, main=pars$country)
+  ###
+  
   #calculate annual % change in FoI
   threshold       <- pars$burnin - tau
   yr_rate[[i]] <- ((1 - beta) / ((pars$burnin + pars$tdiff) - threshold)*100)
