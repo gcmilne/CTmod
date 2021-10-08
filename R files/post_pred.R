@@ -34,6 +34,7 @@ set.seed(SEED)
 ##################
 ## Load scripts ##
 ##################
+## NB: Make sure pars$country set to chosen country in setparms.R
 if (cluster == "none") { #local
   source("R files/setparms.R")
   source("R files/diagnostics.R")
@@ -59,7 +60,7 @@ library(dplyr)
 ###############
 ## Posterior distributions for given country
 if (cluster == "none") { #local
-  post <- readRDS(file = paste("posteriors/", pars$country, "/new_fit/", "posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
+  post <- readRDS(file = paste("posteriors/", pars$country, "/posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
 
 } else if (cluster == "RVC" | cluster == "UCL"){ #cluster
   post <- readRDS(file = paste("posteriors_", pars$country, "_t", pars$temporal_foi, "_", "a", pars$age_foi, ".RDS", sep=""))
@@ -110,9 +111,9 @@ for (i in 1:length(lambda.vec)) {
   
   for (j in 1:max(time)) {
     
-    ct_cases[[i]][j] <- sol[j, "ctt"] #store CT incidence
-    store_sim <- getit(j) #get age profile
-    matched_prev[[j]]  <- store_sim[,"pI"][matched_indices]  #select true prevalence from relevant age categories
+    ct_cases[[i]][j]          <- sol[j, "ctt"] #store CT incidence
+    store_sim                 <- getit(j) #get age profile
+    matched_prev[[j]]         <- store_sim[,"pI"][matched_indices]  #select true prevalence from relevant age categories
     mean_matched_prev[[i]][j] <- weighted.mean(x = matched_prev[[j]], w = pars$propfert[matched_indices] * pars$Na[matched_indices]) #calculate demographically weighted mean prevalence
     
   }
@@ -126,10 +127,10 @@ ct_mat   <- t(sapply(ct_cases,c))
 # Save the output
 if (cluster == "RVC") {
   
-  saveRDS(prev_mat, file = paste("posteriors/", pars$country, "/", "prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
+  saveRDS(prev_mat, file = paste("posteriors/", pars$country, "/prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
                                  pars$age_foi, "_", SEED, ".Rdata", sep = ""))
   
-  saveRDS(ct_mat, file = paste("posteriors/", pars$country, "/", "ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
+  saveRDS(ct_mat, file = paste("posteriors/", pars$country, "/ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
                                pars$age_foi, "_", SEED, ".Rdata", sep = ""))
   
 } else if (cluster == "UCL") { 
@@ -142,10 +143,10 @@ if (cluster == "RVC") {
   
 } else if (cluster == "none") {
   
-  saveRDS(prev_mat, file = paste("posteriors/", pars$country, "/new_fit/", "prev_predictions/", "prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
+  saveRDS(prev_mat, file = paste("posteriors/", pars$country, "/prev_predictions/", "prev_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
                                  pars$age_foi, "_", SEED, ".Rdata", sep = ""))
   
-  saveRDS(ct_mat, file = paste("posteriors/", pars$country, "/new_fit/", "ct_predictions/", "ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
+  saveRDS(ct_mat, file = paste("posteriors/", pars$country, "/ct_predictions/", "ct_predictions_", pars$country, "_t", pars$temporal_foi, "_a", 
                                pars$age_foi, "_", SEED, ".Rdata", sep = ""))
   
 }
