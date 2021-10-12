@@ -2,6 +2,7 @@
 library(ggplot2)
 library(ggpubr)
 library(RColorBrewer)
+library(patchwork)
 
 #############
 # Set fonts #
@@ -84,47 +85,125 @@ for(i in 1:length(countries)){
 
 wrap_plots(p)
 
-
 # save plot
-# ggsave(filename = "plots/pop_size.png", width = 6, height = 6,
-#        units = "in", family = "Times")
+ggsave(filename = "plots/pop_size.png", width = 6, height = 6,
+       dpi=600, units = "in", family = "Times")
 
+#######################
+## FoI profile plots ##
+#######################
+FoI_plots  <- vector("list", length=length(countries))
+foi_recent <- vector("list", length=length(foi)) #list to store recent foi changes (1980-2030)
+country_names    <- levels(countries)
+country_names[7] <- "Iran"
+min_year <- 1980
+max_year <- 2030
 
-### Burn-in time plots
-data <- data.frame(time = sol[,"time"], prev = sol[,"pIt"], ct = sol[,"ctt"])
-
-# Seroprevalence over time
-p1 <- ggplot(data=data, aes(x=time, y=prev)) + 
-  geom_line() + 
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0), limits=c(0,0.5)) +
-  ylab("Seroprevalence") +
-  xlab("Time") +
+for(k in 1:length(countries)){
   
-  geom_vline(xintercept = 2000, linetype = "dotted") +
+  #set country
+  k <- 2
+  pars$country <- countries[k]
   
-  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none", axis.ticks = element_blank(), plot.margin=unit(c(rep(.5,4)),"cm"))
-
-# CT incidence over time
-p2 <- ggplot(data=data, aes(x=time, y=ct)) + 
-  geom_line() + 
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0), limits=c(0,15000)) +
-  ylab("CT cases") +
-  xlab("Time") +
+  #subset seroprevalence data
+  fitting_data <- subset(df, country == pars$country)
   
-  geom_vline(xintercept = 2000, linetype = "dotted") +
+  #no. of years between 1st & last data time points
+  pars$tdiff   <- max(fitting_data$year) - min(fitting_data$year)
   
-  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  theme(legend.position = "none", axis.ticks = element_blank(), plot.margin=unit(c(rep(.5,4)),"cm"))
+  #read in posterior distribution
+  post_dist    <- readRDS(file = paste("posteriors/", pars$country, "/", 
+                                       "posteriors_", pars$country, "_t", pars$temporal_foi, 
+                                       "_", "a", pars$age_foi, ".RDS", sep=""))
+  
+  #store parameter values
+  lambda0_vec <- post_dist$lambda
+  beta_vec    <- post_dist$beta 
+  tau_vec    <- post_dist$tau
+  
+  #set burn-in & time
+  pars$burnin <- 2000
+  tspan <- seq(1, pars$burnin + pars$tdiff + pars$years_forecast, 1)
+  foi   <- vector("list", length=length(lambda0_vec)) #list to store FoI profile
+  
+  #store FoI for each parameter set
+  for(i in 1:length(lambda0_vec)){
+    
+    lambda0 <- lambda0_vec[i]
+    beta    <- beta_vec[i]
+    tau     <- tau_vec[i]
+    
+    threshold <- pars$burnin - tau #set time of FoI change
+    
+    for(j in 1:length(tspan)){
+      
+      time <- tspan[j]
+      
+      if (time < threshold) {
+        foi[[i]][j] <- lambda0 
+        
+      } else if (time >= threshold) {
+        yr_rate <- (1 - beta) / ((pars$burnin + pars$tdiff) - threshold)  #define yearly rate of decline
+        t_current <- time - threshold  #time difference
+        foi[[i]][j] <- lambda0 * (1-(yr_rate * t_current)) 
+        
+        if(foi[[i]][j] <= 0){ # to avoid foi < 0 when forecasting
+          foi[[i]][j] <- 0
+        }
+      }
+      
+    }
+  }
+  
+  ## Plot all the FoI lines from the posterior
+  
+  ## First, calculate years from model time
+  # min sampling year of the data
+  data_min_year <- min(fitting_data$year)
+  
+  # equivalent model timepoint is burn-in, so calculate equivalent years by...
+  time_diff <- data_min_year - pars$burnin
+  years     <- tspan + time_diff
+  
+  # create dataset for 1980 to 2030
+  year_indices <- which(years == 1980) : which(years == 2030)
+  
+  for(i in 1:length(foi_recent)){
+    foi_recent[[i]] <- foi[[i]][year_indices]
+  }
+  
+  foi_df[[k]] <- data.frame(
+    "year"  = rep(years [ which(years == 1980) : which(years == 2030) ], length(lambda0_vec)), 
+    "foi"   = unlist(foi_recent), 
+    "group" = rep(1:600, each=length(1980:2030))
+  )
+  
+  FoI_plots[[k]] <- ggplot(data=foi_df[[k]], aes(year, foi, group=group)) + 
+    ggtitle(country_names[k]) + 
+    geom_line(alpha=0.05) +
+    # annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
+    #          ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
+    xlab("Year") + 
+    ylab(expression(lambda(t))) + 
+    scale_x_continuous(expand = c(0,0), breaks = c(min_year, 2005, max_year)) + 
+    scale_y_continuous(expand = c(0,0), n.breaks = 3) +
+    theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+    theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+    theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm"))
+  
+}
 
-# Save (eps)
-setEPS()
-postscript("plots/burnin.eps", family="Times", width = 6, height = 6)
-ggarrange(p1, p2, ncol=1, nrow=2, labels=c("(a)", "(b)"), font.label=list(size=12, family="Times"), hjust = .02)
-dev.off()
+## Plot & save multipanel FoI plot
+wrap_plots(FoI_plots, nrow=4, ncol=3) + 
+  plot_annotation(
+    tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
+                        '(g)', '(h)', '(i)', '(j)', '(k)')))
 
-# Save (png)
-ggsave("plots/burnin.png", family="Times", width = 6, height = 6, dpi=600)
+#PDF
+ggsave(filename = "plots/foi_multipanel.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
 
+# PNG
+ggsave(filename = "plots/foi_multipanel.png",
+       dpi=600, height = 8, width = 8, units = "in")
