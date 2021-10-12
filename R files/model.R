@@ -47,13 +47,6 @@ age_si = function(time, y, pars) {
           foi <- 0
         }
       }
-      # } else if (time > pars$burnin + pars$tdiff) {  # when forecasting, make foi asymptotic to avoid foi <=0
-      #   
-      #   yr_rate <- (1 - beta) / ((pars$burnin + pars$tdiff) - threshold)  #define yearly rate of decline
-      #   t_current <- time - threshold  #time difference
-      #   foi <- (lambda0 * beta)*(exp(-yr_rate*t_current))
-      #   
-      # }
       
       
       #(3) stepwise temporal decline 
