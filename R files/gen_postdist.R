@@ -357,7 +357,7 @@ for(i in 1:length(countries)){
                                        "posteriors_", pars$country, "_t", pars$temporal_foi, 
                                        "_", "a", pars$age_foi, ".RDS", sep=""))
   
-  #save single parameter set
+  #save parameter set
   lambda0 <- post_dist$lambda
   beta    <- post_dist$beta 
   tau     <- post_dist$tau
