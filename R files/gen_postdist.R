@@ -263,7 +263,7 @@ for(i in 1:length(countries)){
 
 ## Put data list into one dataframe
 df <- do.call(rbind.data.frame, posteriors)
-levels(df$country)[7] <- "Iran"
+levels(countries)[which(levels(countries) == "Iran (Islamic Republic of)")] <- "Iran"  #make Iran's name shorter for plotting
 
 ## Create list to store plots for each parameter
 plot_dw <- vector("list", length=3)
@@ -389,7 +389,7 @@ for(i in 1:length(countries)){
 ## gradient posteriors plot ##
 df <- data.frame(par = rep("gradient", 11), "gradient" = med.gradient, "ci_low_gradient" = ci.low.gradient, 
                  "ci_high_gradient" = ci.high.gradient, country=countries)
-levels(df$country)[7] <- "Iran"
+levels(countries)[which(levels(countries) == "Iran (Islamic Republic of)")] <- "Iran"  #make Iran's name shorter for plotting
 
 p <- ggplot(data = df, aes(x=par, y=gradient, color = country)) +
   geom_hline(yintercept=0, linetype="dotted") +

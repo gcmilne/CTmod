@@ -59,7 +59,7 @@ ribbonColour <- brewer.pal(8, "Pastel2")[c(3, 7)]
 #Colours for income status
 income_cols <- brewer.pal(4, "Blues")
 
-levels(countries)[7] <- "Iran" ## Make Iran's name shorter for plotting
+levels(countries)[which(levels(countries) == "Iran (Islamic Republic of)")] <- "Iran"  #make Iran's name shorter for plotting
 
 for (i in 1:length(countries)) {
   
