@@ -329,90 +329,9 @@ plot_dw[[3]] <- p +
   labs(x = "", y = expression(tau)) + 
   colScale
 
-
-## Calculate annual change in FoI for each country ##
-
-#read in seroprevalence data
-df <- readRDS("data/global_data.rds")
-
-#set burn-in & threshold
-pars$burnin <- 2000
-
-#definte yearly rate vector (length of posterior distribution)
-yr_rate <- vector("list", length=length(countries))
-
-for(i in 1:length(countries)){
-  
-  #set country
-  pars$country <- countries[i]
-  
-  #subset seroprevalence data
-  fitting_data <- subset(df, country == pars$country)
-  
-  #no. of years between 1st & last data time points
-  pars$tdiff   <- max(fitting_data$year) - min(fitting_data$year)
-  
-  #read in posterior distribution
-  post_dist    <- readRDS(file = paste("posteriors/", pars$country, "/", 
-                                       "posteriors_", pars$country, "_t", pars$temporal_foi, 
-                                       "_", "a", pars$age_foi, ".RDS", sep=""))
-  
-  #save parameter set
-  lambda0 <- post_dist$lambda
-  beta    <- post_dist$beta 
-  tau     <- post_dist$tau
-  
-  ###check correlation between parameters
-  par(mfrow=c(2,2))
-  plot(lambda0, beta, main=pars$country)
-  plot(lambda0, tau, main=pars$country)
-  plot(beta, tau, main=pars$country)
-  ###
-  
-  #calculate annual % change in FoI
-  threshold       <- pars$burnin - tau
-  yr_rate[[i]] <- ((1 - beta) / ((pars$burnin + pars$tdiff) - threshold)*100)
-  
-  #correct sign, so positive numbers equate to increases, whereas negatives equate to declines
-  yr_rate[[i]] <- yr_rate[[i]] * -1 
-}
-
-## Calculate medians & 95% credible intervals
-med.gradient <- ci.low.gradient <- ci.high.gradient <- vector("numeric", length=length(countries))
-for(i in 1:length(countries)){
-  x <- describe_posterior(yr_rate[[i]], centrality = "median")
-  med.gradient    [i] <- x$Median
-  ci.low.gradient [i] <- x$CI_low
-  ci.high.gradient[i] <- x$CI_high
-}
-
-## gradient posteriors plot ##
-df <- data.frame(par = rep("gradient", 11), "gradient" = med.gradient, "ci_low_gradient" = ci.low.gradient, 
-                 "ci_high_gradient" = ci.high.gradient, country=countries)
-levels(countries)[which(levels(countries) == "Iran (Islamic Republic of)")] <- "Iran"  #make Iran's name shorter for plotting
-
-p <- ggplot(data = df, aes(x=par, y=gradient, color = country)) +
-  geom_hline(yintercept=0, linetype="dotted") +
-  geom_point(size = 2, position=position_dodge(width=1)) +
-  geom_errorbar(
-    aes(ymin = ci_low_gradient, ymax = ci_high_gradient),
-    width = 0.1,
-    position=position_dodge(width=1)) +
-  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
-  coord_flip()
-
-gradient_plot <- p + 
-  theme(legend.position = "none",
-        panel.grid = element_blank(), axis.text.y=element_blank(),
-        axis.ticks.y = element_blank()) + 
-  labs(x = "", y = "Annual FoI change (%)") + 
-  colScale
-
-
 ############################
 ## Plot & save multipanel ##
 ############################
-
 ##  Make legend a ggplot object
 my_legend <- get_legend(plot_dw[[1]])
 my_legend <- as_ggplot(my_legend)
@@ -434,16 +353,3 @@ ggsave(filename = "plots/posteriors_dwplot.pdf",
 # PNG
 ggsave(filename = "plots/posteriors_dwplot.png",
        height = 8, width = 8, units = "in", dpi=600)
-
-
-## Arrange multipanel plot of lambda0 + annual FoI change
-ggarrange(plot_dw[[1]], my_legend, gradient_plot, 
-          nrow=1, font.label = list(face="plain", family="Times"),
-          labels = c("(a)", "", "(b)"), hjust=.05
-)
-
-## Save
-# PNG
-ggsave(filename = "plots/posteriors_FoIchange_dwplot.png",
-       height = 6, width = 6, units = "in", dpi=600)
-
