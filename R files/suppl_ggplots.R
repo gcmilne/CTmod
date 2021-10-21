@@ -1,12 +1,26 @@
-## ggplots
+###############################################
+## ggplots supplementary to the main results ##
+###############################################
+
+###################
+## Load packages ##
+###################
 library(ggplot2)
 library(ggpubr)
 library(RColorBrewer)
 library(patchwork)
+library(deSolve)
 
-#############
-# Set fonts #
-#############
+##################
+## Load scripts ##
+##################
+source("R files/setparms.R")
+source("R files/model.R")
+source("R files/funcs.R")
+
+###############
+## Set fonts ##
+###############
 if(.Platform$OS.type == "windows") { # set Times New Roman font on Windows
   # library(extrafont)
   # font_import()
@@ -14,80 +28,189 @@ if(.Platform$OS.type == "windows") { # set Times New Roman font on Windows
   windowsFonts(Times=windowsFont("TT Times New Roman")) 
 }
 
-#read in data
+##################
+## Read in data ##
+##################
 df <- readRDS("data/global_data.rds")
 
-#### Plots of demographic data
-
+###############################
+## Plots of demographic data ##
+###############################
 ## change to get plots for mortality, fertility or population size
 
-## make ggplots for each of the countries
-p <- vector(mode = "list", length = length(countries))
+## Make list to store ggplots for each of the countries
+# (1) Fertility rate; (2) Mortality rate; (3) Population size
+p_fert <- p_mort <-  p_pop <- vector(mode = "list", length = length(countries))
+data   <- vector(mode = "list", length = length(countries))  #data object for plotting
 
+## Set global parameters
+pars$temporal_foi  <- "none"    #TEMPORAL FoI decline (options: "none", "stepwise" or "linear" )
+time <- seq(1,2000)
+
+## Run the model for each country & store output (only needs to be run once)
+# for(i in 1:length(countries)){
+# 
+#   pars$country <- countries[i]
+#   fitting_data <- subset(df, df$country == pars$country)
+#   
+#   # Load demographic data
+#   source("R files/demogdat.R")
+#   
+#   ### interpolated parameters from demographic data
+#   # Population size #
+#   f <- spline(age_pop, tot_pop, xout=pars$age)
+#   
+#   pars$Na <- f$y*(sum(tot_pop[1:which(age_pop==pars$amax-2.5)])/sum(f$y)) # select correct age specific population size depending on choice of pars$amax
+#   pars$N  <- sum(pars$Na) # total population size
+#   
+#   # Mortality rate #
+#   pars$d <- spline(x=age_mort, y=mort, xout=pars$age)$y # interpolated age specific per capita mortality rates
+#   pars$d[which(pars$d<0)] <- 0  # zero minus elements
+#   
+#   # Birth rate #
+#   pars$propfert <- approx(age_fert, prop_fert_age, xout=pars$age)$y
+#   pars$propfert[is.na(pars$propfert)] <- 0
+#   pars$propfert <- pars$propfert/sum(pars$propfert)
+#   
+#   # Initial values (state variables) #
+#   S0 <- I0 <- Im0 <- vector("numeric", length=pars$agrps)
+#   
+#   # Entire population initially susceptible
+#   S0[1:length(S0)] <- pars$Na
+#   y                <- c(S0, I0, Im0)  
+#   
+#   # Run model to calculate population size after burn-in
+#   sol <- ode(y=y, times=time, parms=pars, func = age_si)  #get model solution
+#   age_dist  <- getit(2000)                                #get age distribution @ burn-in
+# 
+#   # set data
+#   data[[i]] <- data.frame(age = pars$age, 
+#                      fert     = pars$propfert*100,  #fertility (as %)
+#                      mort     = pars$d,             #mortality
+#                      dat_na   = pars$Na,            #pop size (data)
+#                      mod_na   = age_dist[,"Na"])    #pop size (model)
+#   
+# }
+# 
+# # save data
+# saveRDS(data, file = "data/demographic_data_allcountries.RDS")
+
+## Make ggplots
+data <- readRDS(data, file = "data/demographic_data_allcountries.RDS")
 
 for(i in 1:length(countries)){
-  pars$country <- countries[i]
   
-  # pars$country <- "Brazil"
-  fitting_data <- subset(df, df$country == pars$country)
+  #fertility plot
+  p_fert[[i]] <- ggplot(data=data[[i]], aes(x=age, y=fert)) + 
+    ggtitle(levels(countries)[i]) + 
+    geom_line() + 
+    scale_x_continuous(expand = c(0,0), limits = c(0, 55), breaks = seq(0, 55, 25)) + 
+    scale_y_continuous(n.breaks = 3) + 
+    ylab("Pregnant (%)") +
+    xlab("Age (years)") +
+    theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+    theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+    theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm"))
   
-  # Load demographic data
-  source("R files/demogdat.R")
+  #mortality plot
+  p_mort[[i]] <- ggplot(data=data[[i]], aes(x=age, y=mort)) + 
+    ggtitle(levels(countries)[i]) + 
+    geom_line() + 
+    scale_x_continuous(expand = c(0,0), limits = c(0, 55), breaks = seq(0, 55, 25)) + 
+    scale_y_continuous(n.breaks = 3) + 
+    ylab("Mortality rate") +
+    xlab("Age (years)") +
+    theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+    theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+    theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm"))
   
-  ### interpolated parameters from demographic data
-  # Population size #
-  f <- spline(age_pop, tot_pop, xout=pars$age)
-  
-  pars$Na <- f$y*(sum(tot_pop[1:which(age_pop==pars$amax-2.5)])/sum(f$y)) # select correct age specific population size depending on choice of pars$amax
-  pars$N  <- sum(pars$Na) # total population size
-  
-  # Mortality rate #
-  pars$d <- spline(x=age_mort, y=mort, xout=pars$age)$y # interpolated age specific per capita mortality rates
-  pars$d[which(pars$d<0)] <- 0  # zero minus elements
-  
-  # Birth rate #
-  pars$propfert <- approx(age_fert, prop_fert_age, xout=pars$age)$y
-  pars$propfert[is.na(pars$propfert)] <- 0
-  pars$propfert <- pars$propfert/sum(pars$propfert)
-  
-  # set data
-  data <- data.frame(age = pars$age, Na = pars$Na)
-  
-  #save ggplots
-  if(countries[i] != "Iran (Islamic Republic of)"){
-    
-    p[[i]] <- ggplot(data=data, aes(x=age, y=Na)) + 
-      geom_line() + 
-      # scale_y_continuous(limits = c(0, 0.15), breaks = seq(0, 0.15, 0.05)) +
-      scale_x_continuous(expand = c(0,0), limits = c(0, 55), breaks = seq(0, 55, 25)) + 
-      ylab("Population size") +
-      xlab("Age (years)") +
-      labs(title = paste( countries[i])) +
-      theme_light(base_size = 9, base_line_size = 0, base_family = "Times") +
-      theme(legend.position = "none", axis.ticks = element_blank()) + 
-      theme(plot.margin=unit(c(rep(.5,4)),"cm"))
-    
-  } else if(countries[i] == "Iran (Islamic Republic of)"){
-    
-    p[[i]] <- ggplot(data=data, aes(x=age, y=Na)) + 
-      geom_line() + 
-      # scale_y_continuous(limits = c(0, 0.15), breaks = seq(0, 0.15, 0.05)) +
-      scale_x_continuous(expand = c(0,0), limits = c(0, 55), breaks = seq(0, 55, 25)) + 
-      ylab("Population size") +
-      xlab("Age (years)") +
-      labs(title = c(paste("Iran"))) +
-      theme(legend.position = "none", axis.ticks = element_blank()) + 
-      theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
-      theme_light(base_size = 9, base_line_size = 0, base_family = "Times")
-  
+  #population size plot
+  #set minimum y axis value
+  if ( min(data[[i]]$dat_na) < min(data[[i]]$mod_na) ) { 
+    y_min <- min(data[[i]]$dat_na) - .05*min(data[[i]]$dat_na)
+  } else {
+    y_min <- min(data[[i]]$mod_na) - .05*min(data[[i]]$mod_na)
   }
+  
+  #set maximum y axis value
+  if ( max(data[[i]]$dat_na) < max(data[[i]]$mod_na) ) { 
+    y_max <- max(data[[i]]$mod_na) + .05*max(data[[i]]$mod_na)
+  } else {
+    y_max <- max(data[[i]]$dat_na) + .05*max(data[[i]]$dat_na)
+  }
+  
+  p_pop[[i]] <- ggplot(data[[i]], aes(x=age, y=dat_na)) + 
+    ggtitle(levels(countries)[i]) + 
+    geom_bar(stat="identity", width=0.1, col="grey")+
+    geom_line(aes(x=age, y=mod_na, color=fert)) +
+    labs(x = "Age (years)", y = "Population size", color = "Pregnant (%)") +
+    theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+    theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+    theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm")) +
+    scale_color_viridis_c(option = "cividis")
+  
 }
 
-wrap_plots(p)
+## Shorten Iran's name
+p_fert[[7]] <- p_fert[[7]] + ggtitle("Iran")
+p_mort[[7]] <- p_mort[[7]] + ggtitle("Iran")
+p_pop[[7]]  <- p_pop[[7]]  + ggtitle("Iran")
 
-# save plot
-ggsave(filename = "plots/pop_size.png", width = 6, height = 6,
+## Multipanel plots
+## (1) Fertility rate ##
+x <- wrap_plots(p_fert, nrow=4, ncol=3) &
+  scale_y_continuous(n.breaks=5)
+
+x + plot_annotation(
+  tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
+                      '(g)', '(h)', '(i)', '(j)', '(k)')))
+
+#save
+#PNG
+ggsave(filename = "plots/fertility_rates.png", width = 8, height = 8,
        dpi=600, units = "in", family = "Times")
+
+#PDF
+ggsave(filename = "plots/fertility_rates.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
+
+## (2) Mortality rate ##
+x <- wrap_plots(p_mort, nrow=4, ncol=3) &
+  scale_y_continuous(n.breaks=5)
+
+x + plot_annotation(
+  tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
+                      '(g)', '(h)', '(i)', '(j)', '(k)')))
+
+#save
+#PNG
+ggsave(filename = "plots/mortality_rates.png", width = 8, height = 8,
+       dpi=600, units = "in", family = "Times")
+
+#PDF
+ggsave(filename = "plots/mortality_rates.pdf",
+       device = cairo_pdf, height = 8, width = 8, units = "in")
+
+## (3) Population size ##
+x <- wrap_plots(p_pop, nrow=4, ncol=3) &
+scale_y_continuous(n.breaks=5)
+
+x + plot_annotation(
+    tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
+                        '(g)', '(h)', '(i)', '(j)', '(k)')))
+
+#save
+#PNG
+ggsave(filename = "plots/pop_size.png", width = 10, height = 8,
+       dpi=600, units = "in", family = "Times")
+
+#PDF
+ggsave(filename = "plots/pop_size.pdf",
+       device = cairo_pdf, height = 10, width = 8, units = "in")
+
 
 #######################
 ## FoI profile plots ##
@@ -102,7 +225,6 @@ max_year <- 2030
 for(k in 1:length(countries)){
   
   #set country
-  k <- 2
   pars$country <- countries[k]
   
   #subset seroprevalence data
@@ -119,7 +241,7 @@ for(k in 1:length(countries)){
   #store parameter values
   lambda0_vec <- post_dist$lambda
   beta_vec    <- post_dist$beta 
-  tau_vec    <- post_dist$tau
+  tau_vec     <- post_dist$tau
   
   #set burn-in & time
   pars$burnin <- 2000
@@ -204,6 +326,6 @@ wrap_plots(FoI_plots, nrow=4, ncol=3) +
 ggsave(filename = "plots/foi_multipanel.pdf",
        device = cairo_pdf, height = 8, width = 8, units = "in")
 
-# PNG
+#PNG
 ggsave(filename = "plots/foi_multipanel.png",
        dpi=600, height = 8, width = 8, units = "in")
