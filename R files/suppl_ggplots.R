@@ -95,14 +95,22 @@ time <- seq(1,2000)
 # # save data
 # saveRDS(data, file = "data/demographic_data_allcountries.RDS")
 
-## Make ggplots
+## ggplots
 data <- readRDS(data, file = "data/demographic_data_allcountries.RDS")
 
+# Add year of demographic data
+for(i in 1:length(countries)){
+  pars$country <- countries[10]                            #set country
+  fitting_data <- subset(df, df$country == pars$country)  #subset data
+  data[[i]]$year <- round(min(fitting_data$year)/5)*5
+}
+
+# Make plots
 for(i in 1:length(countries)){
   
   #fertility plot
   p_fert[[i]] <- ggplot(data=data[[i]], aes(x=age, y=fert)) + 
-    ggtitle(levels(countries)[i]) + 
+    ggtitle(paste(c(levels(countries)[i]), " (", data[[i]]$year[1], ")", sep="")) + 
     geom_line() + 
     scale_x_continuous(expand = c(0,0), limits = c(0, 55), breaks = seq(0, 55, 25)) + 
     scale_y_continuous(n.breaks = 3) + 
@@ -115,7 +123,7 @@ for(i in 1:length(countries)){
   
   #mortality plot
   p_mort[[i]] <- ggplot(data=data[[i]], aes(x=age, y=mort)) + 
-    ggtitle(levels(countries)[i]) + 
+    ggtitle(paste(c(levels(countries)[i]), " (", data[[i]]$year[1], ")", sep="")) + 
     geom_line() + 
     scale_x_continuous(expand = c(0,0), limits = c(0, 55), breaks = seq(0, 55, 25)) + 
     scale_y_continuous(n.breaks = 3) + 
@@ -155,8 +163,8 @@ for(i in 1:length(countries)){
 }
 
 ## Shorten Iran's name
-p_fert[[7]] <- p_fert[[7]] + ggtitle("Iran")
-p_mort[[7]] <- p_mort[[7]] + ggtitle("Iran")
+p_fert[[7]] <- p_fert[[7]] + ggtitle(paste(c("Iran"), " (", data[[7]]$year[1], ")", sep=""))
+p_mort[[7]] <- p_mort[[7]] + ggtitle(paste(c("Iran"), " (", data[[7]]$year[1], ")", sep=""))
 p_pop[[7]]  <- p_pop[[7]]  + ggtitle("Iran")
 
 ## Multipanel plots
