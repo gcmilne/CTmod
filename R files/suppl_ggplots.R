@@ -329,3 +329,41 @@ ggsave(filename = "plots/foi_multipanel.pdf",
 #PNG
 ggsave(filename = "plots/foi_multipanel.png",
        dpi=600, height = 8, width = 8, units = "in")
+
+############################################################
+## Linear regression of publication year on sampling year ##
+############################################################
+
+# Make colours
+names(myColors) <- levels(df$country)
+colScale <- scale_colour_manual(name = "plotcols",values = myColors)
+
+# Run linear model
+mod <- lm(year~year_published, data=df)
+
+# Make y=x line to show what perfect condordance looks like
+y_x <- min(df$year_published) : max(df$year_published)
+y_x <- c(y_x, rep(NA, 100 - length(y_x))) # make vector same length as other data
+
+# Plot
+p1 <- ggplot(data=df, aes(x=year_published, y=year, colour = country)) +
+  geom_point() +
+  geom_line(aes(x=year_published, y=mod$fitted.values), col="darkgrey") + #regression line
+  geom_line(aes(x=y_x, y=y_x), col="darkgrey", linetype="dashed") + #y=x line
+  scale_x_continuous(limits = c(1982, 2020), expand = c(0,0)) + 
+  scale_y_continuous(limits = c(1982, 2020), expand = c(0,0)) + 
+  ylab("Median sampling year") +
+  xlab("Publishing year") +
+  theme_light(base_size = 12, base_line_size = .5, base_family = "Times") +
+  theme(legend.position = "none", axis.ticks = element_blank()) + 
+  theme(plot.margin=unit(c(rep(.5,4)),"cm"))
+
+# Add colours & zoom plot
+p1 + colScale + 
+  coord_cartesian(
+  xlim = c(1990, 2020),
+  ylim = c(1982, 2020))
+
+# Save plot
+ggsave(filename = "plots/publishing_vs_sampling_year.png", width = 6, height = 6, 
+       units = "in", dpi=600, family = "Times")
