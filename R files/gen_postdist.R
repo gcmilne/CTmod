@@ -125,6 +125,7 @@ for (j in 1:length(countries)) {
   
   plot_lambda0[[which(pars$country == countries)]] <- ggplot(
     dat, aes(x = exp(dens), fill = lines)) + 
+    ggtitle(levels(countries)[j]) + 
     geom_density(alpha = 0.5) +
     geom_vline(xintercept = post.median.lambda) +                   # mode
     geom_vline(xintercept = ci.low.lambda, linetype='dotted') +   # lower ci
@@ -134,7 +135,7 @@ for (j in 1:length(countries)) {
     labs(fill = "") + 
     xlab(expression(lambda[0])) + 
     ylab("Density") + 
-    theme(plot.margin=unit(c(rep(1,4)),"cm"))
+    theme(plot.margin=unit(c(rep(1,4)),"cm"), axis.title.x = element_text(face = "italic"))
   
   
   ## beta
@@ -153,6 +154,7 @@ for (j in 1:length(countries)) {
   
   plot_beta[[which(pars$country == countries)]] <- ggplot(
     dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 0.5) + 
+    ggtitle(levels(countries)[j]) + 
     geom_vline(xintercept = post.median.beta) +                   # mode
     geom_vline(xintercept = ci.low.beta, linetype='dotted') +   # lower ci
     geom_vline(xintercept = ci.high.beta, linetype='dotted') +  # upper ci
@@ -161,7 +163,7 @@ for (j in 1:length(countries)) {
     labs(fill = "") + 
     xlab(expression(beta)) + 
     ylab("Density") + 
-    theme(plot.margin=unit(c(rep(1,4)),"cm"))
+    theme(plot.margin=unit(c(rep(1,4)),"cm"), axis.title.x = element_text(face = "italic"))
   
   
   ## tau
@@ -179,6 +181,7 @@ for (j in 1:length(countries)) {
   
   plot_tau[[which(pars$country == countries)]] <- ggplot(
     dat, aes(x = exp(dens), fill = lines)) + geom_density(alpha = 0.5) + 
+    ggtitle(levels(countries)[j]) + 
     geom_vline(xintercept = post.median.tau) +                   # mode
     geom_vline(xintercept = ci.low.tau, linetype='dotted') +   # lower ci
     geom_vline(xintercept = ci.high.tau, linetype='dotted') +  # upper ci 
@@ -187,7 +190,7 @@ for (j in 1:length(countries)) {
     labs(fill = "") + 
     xlab(expression(tau)) + 
     ylab("Density") + 
-    theme(plot.margin=unit(c(rep(1,4)),"cm"))
+    theme(plot.margin=unit(c(rep(1,4)),"cm"), axis.title.x = element_text(face = "italic"))
   
   
 }
@@ -212,6 +215,11 @@ for(j in 1:length(countries)){
 #############################################################################
 ## Multipanel plot of priors vs. posteriors (one parameter, all countries) ##
 #############################################################################
+
+## Shorten Iran's name
+plot_lambda0[[7]] <- plot_lambda0[[7]] + ggtitle("Iran")
+plot_beta[[7]]    <- plot_beta[[7]]    + ggtitle("Iran")
+plot_tau[[7]]     <- plot_tau[[7]]     + ggtitle("Iran")
 
 #lambda
 multipanel_lambda <- wrap_plots(plot_lambda0, nrow=4, ncol=3) +
