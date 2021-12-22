@@ -73,7 +73,7 @@ nsim <- ceiling(tot_iter / niter) # no. iterations on each for loop
 # No. of parameters to fit
 npars <- 3
 
-# Get indices for child-bearing ages (changes according to dataset being fit)
+# Get indices for child-bearing ages (changes  according to dataset being fit)
 matched_indices <- which(pars$propfert !=0)
 
 logliks <- vector("numeric", length=nrow(fitting_data))  #initialise log likelihood vector
