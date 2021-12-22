@@ -98,15 +98,12 @@ time <- seq(1,2000)
 ## ggplots
 data <- readRDS(data, file = "data/demographic_data_allcountries.RDS")
 
-# Add year of demographic data
 for(i in 1:length(countries)){
-  pars$country <- countries[10]                            #set country
+  
+  # Add year of demographic data
+  pars$country <- countries[i]                            #set country
   fitting_data <- subset(df, df$country == pars$country)  #subset data
   data[[i]]$year <- round(min(fitting_data$year)/5)*5
-}
-
-# Make plots
-for(i in 1:length(countries)){
   
   #fertility plot
   p_fert[[i]] <- ggplot(data=data[[i]], aes(x=age, y=fert)) + 
