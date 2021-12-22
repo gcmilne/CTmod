@@ -1,6 +1,6 @@
-#######################################
-########### Model fitting #############
-#######################################
+#########################################
+## Script to fit the model to the data ##
+#########################################
 rm(list = ls()) # clear working environment
 
 ###################
@@ -13,9 +13,8 @@ library(dplyr)
 ###################
 ## Set directory ##
 ###################
-# Sets working directory based on environment (Cluster (RVC or UCL), or local). 
-# Options: "RVC", "UCL", "none"
-cluster <- "UCL"
+# Sets working directory based on environment (Cluster (RVC or UCL), or local)
+cluster <- "UCL" #options: "RVC", "UCL", "none"
 
 if (cluster == "RVC") {
   setwd("/storage/users/gmilne/test")  #cluster (RVC)
@@ -71,11 +70,11 @@ if (cluster == "UCL") {
 
 nsim <- ceiling(tot_iter / niter) # no. iterations on each for loop
 
-## no. parameters to fit
+# No. of parameters to fit
 npars <- 3
 
-## Change objects according to dataset being fit:
-matched_indices <- which(pars$propfert !=0)  #child-bearing ages
+# Get indices for child-bearing ages (changes according to dataset being fit)
+matched_indices <- which(pars$propfert !=0)
 
 logliks <- vector("numeric", length=nrow(fitting_data))  #initialise log likelihood vector
 
@@ -101,17 +100,22 @@ lik_arr <- vector(mode="numeric", length=nsim) #create likelihood array
 matched_prev      <- vector("list", length = nrow(fitting_data))
 mean_matched_prev <- vector("list", length = nrow(fitting_data))
 
+# Call function to store relevant immunoassay sensitivity & specificity values 
+diagnostic_values <- find_diagnostic_values(fitting_data, assays)
+
 
 system.time (
   
   for (i in 1:nrow(par_arr)) {
     
-    # extract parameter values from priors
-    pars$log.lambda0  <- par_arr[i,"log.lambda0"]
+    # Extract parameter values from priors
+    pars$log.lambda0 <- par_arr[i,"log.lambda0"]
     pars$log.beta    <- par_arr[i,"log.beta"]
-    pars$log.tau <- par_arr[i,"log.tau"]
+    pars$log.tau     <- par_arr[i,"log.tau"]
     
-    sol                <- ode(y = y, times = time, parms = pars,  func = age_si)  #save model solution
+    # Run model & store solution
+    sol              <- ode(y = y, times = time, parms = pars,  func = age_si)
+    
     
     for (j in 1:nrow(fitting_data)) {
       
@@ -119,50 +123,15 @@ system.time (
       
       matched_prev[[j]]  <- store_sim[,"pI"][matched_indices]  #select true prevalence from relevant age categories
       
+      # Calculate observed prevalence using relevant se and sp values
+      matched_prev[[j]] <- matched_prev[[j]] * (diagnostic_values$se[j] + diagnostic_values$sp[j] - 1) + (1 - diagnostic_values$sp[j])
       
-      ## Select relevant sensitivity & specificity values ##
-        if (is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  #if timepoint used 1 immunoassay type
-          
-          pars$se <- assays$se [ which(fitting_data$method[j] == assays$method) ]  #se
-          pars$sp <- assays$sp [ which(fitting_data$method[j] == assays$method) ]  #sp
-          
-          
-        } else if (!is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  # if timepoint used 2 immunoassays
-          
-          se_method1 <- assays$se [ which(fitting_data$method [j] == assays$method) ]  #se of first immunoassay
-          se_method2 <- assays$se [ which(fitting_data$method2[j] == assays$method) ]  #se of second immunoassay
-          
-          sp_method1 <- assays$sp [ which(fitting_data$method [j] == assays$method) ]  #sp of first immunoassay
-          sp_method2 <- assays$sp [ which(fitting_data$method2[j] == assays$method) ]  #sp of second immunoassay
-          
-          pars$se <- weighted.mean(x = c(se_method1, se_method2), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j])) #weighted mean se
-          pars$sp <- weighted.mean(x = c(sp_method1, sp_method2), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j])) #weighted mean sp
-          
-          
-        } else if (!is.na(fitting_data$method2[j]) & !is.na(fitting_data$method3[j])) {  # if timepoint used 3 immunoassays
-          
-          se_method1 <- assays$se [ which(fitting_data$method [j] == assays$method) ]  #se of first immunoassay
-          se_method2 <- assays$se [ which(fitting_data$method2[j] == assays$method) ]  #se of second immunoassay
-          se_method3 <- assays$se [ which(fitting_data$method3[j] == assays$method) ]  #se of third immunoassay
-          
-          sp_method1 <- assays$sp [ which(fitting_data$method [j] == assays$method) ]  #sp of first immunoassay
-          sp_method2 <- assays$sp [ which(fitting_data$method2[j] == assays$method) ]  #sp of second immunoassay
-          sp_method3 <- assays$sp [ which(fitting_data$method3[j] == assays$method) ]  #sp of third immunoassay
-          
-          pars$se <- weighted.mean(x = c(se_method1, se_method2, se_method3), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j], fitting_data$prop_method3[j])) #weighted mean se
-          pars$sp <- weighted.mean(x = c(sp_method1, sp_method2, sp_method3), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j], fitting_data$prop_method3[j])) #weighted mean sp
-          
-        }
-    
-    ## Adjust true prevalence by relevant diagnostic se and sp ##
-    matched_prev[[j]] <- matched_prev[[j]] * (pars$se + pars$sp - 1) + (1 - pars$sp)
-    
-    ## Demographically weighted mean of modelled adjusted seroprevalence ##
-    mean_matched_prev[j] <- weighted.mean(x = matched_prev[[j]], w = pars$propfert[matched_indices] * pars$Na[matched_indices])
-    
-    ## Calculate log likelihood ##
-    logliks[j] <- loglik(k = fitting_data$k[j], n = fitting_data$n[j], prev = unlist(mean_matched_prev[j]))
-    
+      # Calculate demographically weighted mean of observed seroprevalence
+      mean_matched_prev[j] <- weighted.mean(x = matched_prev[[j]], w = pars$propfert[matched_indices] * pars$Na[matched_indices])
+      
+      # Calculate log likelihood
+      logliks[j] <- loglik(k = fitting_data$k[j], n = fitting_data$n[j], prev = unlist(mean_matched_prev[j]))
+      
     }
     
     lik_arr[i]    <- sum(-logliks)  #sum the log likelihoods
@@ -172,7 +141,7 @@ system.time (
 )
 
 
-## save output ##
+## Save output ##
 likpar_arr <- data.frame(par_arr, lik_arr)
 
 names(likpar_arr)[4] <- "log.lik"
