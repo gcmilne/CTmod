@@ -56,3 +56,53 @@ getit9 <- function(time) {
 loglik <- function (k, n, prev) {
   dbinom(k, n, prev, log = T)
 }
+
+
+## Function to find relevant immunoassay sensitivity and specificity values ## 
+# 'fitting_data' seroprevalence data must contain immunoassay method names
+# 'assays' immunoassay performance data must contain identical immunoassay method names
+find_diagnostic_values <- function(fitting_data, assays) { 
+  
+  # create df to return
+  diagnostic_values <- setNames(data.frame(matrix(nrow=nrow(fitting_data), ncol=2)), c("se", "sp"))
+                                
+  for(j in 1:nrow(fitting_data)){
+    
+    ## Select relevant sensitivity & specificity values ##
+    if (is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  #if timepoint used 1 immunoassay type
+      
+      diagnostic_values$se[j] <- assays$se [ which(fitting_data$method[j] == assays$method) ]  #se
+      diagnostic_values$sp[j] <- assays$sp [ which(fitting_data$method[j] == assays$method) ]  #sp
+      
+      
+    } else if (!is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  # if timepoint used 2 immunoassays
+      
+      se_method1 <- assays$se [ which(fitting_data$method [j] == assays$method) ]  #se of first immunoassay
+      se_method2 <- assays$se [ which(fitting_data$method2[j] == assays$method) ]  #se of second immunoassay
+      
+      sp_method1 <- assays$sp [ which(fitting_data$method [j] == assays$method) ]  #sp of first immunoassay
+      sp_method2 <- assays$sp [ which(fitting_data$method2[j] == assays$method) ]  #sp of second immunoassay
+      
+      diagnostic_values$se[j] <- weighted.mean(x = c(se_method1, se_method2), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j])) #weighted mean se
+      diagnostic_values$sp[j] <- weighted.mean(x = c(sp_method1, sp_method2), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j])) #weighted mean sp
+      
+      
+    } else if (!is.na(fitting_data$method2[j]) & !is.na(fitting_data$method3[j])) {  # if timepoint used 3 immunoassays
+      
+      se_method1 <- assays$se [ which(fitting_data$method [j] == assays$method) ]  #se of first immunoassay
+      se_method2 <- assays$se [ which(fitting_data$method2[j] == assays$method) ]  #se of second immunoassay
+      se_method3 <- assays$se [ which(fitting_data$method3[j] == assays$method) ]  #se of third immunoassay
+      
+      sp_method1 <- assays$sp [ which(fitting_data$method [j] == assays$method) ]  #sp of first immunoassay
+      sp_method2 <- assays$sp [ which(fitting_data$method2[j] == assays$method) ]  #sp of second immunoassay
+      sp_method3 <- assays$sp [ which(fitting_data$method3[j] == assays$method) ]  #sp of third immunoassay
+      
+      diagnostic_values$se[j] <- weighted.mean(x = c(se_method1, se_method2, se_method3), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j], fitting_data$prop_method3[j])) #weighted mean se
+      diagnostic_values$sp[j] <- weighted.mean(x = c(sp_method1, sp_method2, sp_method3), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j], fitting_data$prop_method3[j])) #weighted mean sp
+      
+    }
+    
+  }
+  
+  return(diagnostic_values)
+}
