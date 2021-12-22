@@ -30,36 +30,18 @@ niter     <- 600
 
 prev_list <- ct_list <- vector("list", length=niter)
 
-if(pars$country != "United Kingdom") {
-  for(i in 1:niter){
-    
-    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country,
-                                           "/prev_predictions/", "prev_predictions_", 
-                                           pars$country, "_t", pars$temporal_foi, "_a",
-                                           pars$age_foi, "_", i, ".Rdata", sep = ""))
-    
-    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, 
-                                         "/ct_predictions/", "ct_predictions_", 
-                                         pars$country, "_t", pars$temporal_foi, "_a", 
-                                         pars$age_foi, "_", i, ".Rdata", sep = ""))
-    
-  }
+for(i in 1:niter){
   
-  ## NB missing prev_prediction (but not ct_prediction) no. 46 for UK -- check on Myriad when able
-} else if (pars$country == "United Kingdom") {
-  for(i in c(1:45, 47:niter)){
-    
-    prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, 
-                                           "/prev_predictions/", "prev_predictions_", 
-                                           pars$country, "_t", pars$temporal_foi, "_a",
-                                           pars$age_foi, "_", i, ".Rdata", sep = ""))
-    
-    ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, 
-                                         "/ct_predictions/", "ct_predictions_", 
-                                         pars$country, "_t", pars$temporal_foi, "_a", 
+  prev_list[[i]] <- readRDS(file = paste("posteriors/", pars$country,
+                                         "/prev_predictions/", "prev_predictions_", 
+                                         pars$country, "_t", pars$temporal_foi, "_a",
                                          pars$age_foi, "_", i, ".Rdata", sep = ""))
-    
-  }
+  
+  ct_list[[i]] <- readRDS(file = paste("posteriors/", pars$country, 
+                                       "/ct_predictions/", "ct_predictions_", 
+                                       pars$country, "_t", pars$temporal_foi, "_a", 
+                                       pars$age_foi, "_", i, ".Rdata", sep = ""))
+  
 }
 
 ####################################################################
@@ -87,50 +69,16 @@ for(i in 1:max(time)){
 ####################################
 ## Adjust data to true prevalence ##
 ####################################
-tp <- vector("numeric", length=nrow(fitting_data))
 
-## Extract correct se & sp, & adjust observed prevalence to true prevalence
+# call function to find relevant immunoassay sensitivity & specificity values 
+diagnostic_values <- find_diagnostic_values(fitting_data, assays)
+
+# calculate true prevalence
+tp <- vector("numeric", length=nrow(fitting_data))
 for(j in 1:nrow(fitting_data)){
-  
-  ## Select relevant sensitivity & specificity values ##
-  if (is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  #if timepoint used 1 immunoassay type
-    
-    pars$se <- assays$se [ which(fitting_data$method[j] == assays$method) ]  #se
-    pars$sp <- assays$sp [ which(fitting_data$method[j] == assays$method) ]  #sp
-    
-    
-  } else if (!is.na(fitting_data$method2[j]) & is.na(fitting_data$method3[j])) {  # if timepoint used 2 immunoassays
-    
-    se_method1 <- assays$se [ which(fitting_data$method [j] == assays$method) ]  #se of first immunoassay
-    se_method2 <- assays$se [ which(fitting_data$method2[j] == assays$method) ]  #se of second immunoassay
-    
-    sp_method1 <- assays$sp [ which(fitting_data$method [j] == assays$method) ]  #sp of first immunoassay
-    sp_method2 <- assays$sp [ which(fitting_data$method2[j] == assays$method) ]  #sp of second immunoassay
-    
-    pars$se <- weighted.mean(x = c(se_method1, se_method2), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j])) #weighted mean se
-    pars$sp <- weighted.mean(x = c(sp_method1, sp_method2), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j])) #weighted mean sp
-    
-    
-  } else if (!is.na(fitting_data$method2[j]) & !is.na(fitting_data$method3[j])) {  # if timepoint used 3 immunoassays
-    
-    se_method1 <- assays$se [ which(fitting_data$method [j] == assays$method) ]  #se of first immunoassay
-    se_method2 <- assays$se [ which(fitting_data$method2[j] == assays$method) ]  #se of second immunoassay
-    se_method3 <- assays$se [ which(fitting_data$method3[j] == assays$method) ]  #se of third immunoassay
-    
-    sp_method1 <- assays$sp [ which(fitting_data$method [j] == assays$method) ]  #sp of first immunoassay
-    sp_method2 <- assays$sp [ which(fitting_data$method2[j] == assays$method) ]  #sp of second immunoassay
-    sp_method3 <- assays$sp [ which(fitting_data$method3[j] == assays$method) ]  #sp of third immunoassay
-    
-    pars$se <- weighted.mean(x = c(se_method1, se_method2, se_method3), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j], fitting_data$prop_method3[j])) #weighted mean se
-    pars$sp <- weighted.mean(x = c(sp_method1, sp_method2, sp_method3), w = c(fitting_data$prop_method1[j], fitting_data$prop_method2[j], fitting_data$prop_method3[j])) #weighted mean sp
-    
-  }
-  
-  
-  tp[j] <- (fitting_data$prev[j] + (pars$sp - 1)) / (pars$sp + (pars$se - 1))
-  
-  
+  tp[j] <- (fitting_data$prev[j] + (diagnostic_values$sp[j] - 1)) / (diagnostic_values$sp[j] + (diagnostic_values$se[j] - 1))
 }
+
 
 ############################################################
 ## Calculate 95% CIs for data adjusted to true prevalence ##
@@ -205,13 +153,37 @@ prev_fit[[which(countries == pars$country)]] <-
 
 ## Prevalence, past & forecasting ##
 # time points across which foi is declining
-timepoints <- (pars$burnin - (round(max(exp(post$post.tdecline)), 0))) : max(time)
+timepoints <- (pars$burnin - (round(max(post$tau), 0))) : max(time)
 
 # equivalent years
-years <- (min(fitting_data$year) - (round(max(exp(post$post.tdecline)), 0))) : (max(fitting_data$year)+pars$years_forecast)
+years <- (min(fitting_data$year) - (round(max(post$tau), 0))) : (max(fitting_data$year)+pars$years_forecast)
 
-# period from beginning of foi decrease to final data timepoint
-sampling_period <- (min(fitting_data$year) - round(exp(pars$log.tdecline), 0)) : max(fitting_data$year)
+
+##############################################################################################
+## ! IN PROGRESS ! : MAKE CODE THAT DEFINES TIMEPOINTS MORE INTUITIVELY
+
+## This works -- now need to change whole script to use this and check results/plots vs old ones
+# 
+# # Define years wanted for plotting
+# years         <- 1980:2030
+# 
+# # Calculate equivalent model timepoints
+# min_timepoint <- pars$burnin + min(years) - min(fitting_data$year)
+# timepoints    <- min_timepoint: (min_timepoint + (max(years) - min(years)))
+# 
+# 
+# # Equivalent model timepoints
+# timepoints <- (pars$burnin - (min(fitting_data$year) - min(years))) : 
+#   (pars$burnin - (min(fitting_data$year) - min(years)) + (max(years) - min(years)))
+# 
+# 
+# test <- data.frame(
+#   time = years,
+#   mod_prev     = prev_med[timepoints]  ,  #modelled median prevalence (%)
+#   mod_prev_low = prev_lower[timepoints], #modelled prevalence lower interval (%)
+#   mod_prev_up  = prev_upper[timepoints]   #modelled prevalence upper interval (%)
+# )
+##############################################################################################
 
 ## Create df for model estimates
 # make list to store model output from different countries
