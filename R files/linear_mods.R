@@ -29,10 +29,10 @@ df$prev <- df$k/df$n
 df$yrstd <- (df$year-mean(df$year))/sd(df$year)  #intercept where year is avg year rather than =0
 
 ## complex model (country as random intercept + random gradient)
-m0 <- lmer(prev~yrstd+(yrstd|country), data=df)
+m0 <- lmer(prev~yrstd+(yrstd|country),weights=n/(I(max(n))), data=df) #Martin's LME
 
 ## simple model (country as random intercept but not random gradient)
-m1<-lmer(prev~yrstd+(1|country), data=df)
+m1 <- lmer(prev~yrstd+(1|country),weights=n/(I(max(n))), data=df)
 
 ## compare complex vs. simple model
 anova(m0, m1) #no evidence to support the more complex model
@@ -42,9 +42,10 @@ mean(df$year_published) - mean(df$year)
 t.test(df$year_published, df$year, paired=T)
 
 ## estimate annual declines in seroprevalence (model with un-standardised year)
-m1       <- lmer(prev~year+(1|country), data=df)
+m1 <-  lmer(prev~year+(1|country),weights=n/(I(max(n))), data=df)
+
+# Fitted values
 df$yfit1 <- fitted(m1)
-confint(m1)  #95% CIs around estimate
 
 ## Plot fit of simpler linear model to the data ##
 # rename Iran to have shorter name for plotting
