@@ -44,6 +44,9 @@ t.test(df$year_published, df$year, paired=T)
 ## estimate annual declines in seroprevalence (model with un-standardised year)
 m1 <-  lmer(prev~year+(1|country),weights=n/(I(max(n))), data=df)
 
+## Calculate 95% CIs for annual seroprevalence decline (%)
+confint(m1, method="Wald", parm = "year")*100 
+
 # Fitted values
 df$yfit1 <- fitted(m1)
 
