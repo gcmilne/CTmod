@@ -12,6 +12,16 @@ library(RColorBrewer)
 library(purrr)
 library(RColorBrewer)
 
+#########################
+# Set working directory #
+#########################
+cluster <- "none"
+
+################
+# Load scripts #
+################
+source("R files/setparms.R")
+
 #############
 # Load data #
 #############
@@ -46,8 +56,9 @@ income_status <- list("high" = c("Italy", "Saudi Arabia", "United Kingdom"),
 min_year <- 1980 #Minimum year to display modelled estimates from
 max_year <- 2030 #Maximum year to display modelled estimates until
 
+################
 ## Prevalence ##
-
+################
 # make list to store all plots from different countries
 if (!exists("prev_allyears")) {  #only create if list not in existence
   prev_allyears <- vector("list", length=length(countries))
@@ -100,11 +111,32 @@ for (i in 1:length(countries)) {
                                           size = 2, linetype = "solid"))
 }
 
+## Create plot with median incidence lines from all countries
+prev.df           <- do.call(rbind.data.frame, prev_all)
+no_rows         <- as.numeric(lapply(prev_all, nrow))
+prev.df$country <- rep(as.character(countries), no_rows)
+prev.df         <- prev.df[c("time", "mod_prev", "country")]
+
+# plot
+p <- ggplot(
+  data=prev.df, aes(x=time, y=mod_prev, group=country)) + 
+  ggtitle("All countries") + 
+  geom_line(aes(y=mod_prev), size=.3) +  #Overall CT cases
+  labs(x="Year", y="Seroprevalence (%)") + 
+  scale_x_continuous(expand = c(0,0), limits = c(min_year, max_year), breaks = c(min_year, 2005, max_year)) + 
+  scale_y_continuous(expand = c(0,0), limits = c(0,100)) +
+  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+  theme(legend.position = "none") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm"))
+
 ## Plot & save multipanel prevalence plot
-wrap_plots(prev_allyears, nrow=4, ncol=3) + 
-  plot_annotation(
-    tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
-                        '(g)', '(h)', '(i)', '(j)', '(k)')))
+prev_allyears[[12]] <- p
+
+wrap_plots(prev_allyears, nrow=4, ncol=3) &  
+  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)',
+                                      '(g)', '(h)', '(i)', '(j)', '(k)', '(l)')))
 
 #PDF
 ggsave(filename = "plots/prev_multipanel.pdf",
@@ -114,8 +146,10 @@ ggsave(filename = "plots/prev_multipanel.pdf",
 ggsave(filename = "plots/prev_multipanel.png",
        dpi=600, height = 8, width = 8, units = "in")
 
-## CT incidence ##
 
+##################
+## CT incidence ##
+##################
 # make list to store all plots from different countries
 if (!exists("ct_allyears")) {  #only create if list not in existence
   ct_allyears <- vector("list", length=length(countries))
@@ -146,7 +180,7 @@ for (i in 1:length(countries)) {
       annotate("rect", xmin=min(prev_fit[[i]]$time), xmax=max(prev_fit[[i]]$time), #years with data
                ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
       xlab("Year") + 
-      ylab("Incidence per 10 000 live births") + 
+      ylab("Incidence") + #per 10,000 live births
       scale_x_continuous(expand = c(0,0), limits = c(min_year, max_year), breaks = c(min_year, 2005, max_year)) + 
       scale_y_continuous(expand = c(0,0), n.breaks = 5) + 
       theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
@@ -171,7 +205,7 @@ for (i in 1:length(countries)) {
       annotate("rect", xmin=min(prev_fit[[i]]$time), xmax=max(prev_fit[[i]]$time), #years with data
                ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
       xlab("Year") + 
-      ylab("Incidence per 10 000 live births") + 
+      ylab("Incidence") + #per 10,000 live births
       scale_x_continuous(expand = c(0,0), limits = c(min_year, max_year), breaks = c(min_year, 2005, max_year)) + 
       scale_y_continuous(limits=y_limits, expand = c(0,0), n.breaks = 5) + 
       theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
@@ -235,11 +269,23 @@ for(i in 1:length(countries)){
     xmin_val[i] <- min_year + 2
     xmax_val[i] <- min_year + (max_year - min_year)/2 + 2
     
-  } else if (countries[i] ==  "Cameroon" | countries[i] ==  "Ethiopia"){
+  } else if (countries[i] ==  "Cameroon"){
     ymin_val[i] <- 4
     ymax_val[i] <- 61
     xmin_val[i] <- max_year - (max_year - min_year)/2 - 6
     xmax_val[i] <- max_year - 6
+    
+  } else if (countries[i] ==  "Ethiopia"){
+    ymin_val[i] <- 4
+    ymax_val[i] <- 72
+    xmin_val[i] <- max_year - (max_year - min_year)/2 - 6
+    xmax_val[i] <- max_year - 6
+    
+  } else if (countries[i] ==  "Saudi Arabia"){
+    ymin_val[i] <- 4
+    ymax_val[i] <- 60
+    xmin_val[i] <- min_year + 2
+    xmax_val[i] <- min_year + (max_year - min_year)/2 + 2
     
   } else if (countries[i] ==  "United Kingdom") {
     ymin_val[i] <- 18
@@ -248,9 +294,9 @@ for(i in 1:length(countries)){
     xmax_val[i] <- max_year - 6
     
   } else if (countries[i] != "China" | countries[i] != "Cameroon" | 
-             countries[i] != "Ethiopia" | countries[i] != "United Kingdom") { 
+             countries[i] != "Ethiopia" |  countries[i] != "Saudi Arabia" | countries[i] != "United Kingdom") { 
     ymin_val[i] <- 5
-    ymax_val[i] <- min(ct_all[[i]]$ct_rel_low[which(years == min_year):which(years == 2007)]) * 0.90
+    ymax_val[i] <- min(ct_all[[i]]$ct_rel_low[which(ct_all[[i]]$time == min_year):which(ct_all[[i]]$time == 2007)]) * 0.90
     xmin_val[i] <- min_year + 2
     xmax_val[i] <- min_year + (max_year - min_year)/2 + 2
     
@@ -267,14 +313,36 @@ for(i in 1:length(countries)){
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 }
 
-## Plot & save CT incidence estimates, with inset graph
-wrap_plots(ct_combo, nrow=4, ncol=3) & 
-  ylab("Incidence") &  
-  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
-                                      '(g)', '(h)', '(i)', '(j)', '(k)')))
+## Create plot with median incidence lines from all countries
+ct.df           <- do.call(rbind.data.frame, ct_all)
+no_rows         <- as.numeric(lapply(ct_all, nrow))
+ct.df$country <- rep(as.character(countries), no_rows)
+ct.df         <- ct.df[c("time", "ct_rel", "country")]
 
-ggsave(filename = "plots/ct_sequelae_multipanel.pdf",
+# plot
+p <- ggplot(
+  data=ct.df, aes(x=time, y=ct_rel, group=country)) + 
+  ggtitle("All countries") + 
+  geom_line(aes(y=ct_rel), size=.3) +  #Overall CT cases
+  xlab("Year") + 
+  ylab("Incidence") + 
+  scale_x_continuous(expand = c(0,0), limits = c(min_year, max_year), breaks = c(min_year, 2005, max_year)) + 
+  scale_y_continuous(expand = c(0,0), limits = c(0, 150), n.breaks = 5) + 
+  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+  theme(legend.position = "none") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm"))
+
+## Plot & save CT incidence estimates, with inset graph
+ct_combo[[12]] <- p
+
+wrap_plots(ct_combo, nrow=4, ncol=3) &  
+  plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)',
+                                      '(g)', '(h)', '(i)', '(j)', '(k)', '(l)')))
+
+ggsave(filename = "plots/ct_multipanel.pdf",
        device = cairo_pdf, height = 8, width = 8, units = "in")
 
-ggsave(filename = "plots/ct_sequelae_multipanel.png",
+ggsave(filename = "plots/ct_multipanel.png",
        height = 8, width = 8, units = "in", dpi=600)
