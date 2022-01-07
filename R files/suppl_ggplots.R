@@ -11,6 +11,11 @@ library(RColorBrewer)
 library(patchwork)
 library(deSolve)
 
+###########################
+## Set working directory ##
+###########################
+cluster <- "none"
+
 ##################
 ## Load scripts ##
 ##################
@@ -220,8 +225,8 @@ ggsave(filename = "plots/pop_size.pdf",
 #######################
 ## FoI profile plots ##
 #######################
-FoI_plots  <- vector("list", length=length(countries))
-foi_recent <- vector("list", length=length(foi)) #list to store recent foi changes (1980-2030)
+foi_plots  <- foi_df <- vector("list", length=length(countries))
+foi_recent <- vector("list", length=600) #list to store recent foi changes (1980-2030)
 country_names    <- levels(countries)
 country_names[7] <- "Iran"
 min_year <- 1980
@@ -301,15 +306,13 @@ for(k in 1:length(countries)){
   
   foi_df[[k]] <- data.frame(
     "year"  = rep(years [ which(years == 1980) : which(years == 2030) ], length(lambda0_vec)), 
-    "foi"   = unlist(foi_recent), 
+    "foi"   = unlist(foi_recent),
     "group" = rep(1:600, each=length(1980:2030))
   )
   
-  FoI_plots[[k]] <- ggplot(data=foi_df[[k]], aes(year, foi, group=group)) + 
+  foi_plots[[k]] <- ggplot(data=foi_df[[k]], aes(year, foi, group=group)) + 
     ggtitle(country_names[k]) + 
     geom_line(alpha=0.05) +
-    # annotate("rect", xmin=min(fitting_data$year), xmax=max(fitting_data$year), #years with data
-    #          ymin=0, ymax=Inf, alpha=0.3, fill=ribbonColour[1]) +
     xlab("Year") + 
     ylab(expression(lambda(t))) + 
     scale_x_continuous(expand = c(0,0), breaks = c(min_year, 2005, max_year)) + 
@@ -321,11 +324,40 @@ for(k in 1:length(countries)){
   
 }
 
+
+## Calculate mean FoI profile for each country & plot on one graph
+med_foi <- rep(list(setNames(data.frame(matrix(ncol=2, nrow=length(1980:2030))), c("year", "foi"))), length(countries))
+
+for(i in 1:length(countries)){  #each country
+  for(j in 1:length(1980:2030)){
+    med_foi[[i]]$foi[j] <- median(foi_df[[i]]$foi[which(foi_df[[i]]$year == 1979+j)])
+  }
+  med_foi[[i]]$year <- 1980:2030
+}
+
+## transform list into dataframe
+med_foi <- do.call(rbind.data.frame, med_foi)
+med_foi$country <- rep(countries, each=length(1980:2030))
+
+p <- ggplot(data=med_foi, aes(year, foi, group=country)) + 
+  ggtitle("All countries") + 
+  geom_line(alpha=0.05) +
+  xlab("Year") + 
+  ylab(expression(lambda(t))) + 
+  scale_x_continuous(expand = c(0,0), breaks = c(min_year, 2005, max_year)) + 
+  scale_y_continuous(expand = c(0,0), n.breaks = 3) +
+  theme(plot.margin=unit(c(rep(.5,4)),"cm")) + 
+  theme_light(base_size = 12, base_line_size = 0, base_family = "Times") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  theme(plot.margin=grid::unit(c(0, 0.5, 0, 0),"cm"))
+
 ## Plot & save multipanel FoI plot
-wrap_plots(FoI_plots, nrow=4, ncol=3) + 
+foi_plots[[12]] <- p 
+
+wrap_plots(foi_plots, nrow=4, ncol=3) + 
   plot_annotation(
     tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)', 
-                        '(g)', '(h)', '(i)', '(j)', '(k)')))
+                        '(g)', '(h)', '(i)', '(j)', '(k)', '(l)')))
 
 #PDF
 ggsave(filename = "plots/foi_multipanel.pdf",
@@ -334,6 +366,7 @@ ggsave(filename = "plots/foi_multipanel.pdf",
 #PNG
 ggsave(filename = "plots/foi_multipanel.png",
        dpi=600, height = 8, width = 8, units = "in")
+
 
 ############################################################
 ## Linear regression of publication year on sampling year ##
