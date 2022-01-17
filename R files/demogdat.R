@@ -58,16 +58,3 @@ prop_fert_age <- rep(0,length=length(index))
 prop_fert_age[index] <- tmpdf[,year]/100
 age_fert <- age_pop
 rm(index, age_pop_cat, age_fert_cat)
-
-tmpdf <- subset(tfr, name==country)
-fert_tot <- tmpdf[,year] # total fertility rate (births per woman)
-
-pop_f <- pop_f[-length(pop_f)]
-## per female birth rate by age
-births_age <- fert_tot*prop_fert_age*pop_f/(5*pop_f) ## 5 is becuase TFR is defined in terms of 5-year windows
-
-## 4. sex ratio
-pf <- pop_f/(pop_m[-length(pop_m)]+pop_f)
-
-rm(pop_f, pop_m, fert_tot)
-
