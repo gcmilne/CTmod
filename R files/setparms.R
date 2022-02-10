@@ -43,13 +43,7 @@ pars$la       <- (pars$amax/pars$agrps)        #no. years in each age group
 pars$da       <-  1/pars$la                    #ageing rate
 pars$age      <- seq(0+pars$la/2, pars$amax-pars$la/2, length.out=pars$agrps)  #age at midpoints of age groups
 pars$r        <- 1/(21/365)  #maternally-derived IgG half life of 3 weeks (Villard et al., 2016. Diagnostic microbiology and infectious disease;84(1):22-33)
-
-if (pars$post_pred == 0) {
-  pars$burnin   <- 750
-  
-} else if (pars$post_pred == 1) {
-  pars$burnin   <- 2000
-}
+pars$burnin   <- 2000
 
 ## Seroprevalence data ##
 if (cluster == "none") { #local

@@ -2,6 +2,11 @@
 ## Calculate temporal change in CT incidence ##
 ###############################################
 
+#########################
+# Set working directory #
+#########################
+cluster <- "none"
+
 ##################
 ## Load scripts ##
 ##################
@@ -84,7 +89,8 @@ for (i in 1:length(countries)) {
     
   }
   
-  
+  # Print change in CT incidence as %
+  print(paste(countries[i], round(ct_change[[i]]$percent_change - 100, 2), sep=", "))
 }
 
 #############################################

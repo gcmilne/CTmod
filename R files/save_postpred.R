@@ -2,6 +2,13 @@
 ## Script to save posterior predictions  ##
 ###########################################
 
+## Does one country at a time (change pars$country in setparms.R)
+
+#########################
+# Set working directory #
+#########################
+cluster <- "none"
+
 #################
 # Load packages #
 #################
@@ -12,6 +19,7 @@ library(binom)
 ################
 source("R files/diagnostics.R")
 source("R files/setparms.R")
+source("R files/funcs.R")
 
 #####################################
 ## Read in  posterior distribution ##
@@ -159,32 +167,6 @@ timepoints <- (pars$burnin - (round(max(post$tau), 0))) : max(time)
 years <- (min(fitting_data$year) - (round(max(post$tau), 0))) : (max(fitting_data$year)+pars$years_forecast)
 
 
-##############################################################################################
-## ! IN PROGRESS ! : MAKE CODE THAT DEFINES TIMEPOINTS MORE INTUITIVELY
-
-## This works -- now need to change whole script to use this and check results/plots vs old ones
-# 
-# # Define years wanted for plotting
-# years         <- 1980:2030
-# 
-# # Calculate equivalent model timepoints
-# min_timepoint <- pars$burnin + min(years) - min(fitting_data$year)
-# timepoints    <- min_timepoint: (min_timepoint + (max(years) - min(years)))
-# 
-# 
-# # Equivalent model timepoints
-# timepoints <- (pars$burnin - (min(fitting_data$year) - min(years))) : 
-#   (pars$burnin - (min(fitting_data$year) - min(years)) + (max(years) - min(years)))
-# 
-# 
-# test <- data.frame(
-#   time = years,
-#   mod_prev     = prev_med[timepoints]  ,  #modelled median prevalence (%)
-#   mod_prev_low = prev_lower[timepoints], #modelled prevalence lower interval (%)
-#   mod_prev_up  = prev_upper[timepoints]   #modelled prevalence upper interval (%)
-# )
-##############################################################################################
-
 ## Create df for model estimates
 # make list to store model output from different countries
 if (!exists("prev_all")) {  #only create if list not in existence
@@ -222,10 +204,10 @@ ct_rel_up  <- ct_upper / (births / 10000)
 if (pars$forecast == 1){
   
   # time points across which foi is declining
-  timepoints <- (pars$burnin - (round(max(exp(post$post.tdecline)), 0))-10) : max(time)
+  timepoints <- (pars$burnin - (round(max(post$tau), 0))-10) : max(time)
   
   # equivalent years
-  years <- (min(fitting_data$year) - (round(max(exp(post$post.tdecline)), 0))-10) : (max(fitting_data$year)+pars$years_forecast)
+  years <- (min(fitting_data$year) - (round(max(post$tau), 0))-10) : (max(fitting_data$year)+pars$years_forecast)
   
   # Create df
   if (!exists("ct_all")) {  #only create if list not in existence

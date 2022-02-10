@@ -11,7 +11,7 @@ if (cluster == "RVC") {
   setwd("/storage/users/gmilne/test")  #cluster (RVC)
   
 } else if (cluster == "UCL") { 
-  setwd("/lustre/scratch/scratch/ucbtgmi")        #cluster (UCL)
+  setwd("/lustre/scratch/scratch/ucbtgmi")  #cluster (UCL)
   
 } else if (cluster == "none") { 
   setwd("~/GitHub/toxCTmod")  #local

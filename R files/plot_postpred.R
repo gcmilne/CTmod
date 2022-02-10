@@ -10,7 +10,6 @@ library(binom)
 library(patchwork)
 library(RColorBrewer)
 library(purrr)
-library(RColorBrewer)
 
 #########################
 # Set working directory #
