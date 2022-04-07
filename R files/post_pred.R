@@ -5,7 +5,7 @@
 #######################
 #### Set directory ####
 #######################
-cluster <- "none"
+cluster <- "UCL"
 
 if (cluster == "RVC") {
   setwd("/storage/users/gmilne/test")  #cluster (RVC)
@@ -14,7 +14,7 @@ if (cluster == "RVC") {
   setwd("/lustre/scratch/scratch/ucbtgmi")  #cluster (UCL)
   
 } else if (cluster == "none") { 
-  setwd("~/GitHub/toxCTmod")  #local
+  setwd("~/GitHub/toxCTmod")  #local (for testing the algorithm)
   
 }
 
@@ -34,7 +34,9 @@ set.seed(SEED)
 ##################
 ## Load scripts ##
 ##################
-## NB: Make sure pars$country set to chosen country in setparms.R
+# !! NB: Make sure pars$country set to chosen country in setparms.R !! #
+# !! NB: Make sure pars$postpred set to 1 in setparms.R !! #
+
 if (cluster == "none") { #local
   source("R files/setparms.R")
   source("R files/diagnostics.R")

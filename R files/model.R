@@ -7,10 +7,13 @@ age_si = function(time, y, pars) {
   tau     <- round(exp(pars$log.tau), 0)
   
   ## set up state variables from input
+  # Seronegative (susceptible)
   S <- y[ 1:pars$agrps ]
-  # Infected - either born with congenital disease (seroconversion during pregnancy) or via FoI
+  
+  # Seropositive (infected) - either born with congenital disease (seroconversion during pregnancy) or via FoI
   I <- y[ (pars$agrps + 1) : (2 * pars$agrps) ]
-  # Carrier of maternal antibodies at birth b/c of seroconversion in pregnancy but not congenitally diseased
+  
+  # Transiently seropositive from passive transfer of maternal antibodies (not congenitally diseased)
   Im <- y[ (2 * pars$agrps + 1) : (3 * pars$agrps) ]
   
   # set derivatives
@@ -204,7 +207,7 @@ age_si = function(time, y, pars) {
     
   }
     
-  } else if (pars$grps_per_year == 12/9) { #Overall (when age groups = 9 months)
+  } else if (pars$grps_per_year == 12/9) { #for all trimesters combined (when age groups = 9 months)
     for (i in 1:(pars$agrps-1)) {
       
       c_dist[i] <- births_age[i+1] 
@@ -266,10 +269,10 @@ age_si = function(time, y, pars) {
         
       } else {
         
-        dprev[i]     <- pI[i] - pI[i-1]              # change in prevalence (must be positive)
-        seroconv1[i] <- dprev[i] * c_dist[i]         # pregnant women seroconverting
-        ct[i+1]     <- seroconv1[i] * pars$mctr      # likelihood of transmission
-        matAb[i+1]  <- seroconv1[i] * (1-pars$mctr)  # maternal Ab
+        dprev[i]     <- pI[i] - pI[i-1]               # change in prevalence (must be positive)
+        seroconv1[i] <- dprev[i] * c_dist[i]          # pregnant women seroconverting
+        ct[i+1]      <- seroconv1[i] * pars$mctr      # likelihood of transmission
+        matAb[i+1]   <- seroconv1[i] * (1-pars$mctr)  # maternal Ab
         
       }
       
@@ -300,21 +303,16 @@ age_si = function(time, y, pars) {
       
       if (i==1) {
         
-        # susceptible - born seronegative or having lost maternal antibodies, no previous exposure
         dS[i]  <-  (births - matAbt - ctt) + pars$r*Im[i] - foi*S[i] - pars$d[i]*S[i] - pars$da*S[i]
-        
-        # infected - either congenitally or by foi
-        dI[i]  <- (ctt + foi*(Na[i]-I[i]) - pars$d[i]*I[i] - pars$da*I[i])
-        
-        # maternal antibody positive 
-        dIm[i] <- matAbt - (foi+ pars$r+ pars$d[i] + pars$da)*Im[i]
+        dI[i]  <- (ctt + foi*S[i] - pars$d[i]*I[i] - pars$da*I[i])
+        dIm[i] <- matAbt - (pars$r + pars$d[i] + pars$da)*Im[i]
         
 
       } else if (i > 1) {
 
         dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi*S[i] - pars$d[i]*S[i] - pars$da*S[i]
-        dI[i]  <- pars$da*I[i-1]  + foi*(Na[i] - I[i]) - pars$d[i] * I[i] - pars$da*I[i]
-        dIm[i] <- pars$da*Im[i-1] - (foi + pars$r + pars$d[i] + pars$da) * Im[i]
+        dI[i]  <- pars$da*I[i-1]  + foi*S[i] - pars$d[i]*I[i] - pars$da*I[i]
+        dIm[i] <- pars$da*Im[i-1] - (pars$r + pars$d[i] + pars$da)*Im[i]
 
       }
 
@@ -328,20 +326,15 @@ age_si = function(time, y, pars) {
       
       if (i==1) {
         
-        # susceptible - born seronegative or having lost maternal antibodies, no previous exposure
         dS[i]  <-  (births - matAbt - ctt) + pars$r*Im[i] - foi[i]*S[i] - pars$d[i]*S[i] - pars$da*S[i]
-        
-        # infected - either congenitally or by foi
-        dI[i]  <- (ctt + foi[i]*(Na[i]-I[i]) - pars$d[i]*I[i] - pars$da*I[i])
-        
-        # maternal antibody positive
-        dIm[i] <- matAbt - (foi[i]+ pars$r+ pars$d[i] + pars$da)*Im[i]
+        dI[i]  <- (ctt + foi[i]*S[i] - pars$d[i]*I[i] - pars$da*I[i])
+        dIm[i] <- matAbt - (pars$r + pars$d[i] + pars$da)*Im[i]
         
       } else if (i <= pars$agrps) {
         
         dS[i]  <- pars$da*S[i-1]  + pars$r*Im[i] - foi[i]*S[i] - pars$d[i]*S[i] - pars$da*S[i]
-        dI[i]  <- pars$da*I[i-1]  + foi[i]*(Na[i] - I[i]) - pars$d[i] * I[i] - pars$da*I[i]
-        dIm[i] <- pars$da*Im[i-1] - (foi[i] + pars$r + pars$d[i] + pars$da) * Im[i]
+        dI[i]  <- pars$da*I[i-1]  + foi[i]*S[i] - pars$d[i] * I[i] - pars$da*I[i]
+        dIm[i] <- pars$da*Im[i-1] - (pars$r + pars$d[i] + pars$da)*Im[i]
         
       }
     }

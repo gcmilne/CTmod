@@ -14,7 +14,7 @@ library(purrr)
 #########################
 # Set working directory #
 #########################
-cluster <- "none"
+cluster <- "none"  #use local environment
 
 ################
 # Load scripts #
@@ -137,13 +137,14 @@ wrap_plots(prev_allyears, nrow=4, ncol=3) &
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)',
                                       '(g)', '(h)', '(i)', '(j)', '(k)', '(l)')))
 
+## Save plots (uncomment to run)
 #PDF
-ggsave(filename = "plots/prev_multipanel.pdf",
-       device = cairo_pdf, height = 8, width = 8, units = "in")
+# ggsave(filename = "plots/prev_multipanel.pdf",
+#        device = cairo_pdf, height = 8, width = 8, units = "in")
 
 # PNG
-ggsave(filename = "plots/prev_multipanel.png",
-       dpi=600, height = 8, width = 8, units = "in")
+# ggsave(filename = "plots/prev_multipanel.png",
+#        dpi=600, height = 8, width = 8, units = "in")
 
 
 ##################
@@ -340,8 +341,11 @@ wrap_plots(ct_combo, nrow=4, ncol=3) &
   plot_annotation(tag_levels = list(c('(a)', '(b)', '(c)', '(d)', '(e)', '(f)',
                                       '(g)', '(h)', '(i)', '(j)', '(k)', '(l)')))
 
+## Save plots (uncomment to run)
+# PDF
 ggsave(filename = "plots/ct_multipanel.pdf",
        device = cairo_pdf, height = 8, width = 8, units = "in")
 
+# PNG
 ggsave(filename = "plots/ct_multipanel.png",
        height = 8, width = 8, units = "in", dpi=600)

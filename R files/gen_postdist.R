@@ -209,14 +209,14 @@ for (j in 1:length(countries)) {
 
 # post <- vector("list", length=length(countries))
 # for(j in 1:length(countries)){
-#   
+# 
 #   pars$country <- countries[j]
-#   
-#   post[[j]] <- data.frame(lambda = exp(post.lambda[[j]]), beta = exp(post.beta[[j]]), 
-#                           tau = exp(post.tau[[j]]))
-#   
-#   saveRDS(post[[j]], file = paste("posteriors/", pars$country, "/", 
-#                                   "posteriors_", pars$country, "_t", pars$temporal_foi, 
+# 
+#   post[[j]] <- data.frame(lambda = post.lambda[[j]], beta = post.beta[[j]],
+#                           tau = post.tau[[j]])
+# 
+#   saveRDS(post[[j]], file = paste("posteriors/", pars$country, "/",
+#                                   "posteriors_", pars$country, "_t", pars$temporal_foi,
 #                                   "_", "a", pars$age_foi, ".RDS", sep=""))
 # }
 
