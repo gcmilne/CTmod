@@ -30,6 +30,9 @@ if (cluster == "RVC") {
 ##################
 ## Load scripts ##
 ##################
+
+# !! NB change pars$post_pred to 0 (in setparms.R) before fitting !! #
+
 if (cluster == "none") { #local
   source("R files/setparms.R")
   source("R files/diagnostics.R")
@@ -65,6 +68,10 @@ if (cluster == "UCL") {
 } else if (cluster == "RVC") {
   niter <- 68                   # no. jobs to submit
   tot_iter <- 60000             # total number of samples to run
+
+} else if (cluster == "none") { ## for testing fitting algorithm
+  niter <- 1                   
+  tot_iter <- 1            
 
 }
 

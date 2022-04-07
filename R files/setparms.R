@@ -8,7 +8,7 @@ pars  <- list(log.lambda0 = log(0.02),  #baseline force of infetion (FoI)
               log.tau = log(20))        #no. years before 1st datapoint that FoI decline begins
 
 ## Toggle parameters ##
-pars$post_pred     <- 1           #posterior predictions (1) or not? (0)
+pars$post_pred     <- 0           #posterior predictions (1) or not? (0) (!! change when fitting vs. doing posterior predictions !!)
 pars$grps_per_year <- 4           #no. age groups per year of life (options: 4 or 12/9)
 pars$temporal_foi  <- "linear"    #TEMPORAL FoI decline (options: "none", "stepwise" or "linear" )
 pars$age_foi       <- "constant"  #AGE-related FoI change (options: "constant", "half" or "double")
@@ -34,7 +34,7 @@ if (pars$grps_per_year == 4) {        #[for 3-month age groups]
 } else if (pars$grps_per_year == 12/9) {    #[for 9-month age groups]
   amax        <- 60                         #maximum age (in years)
   pars$mctr   <- mean(c(0.15, 0.44, 0.71))  #mother-child transmission rate. SYROCOT 2007. The Lancet 369
-  # pars$burnin <- XX                       #model burn-in period (needs to be set by user)
+  pars$burnin <- 1200                       #model burn-in period
 }
 
 pars$amax     <- amax                          #set maximum age of population
@@ -42,10 +42,10 @@ pars$agrps    <- pars$amax*pars$grps_per_year  #no. age groups
 pars$la       <- (pars$amax/pars$agrps)        #no. years in each age group
 pars$da       <-  1/pars$la                    #ageing rate
 pars$age      <- seq(0+pars$la/2, pars$amax-pars$la/2, length.out=pars$agrps)  #age at midpoints of age groups
-pars$r        <- 1/(21/365)  #maternally-derived IgG half life of 3 weeks (Villard et al., 2016. Diagnostic microbiology and infectious disease;84(1):22-33)
-pars$burnin   <- 2000
+pars$r        <- log(2)/(21/365)  #maternally-derived IgG half life of 21 days (Villard et al., 2016. Diagnostic microbiology and infectious disease;84(1):22-33)
 
 ## Seroprevalence data ##
+# NB: Cluster environment is set in other scripts that call setparms.R
 if (cluster == "none") { #local
   df <- readRDS("data/global_data.rds")
   
