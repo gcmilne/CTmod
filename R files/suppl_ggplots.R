@@ -225,6 +225,9 @@ ggsave(filename = "plots/pop_size.pdf",
 #######################
 ## FoI profile plots ##
 #######################
+# change back to linear FoI change
+pars$temporal_foi  <- "linear"
+
 foi_plots  <- foi_df <- vector("list", length=length(countries))
 foi_recent <- vector("list", length=600) #list to store recent foi changes (1980-2030)
 country_names    <- levels(countries)
@@ -372,7 +375,13 @@ ggsave(filename = "plots/foi_multipanel.png",
 ## Linear regression of publication year on sampling year ##
 ############################################################
 
+## Estimate accuracy of publication year as proxy for sampling year
+t.test(df$year_published, df$year, paired=T)
+
 # Make colours
+# create custom color scale
+myColors        <- brewer.pal(11,"PuOr")
+myColors[6]     <- brewer.pal(11,"PRGn")[5]   #make pale colour bolder
 names(myColors) <- levels(df$country)
 colScale <- scale_colour_manual(name = "plotcols",values = myColors)
 

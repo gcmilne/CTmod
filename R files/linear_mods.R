@@ -76,10 +76,6 @@ m1 <- lmer(tp~yrstd+(1|country),weights=n/(I(max(n))), data=df)
 ## compare complex vs. simple model
 anova(m0, m1) #no evidence to support the more complex model
 
-## estimate accuracy of publication year as proxy for sampling year
-mean(df$year_published) - mean(df$year)
-t.test(df$year_published, df$year, paired=T)
-
 ## estimate annual declines in seroprevalence (simple model with un-standardised year)
 m1 <-  lmer(tp~year+(1|country),weights=n/(I(max(n))), data=df)
 
