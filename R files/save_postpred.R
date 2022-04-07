@@ -7,7 +7,7 @@
 #########################
 # Set working directory #
 #########################
-cluster <- "none"
+cluster <- "none"  #using local environment
 
 #################
 # Load packages #
@@ -17,6 +17,8 @@ library(binom)
 ################
 # Load scripts #
 ################
+# !! NB: Make sure pars$postpred set to 1 in setparms.R !! #
+
 source("R files/diagnostics.R")
 source("R files/setparms.R")
 source("R files/funcs.R")
@@ -161,10 +163,10 @@ prev_fit[[which(countries == pars$country)]] <-
 
 ## Prevalence, past & forecasting ##
 # time points across which foi is declining
-timepoints <- (pars$burnin - (round(max(post$tau), 0))) : max(time)
+timepoints <- (pars$burnin - (round(max(exp(post$tau)), 0))) : max(time)
 
 # equivalent years
-years <- (min(fitting_data$year) - (round(max(post$tau), 0))) : (max(fitting_data$year)+pars$years_forecast)
+years <- (min(fitting_data$year) - (round(max(exp(post$tau)), 0))) : (max(fitting_data$year)+pars$years_forecast)
 
 
 ## Create df for model estimates
@@ -204,10 +206,10 @@ ct_rel_up  <- ct_upper / (births / 10000)
 if (pars$forecast == 1){
   
   # time points across which foi is declining
-  timepoints <- (pars$burnin - (round(max(post$tau), 0))-10) : max(time)
+  timepoints <- (pars$burnin - (round(max(exp(post$tau)), 0))-10) : max(time)
   
   # equivalent years
-  years <- (min(fitting_data$year) - (round(max(post$tau), 0))-10) : (max(fitting_data$year)+pars$years_forecast)
+  years <- (min(fitting_data$year) - (round(max(exp(post$tau)), 0))-10) : (max(fitting_data$year)+pars$years_forecast)
   
   # Create df
   if (!exists("ct_all")) {  #only create if list not in existence
