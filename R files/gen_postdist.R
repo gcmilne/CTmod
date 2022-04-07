@@ -2,6 +2,12 @@
 ## Generate, save and plot posterior distributions ##
 #####################################################
 
+###################
+## Set directory ##
+###################
+# Set working directory to local environment
+cluster <- "none" 
+
 ##################
 ## Load scripts ##
 ##################
@@ -20,9 +26,9 @@ library(Cairo)
 library(patchwork)
 library(RColorBrewer)
 
-################################################
-## Read in parameter sets & likelihood values ##
-################################################
+##################################################################################
+## Read in parameter sets & likelihood values, generate posterior distributions ##
+##################################################################################
 niter <- 1000
 nsim  <- 60
 npars <- 3
@@ -198,18 +204,21 @@ for (j in 1:length(countries)) {
 #####################################
 ## SAVE the posterior distribution ##
 #####################################
-post <- vector("list", length=length(countries))
-for(j in 1:length(countries)){
-  
-  pars$country <- countries[j]
-  
-  post[[j]] <- data.frame(lambda = exp(post.lambda[[j]]), beta = exp(post.beta[[j]]), 
-                          tau = exp(post.tau[[j]]))
-  
-  saveRDS(post[[j]], file = paste("posteriors/", pars$country, "/", 
-                                  "posteriors_", pars$country, "_t", pars$temporal_foi, 
-                                  "_", "a", pars$age_foi, ".RDS", sep=""))
-}
+
+## Uncomment & run the below if not already in directory
+
+# post <- vector("list", length=length(countries))
+# for(j in 1:length(countries)){
+#   
+#   pars$country <- countries[j]
+#   
+#   post[[j]] <- data.frame(lambda = exp(post.lambda[[j]]), beta = exp(post.beta[[j]]), 
+#                           tau = exp(post.tau[[j]]))
+#   
+#   saveRDS(post[[j]], file = paste("posteriors/", pars$country, "/", 
+#                                   "posteriors_", pars$country, "_t", pars$temporal_foi, 
+#                                   "_", "a", pars$age_foi, ".RDS", sep=""))
+# }
 
 
 #############################################################################
@@ -239,26 +248,26 @@ multipanel_tau <- wrap_plots(plot_tau, nrow=4, ncol=3) +
   theme(plot.margin=unit(c(rep(0.2,4)),"cm")) & 
   scale_y_continuous(n.breaks = 4)
 
-#Save
+#Save (uncomment & run)
 # PDF
-ggsave(multipanel_lambda, filename = "plots/lambda_multipanel.pdf",
-       device = cairo_pdf, height = 8, width = 8, units = "in")
+# ggsave(multipanel_lambda, filename = "plots/lambda_multipanel.pdf",
+#        device = cairo_pdf, height = 8, width = 8, units = "in")
 
-ggsave(multipanel_beta, filename = "plots/beta_multipanel.pdf",
-       device = cairo_pdf, height = 8, width = 8, units = "in")
+# ggsave(multipanel_beta, filename = "plots/beta_multipanel.pdf",
+#        device = cairo_pdf, height = 8, width = 8, units = "in")
 
-ggsave(multipanel_tau, filename = "plots/tau_multipanel.pdf",
-       device = cairo_pdf, height = 8, width = 8, units = "in")
+# ggsave(multipanel_tau, filename = "plots/tau_multipanel.pdf",
+#        device = cairo_pdf, height = 8, width = 8, units = "in")
 
 # PNG
-ggsave(multipanel_lambda, filename = "plots/lambda_multipanel.png",
-       dpi=600, height = 8, width = 8, units = "in")
+# ggsave(multipanel_lambda, filename = "plots/lambda_multipanel.png",
+#        dpi=600, height = 8, width = 8, units = "in")
 
-ggsave(multipanel_beta, filename = "plots/beta_multipanel.png",
-       dpi=600, height = 8, width = 8, units = "in")
+# ggsave(multipanel_beta, filename = "plots/beta_multipanel.png",
+#        dpi=600, height = 8, width = 8, units = "in")
 
-ggsave(multipanel_tau, filename = "plots/tau_multipanel.png",
-       dpi=600, height = 8, width = 8, units = "in")
+# ggsave(multipanel_tau, filename = "plots/tau_multipanel.png",
+#        dpi=600, height = 8, width = 8, units = "in")
 
 
 ########################################################################
@@ -353,11 +362,11 @@ ggarrange(plot_dw[[1]], plot_dw[[2]], plot_dw[[3]],
           labels = c("(a)", "(b)", "(c)"), hjust=.05
           )
 
-## Save
+## Save (uncomment & run)
 # PDF
-ggsave(filename = "plots/posteriors_dwplot.pdf",
-       device = cairo_pdf, height = 8, width = 8, units = "in")
+# ggsave(filename = "plots/posteriors_dwplot.pdf",
+#        device = cairo_pdf, height = 8, width = 8, units = "in")
 
 # PNG
-ggsave(filename = "plots/posteriors_dwplot.png",
-       height = 8, width = 8, units = "in", dpi=600)
+# ggsave(filename = "plots/posteriors_dwplot.png",
+#        height = 8, width = 8, units = "in", dpi=600)
