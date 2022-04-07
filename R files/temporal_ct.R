@@ -19,15 +19,12 @@ ct_all   <- readRDS("data/ct_predictions.rds")    #CT incidence estimates
 prev_all <- readRDS("data/prev_predictions.rds")  #Seroprevalence estimates
 prev_fit <- readRDS("data/prev_data.rds")         #Serorevalence data
 
-## Create dataset (from min country-specific year of data sampling to 2030)
+## Create dataset (over specified years)
 ct_past <- vector("list", length=length(countries))
 min_year <- 1980  #minimum year
 max_year <- 2030  #maximum year
 
 for (i in 1:length(ct_past)) {
-  
-  # min_year <- min(prev_fit[[i]]$time)  #country-specific minimum sampling year
-  
   ct_past[[i]]$time   <- ct_all[[i]]$time      [ which(ct_all[[i]]$time == min_year) : which(ct_all[[i]]$time == max_year)]
   ct_past[[i]]$ct     <- ct_all[[i]]$ct_rel    [ which(ct_all[[i]]$time == min_year) : which(ct_all[[i]]$time == max_year)]
   ct_past[[i]]$ct_low <- ct_all[[i]]$ct_rel_low[ which(ct_all[[i]]$time == min_year) : which(ct_all[[i]]$time == max_year)]
@@ -55,20 +52,7 @@ for(i in 1:length(countries)){
   ct_change[[i]]$max_ct_up  <- ct_past[[i]]$ct_up[max_index]     #upper CI
 }
 
-## which countries have increasing CT?
-for(i in 1:length(countries)){
-  
-  if (ct_change[[i]]$max_ct > ct_change[[i]]$baseline) {
-    
-    print(paste("Country: ", countries[i], "; ", 
-                # "Baseline CT incidence: ", round(ct_change[[i]]$baseline, 2), 
-                # "Max CT incidence: ", round(ct_change[[i]]$max_ct, 2), 
-                "Fold-change=", round(ct_change[[i]]$max_ct / ct_change[[i]]$baseline, 1), 
-                sep = ""))
-  }
-}
-
-
+## which countries have increasing CT incidence?
 for (i in 1:length(countries)) {
   
   #if minimum CT incidence is at baseline
@@ -89,8 +73,9 @@ for (i in 1:length(countries)) {
     
   }
   
-  # Print change in CT incidence as %
-  print(paste(countries[i], round(ct_change[[i]]$percent_change - 100, 2), sep=", "))
+  # Print increase in CT incidence as %
+  print(paste(countries[i], ": ", round(ct_change[[i]]$percent_change - 100, 2), "% increase", sep=""))
+  
 }
 
 #############################################
