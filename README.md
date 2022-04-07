@@ -1,4 +1,4 @@
-CTOXmod
+CTmod
 ===================
 
 # Description of model #
