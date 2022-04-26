@@ -85,7 +85,7 @@ confint(m1, method="Wald", parm = "year")*100
 # Fitted values
 df$yfit1 <- fitted(m1)
 
-## Plot fit of simpler linear model to the data ##
+## Plot fit ##
 # rename Iran to have shorter name for plotting
 df$country <- factor(df$country, labels= c(levels(df$country)[1:6], "Iran", levels(df$country)[8:11]))
 
@@ -99,9 +99,10 @@ colScale        <- scale_colour_manual(name = "plotcols",values = myColors)
 df$prev  <- df$tp*100
 df$ci_lo <- df$tp_ci_lo*100
 df$ci_up <- df$tp_ci_up*100
-df$yfit1 <- df$yfit1*100
+df$yfit1 <- df$yfit1*100  #simple mod
+df$yfit0 <- df$yfit0*100  #complex mod
 
-# plot
+# plot simple model
 p1 <- ggplot(data=df, aes(y=yfit1, x=year, colour = country)) +
   geom_line() +
   geom_point(data=df, aes(y=prev, x=year), size=.8) +
