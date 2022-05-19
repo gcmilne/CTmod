@@ -23,7 +23,7 @@ if (cluster == "RVC") {
   setwd("/lustre/scratch/scratch/ucbtgmi")  #cluster (UCL)
   
 } else if (cluster == "none") { 
-  setwd("~/GitHub/toxCTmod")  #local
+  setwd("~/GitHub/CTmod")  #local
   
 }
 
