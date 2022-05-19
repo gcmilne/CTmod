@@ -263,16 +263,16 @@ age_si = function(time, y, pars) {
       if (i==1) {
         
         dprev[i]     <- 0
-        seroconv1[i] <- 0
+        seroconv[i] <- 0
         c_dist[i]    <- 0
         matAb[i]     <- 0
         
       } else {
         
         dprev[i]     <- pI[i] - pI[i-1]               # change in prevalence (must be positive)
-        seroconv1[i] <- dprev[i] * c_dist[i]          # pregnant women seroconverting
-        ct[i+1]      <- seroconv1[i] * pars$mctr      # likelihood of transmission
-        matAb[i+1]   <- seroconv1[i] * (1-pars$mctr)  # maternal Ab
+        seroconv[i] <- dprev[i] * c_dist[i]          # pregnant women seroconverting
+        ct[i+1]      <- seroconv[i] * pars$mctr      # likelihood of transmission
+        matAb[i+1]   <- seroconv[i] * (1-pars$mctr)  # maternal Ab
         
       }
       
