@@ -414,3 +414,77 @@ p1 + colScale +
 # Save plot
 ggsave(filename = "plots/publishing_vs_sampling_year.png", width = 6, height = 6, 
        units = "in", dpi=600, family = "Times")
+
+
+####################################
+## Illustration of effect of beta ##
+####################################
+
+# set FoI-related pars
+pars$log.lambda0 <- log(0.02)
+pars$log.tau     <- log(0)
+beta.vec <- seq(0, 1, 0.2)
+beta.vec <- log(beta.vec)
+foi.list <- vector("list", length=length(beta.vec))  #to store FoI profiles
+
+# set time-related pars
+pars$burnin <- 10
+pars$tdiff  <- 20
+
+# set time to see where FoI is: stable (pre-change), changing, & stable (post-change)
+time <- seq(1, pars$burnin + pars$tdiff, 1)  
+
+## calculate & store FoI
+for (i in 1:length(beta.vec)) {
+  pars$log.beta <- beta.vec[i]
+  sol           <- ode(y=y, times=time, parms=pars, func = age_si) 
+  foi.list[[i]] <- sol[,"foi"]
+}
+
+## plot FoI
+# format data for plotting
+x     <- unlist(foi.list)
+group <- rep(1:6, times = 1, length.out = NA, each = length(foi.list[[1]]))
+df    <- data.frame(t=time, foi=x, group=group)
+
+# make plot
+ggplot(
+  df, aes(x=t, y=foi, group=group)) + 
+  geom_line() + 
+  scale_x_continuous(breaks = c(0, 10, 30), labels = c(0, expression(~n), expression(~n + ~gamma)))+
+  ylab(expression(lambda(t))) +
+  xlab("t") +
+  
+  # annotations for gamma
+  geom_segment(aes(x=10, y=0.0205, xend=30, yend=0.0205), arrow = arrow(length = unit(0.1, "inches")), colour="grey") + 
+  geom_segment(aes(x=30, y=0.0205, xend=10, yend=0.0205), arrow = arrow(length = unit(0.1, "inches")), colour="grey") + 
+  annotate("text", x=20, y=0.0205+0.0005, label=expression(~gamma), angle=0) +
+  
+  # annotations for beta
+  geom_hline(yintercept=exp(pars$log.lambda0), linetype="dotted", color = "black") + 
+  annotate("text", x=5, y=exp(pars$log.lambda0)+0.0005, label=expression(~beta ==1), angle=0) +
+  geom_hline(yintercept=exp(pars$log.lambda0)*0.8, linetype="dotted", color = "black") + 
+  annotate("text", x=5, y=exp(pars$log.lambda0)*0.8+0.0005, label=expression(~beta ==0.8), angle=0) +
+  geom_hline(yintercept=exp(pars$log.lambda0)*0.6, linetype="dotted", color = "black") + 
+  annotate("text", x=5, y=exp(pars$log.lambda0)*0.6+0.0005, label=expression(~beta ==0.6), angle=0) +
+  geom_hline(yintercept=exp(pars$log.lambda0)*0.4, linetype="dotted", color = "black") + 
+  annotate("text", x=5, y=exp(pars$log.lambda0)*0.4+0.0005, label=expression(~beta ==0.4), angle=0) +
+  geom_hline(yintercept=exp(pars$log.lambda0)*0.2, linetype="dotted", color = "black") +
+  annotate("text", x=5, y=exp(pars$log.lambda0)*0.2+0.0005, label=expression(~beta ==0.2), angle=0) +
+  geom_hline(yintercept=exp(pars$log.lambda0)*0, linetype="dotted", color = "black") +
+  annotate("text", x=5, y=exp(pars$log.lambda0)*0+0.0005, label=expression(~beta ==0), angle=0) +
+  
+  #dotted lines for observed data interval
+  geom_vline(xintercept=pars$burnin, linetype="dashed", color = "grey") +
+  geom_vline(xintercept=30, linetype="dashed", color = "grey") +
+  
+  #add themes
+  theme_light(base_size = 12, base_family = "Times") +
+  theme(legend.position = "none", axis.ticks = element_blank(), 
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  theme(plot.margin=unit(c(rep(.5,4)),"cm"))
+
+  
+## Save plot
+ggsave(filename = "plots/beta_explained.png", width = 6, height = 6, 
+       units = "in", dpi=600, family = "Times")
