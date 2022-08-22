@@ -422,13 +422,13 @@ ggsave(filename = "plots/publishing_vs_sampling_year.png", width = 6, height = 6
 
 # set FoI-related pars
 pars$log.lambda0 <- log(0.02)
-pars$log.tau     <- log(0)
+pars$log.tau     <- log(10)
 beta.vec <- seq(0, 1, 0.2)
 beta.vec <- log(beta.vec)
 foi.list <- vector("list", length=length(beta.vec))  #to store FoI profiles
 
 # set time-related pars
-pars$burnin <- 10
+pars$burnin <- 20
 pars$tdiff  <- 20
 
 # set time to see where FoI is: stable (pre-change), changing, & stable (post-change)
@@ -444,21 +444,26 @@ for (i in 1:length(beta.vec)) {
 ## plot FoI
 # format data for plotting
 x     <- unlist(foi.list)
-group <- rep(1:6, times = 1, length.out = NA, each = length(foi.list[[1]]))
+group <- rep(1:length(beta.vec), times = 1, length.out = NA, each = length(foi.list[[1]]))
 df    <- data.frame(t=time, foi=x, group=group)
 
 # make plot
 ggplot(
   df, aes(x=t, y=foi, group=group)) + 
   geom_line() + 
-  scale_x_continuous(breaks = c(0, 10, 30), labels = c(0, expression(~n), expression(~n + ~gamma)))+
+  scale_x_continuous(breaks = c(0, 10, 20, 40), labels = c(0, expression(~Phi), "n", expression(n + ~gamma))) +
   ylab(expression(lambda(t))) +
   xlab("t") +
   
   # annotations for gamma
-  geom_segment(aes(x=10, y=0.0205, xend=30, yend=0.0205), arrow = arrow(length = unit(0.1, "inches")), colour="grey") + 
-  geom_segment(aes(x=30, y=0.0205, xend=10, yend=0.0205), arrow = arrow(length = unit(0.1, "inches")), colour="grey") + 
-  annotate("text", x=20, y=0.0205+0.0005, label=expression(~gamma), angle=0) +
+  # geom_segment(aes(x=20, y=0.0205, xend=40, yend=0.0205), arrow = arrow(length = unit(0.08, "inches")), colour="grey") + 
+  # geom_segment(aes(x=40, y=0.0205, xend=20, yend=0.0205), arrow = arrow(length = unit(0.08, "inches")), colour="grey") + 
+  # annotate("text", x=30, y=0.0205+0.0005, label=expression(~gamma), angle=0) +
+  
+  # annotations for tau
+  geom_segment(aes(x=10, y=0.0205, xend=20, yend=0.0205), arrow = arrow(length = unit(0.08, "inches")), colour="grey") + 
+  geom_segment(aes(x=20, y=0.0205, xend=10, yend=0.0205), arrow = arrow(length = unit(0.08, "inches")), colour="grey") + 
+  annotate("text", x=15, y=0.0205+0.0005, label=expression(~tau), angle=0) +
   
   # annotations for beta
   geom_hline(yintercept=exp(pars$log.lambda0), linetype="dotted", color = "black") + 
@@ -474,9 +479,12 @@ ggplot(
   geom_hline(yintercept=exp(pars$log.lambda0)*0, linetype="dotted", color = "black") +
   annotate("text", x=5, y=exp(pars$log.lambda0)*0+0.0005, label=expression(~beta ==0), angle=0) +
   
-  #dotted lines for observed data interval
+  #burn-in
   geom_vline(xintercept=pars$burnin, linetype="dashed", color = "grey") +
-  geom_vline(xintercept=30, linetype="dashed", color = "grey") +
+  #phi (burn-in minus tau)
+  geom_vline(xintercept=pars$burnin - exp(pars$log.tau), linetype="dashed", color = "grey") +
+  #burn-in + gamma (t of final datapoint)
+  geom_vline(xintercept=pars$burnin + pars$tdiff, linetype="dashed", color = "grey") +
   
   #add themes
   theme_light(base_size = 12, base_family = "Times") +
