@@ -395,7 +395,7 @@ y_x <- c(y_x, rep(NA, 100 - length(y_x))) # make vector same length as other dat
 # Plot
 p1 <- ggplot(data=df, aes(x=year_published, y=year, colour = country)) +
   geom_point() +
-  geom_line(aes(x=year_published, y=mod$fitted.values), col="darkgrey") + #regression line
+  # geom_line(aes(x=year_published, y=mod$fitted.values), col="darkgrey") + #regression line
   geom_line(aes(x=y_x, y=y_x), col="darkgrey", linetype="dashed") + #y=x line
   scale_x_continuous(limits = c(1982, 2020), expand = c(0,0)) + 
   scale_y_continuous(limits = c(1982, 2020), expand = c(0,0)) + 
